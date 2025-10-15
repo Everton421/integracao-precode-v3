@@ -9,16 +9,12 @@ class CONEXAOPUBLICO {
     private string $senha;
     private string $base_publico;
     private int $porta;
-    private string $token;
-
+    
     public function gethost(){
         return $this->host;
     }
     
-    public function getToken(){
-        return $this->token;
-    }
-
+   
     public function getBase(){
         return $this->base_publico;
     }
@@ -36,7 +32,6 @@ class CONEXAOPUBLICO {
             $this->senha = $this->ini['conexao']['senha'];
             $this->base_publico = $this->ini['conexao']['banco_publico'];
             $this->porta = $this->ini['conexao']['porta'];
-            $this->token = $this->ini['conexao']['token'];
             $this->link = new mysqli($this->host . ':' . $this->porta, $this->login, $this->senha, $this->base_publico);
 
             if ($this->link->connect_error) {

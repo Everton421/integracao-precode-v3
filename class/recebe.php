@@ -2,31 +2,39 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');//
-include_once('conexao_publico_rec.php');
-include_once('conexao_estoque_rec.php'); 
-include_once('conexao_vendas_rec.php');
+include(__DIR__.'conexao_publico.php');
+include(__DIR__.'conexao_estoque.php'); 
+include(__DIR__.'conexao_vendas.php');
 
 class recebePrecode{
     public $curl;    	
-  //  public $key = 'a4a08c55ac9a2a0ba2d0b99a6813db35f4a7a45431d1ecab29fbe6f68be5634900cd1203bcfcf1df108a8848650876c4'; //chave token fixa
-    // token syma
-  //public $token = 'Basic dng0c29BenNKek9qSUFHQ0c6';
-  
-    public $tabelaprecopadrao = 4;
+ 
+    public $tabelaprecopadrao = 1 ;
     public $indice; 
+
+    private $token;    
+    private $publico;
+    private $vendas;
+    private $estoque;
    
     public function recebe(){
         $tentativas = 0;
 		try {
-			$this->Obj_Conexao_publico = new CONEXAOPUBLICO();	
-            $this->Obj_Conexao_vendas = new CONEXAOVENDAS();
-            $this->Obj_Conexao_estoque = new CONEXAOESTOQUE();
+			$this->publico = new CONEXAOPUBLICO();	
+            $this->vendas = new CONEXAOVENDAS();
+            $this->estoque = new CONEXAOESTOQUE();
+            $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+                if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+                    $this->tabelaprecopadrao = $ini['conexao']['tabelaPreco']; 
+                }
+            $token = $ini['conexao']['token']; 
 			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Recebendo Cliente e Pedido '.date('d/m/Y h:i:s');   
             echo '</div>';
 	        $this->cadastraCliente();
             $this->recebePedidos();
-            $this->Obj_Conexao_publico->Desconecta();
-			$this->Obj_Conexao_vendas->Desconecta();
+            $this->publico->Desconecta();
+			$this->vendas->Desconecta();
+			$this->estoque->Desconecta();
 			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Fim do Recebimento de Cliente e Pedido '.date('d/m/Y h:i:s');   
             echo '</div>';
 		} catch (\Exception $e) {
@@ -96,7 +104,7 @@ class recebePrecode{
                 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Cadastrando clientes</b></h3>';
                 echo '</div>'; 
                 
-                $pega_dados = $this->Obj_Conexao_publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");
+                $pega_dados = $this->publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");
 
                 if(mysqli_num_rows($pega_dados) > 0){
 
@@ -200,7 +208,7 @@ class recebePrecode{
                             now(),
                             'S',
                             'S')";                            
-                            if (mysqli_query($this->Obj_Conexao_publico->link, $sql) === TRUE){ 
+                            if (mysqli_query($this->publico->link, $sql) === TRUE){ 
                                 echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Cliente "'.$nome.' - '.$cpf.' cadastrado!"';   
                                 echo '</div>';                                      
                             }else{
@@ -281,8 +289,8 @@ class recebePrecode{
                         $filial = 7; // filial id no intersig
                         $tabela = 11; // tabela de pre�os no intersig
                     }       
-                $buscaPedido = $this->Obj_Conexao_vendas->Consulta("SELECT * FROM cad_orca co inner join pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
-                $buscaCliente = $this->Obj_Conexao_publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");                
+                $buscaPedido = $this->vendas->Consulta("SELECT * FROM cad_orca co inner join pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
+                $buscaCliente = $this->publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");                
                 while($row1 = mysqli_fetch_array($buscaCliente, MYSQLI_ASSOC)){
                     $codigoClienteBd = $row1['CODIGO'];
                 }         
@@ -385,7 +393,7 @@ class recebePrecode{
                                     'S',
                                     '$filial')";                                     
                                     
-                                if (mysqli_query($this->Obj_Conexao_vendas->link, $sql) === TRUE){  
+                                if (mysqli_query($this->vendas->link, $sql) === TRUE){  
                                     for($p = 0; $p < count($pedidoItens); $p++){
                                         $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
                                         $quantidade = $pedidoItens[$p]->quantidade;
@@ -393,11 +401,11 @@ class recebePrecode{
                                         $valorComDesconto = $pedidoItens[$p]->valorUnitarioLiquido;
                                         $descontoProd = $valorUnitario - $valorComDesconto;
                                     
-                                        $buscaCadOrca = $this->Obj_Conexao_vendas->Consulta("SELECT * FROM cad_orca where cod_site = $codigoPedidoSite");
+                                        $buscaCadOrca = $this->vendas->Consulta("SELECT * FROM cad_orca where cod_site = $codigoPedidoSite");
                                         while($row = mysqli_fetch_array($buscaCadOrca, MYSQLI_ASSOC)){
                                             $codigoOrcamento = $row['CODIGO'];                                   
                                         }
-                                        $buscaCusto = $this->Obj_Conexao_publico->Consulta("SELECT pc.produto CODIGO, if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
+                                        $buscaCusto = $this->publico->Consulta("SELECT pc.produto CODIGO, if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
                                                                                             if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM prod_custos pc 
                                                                                             left outer join cad_prod p on p.codigo = pc.produto
                                                                                             left outer join mesquita_vendas.parametros pg on pg.id =1 
@@ -433,7 +441,7 @@ class recebePrecode{
                                             '$descontoProd')";
                                             
                                             //print_r ($sql);
-                                            if (mysqli_query($this->Obj_Conexao_vendas->link, $sql) === TRUE){ 
+                                            if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                 echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Produto "'.$id_produto_bd.'" inserido no orçamento "'.$codigoOrcamento.'"';   
                                                 echo '</div>';                                        
                                             }else{
@@ -464,7 +472,7 @@ class recebePrecode{
                                                 '101'                    
                                                 )";	
 
-                                        if (mysqli_query($this->Obj_Conexao_vendas->link, $sql) === TRUE){ 
+                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                             echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Forma de pagamento inserida no orçamento "'.$codigoOrcamento.'"';   
                                             echo '</div>';     
                                             $curl = curl_init();
@@ -530,7 +538,7 @@ class recebePrecode{
                                                         '$data_atual',             
                                                         '$pedidoStatus')";
         
-                                                if (mysqli_query($this->Obj_Conexao_vendas->link, $sql) === TRUE){ 
+                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                     echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Adicionando orçamento na tabela Precode "'.$codigoOrcamento.'"';   
                                                     echo '</div>';      
                                                 }else{

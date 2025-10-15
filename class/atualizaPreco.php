@@ -14,24 +14,39 @@
 </head>
 <body>
 </body>
-<?php
-ini_set('mysql.connect_timeout','0');   
-ini_set('max_execution_time', '0'); 
-date_default_timezone_set('America/Sao_Paulo');
-include_once('conexao_publico_rec.php');
-include_once('conexao_estoque_rec.php'); 
-include_once('conexao_vendas_rec.php');
 
-$token = 'Basic dng0c29BenNKek9qSUFHQ0c6';
-$tabela = 4;
-$Obj_Conexao_publico = new CONEXAOPUBLICO();	
-$Obj_Conexao_vendas = new CONEXAOVENDAS();
-$hoje = date('Y-m-d');
-$command = 'nohup /root/zap/sendZap_Bianca '; 
-$erro1 = '';  
-$erro2 = '';   
-$erro3 = '';
-$erro4 = '';
+<?php
+
+  ini_set('mysql.connect_timeout','0');   
+  ini_set('max_execution_time', '0'); 
+  date_default_timezone_set('America/Sao_Paulo');
+  include(__DIR__.'/database/conexao_publico.php');
+  include(__DIR__.'/database/conexao_estoque.php'); 
+  include(__DIR__.'/database/conexao_vendas.php');
+
+  $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+
+  $tabela = 1;
+  if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+    $tabela =$ini['conexao']['tabelaPreco']; 
+  }
+
+if(empty($ini['conexao']['token'] )){
+    echo 'token da aplicação não fornecido';
+        exit();
+}
+ $appToken = $ini['conexao']['token'];
+
+
+  $publico = new CONEXAOPUBLICO();	
+  $vendas = new CONEXAOVENDAS();
+
+  $hoje = date('Y-m-d');
+  $command = 'nohup /root/zap/sendZap_Bianca '; 
+  $erro1 = '';  
+  $erro2 = '';   
+  $erro3 = '';
+  $erro4 = '';
 
 echo "<main class='login-form'>";
 echo '<div class="cotainer"><div class="row justify-content-center"><div class="col-md-8"><div class="card">';
@@ -39,7 +54,7 @@ echo '<div class="card-header alert alert-info" align="center"><h3 style="color:
 print_r(date('d/m/Y h:i:s'));
 echo '</div>';
 
-$buscaProdutos = $Obj_Conexao_publico->Consulta("SELECT pp.codigo_site, pp.codigo_bd, pp.preco_site, cp.no_mktp, pp.site_desbloquear_preco as desbloqueio from produto_precode pp 
+$buscaProdutos =$publico->Consulta("SELECT pp.codigo_site, pp.codigo_bd, pp.preco_site, cp.no_mktp, pp.site_desbloquear_preco as desbloqueio from produto_precode pp 
 left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
   while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
     $produtoSite = $row['codigo_site'];
@@ -51,9 +66,9 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
     echo '</div>';
     
 
-    $buscaPreco = $Obj_Conexao_publico->Consulta("SELECT tabela, produto, preco, promocao, valid_prom FROM prod_tabprecos WHERE tabela = $tabela and produto = $produtoBd");
+    $buscaPreco =$publico->Consulta("SELECT tabela, produto, preco, promocao, valid_prom FROM prod_tabprecos WHERE tabela = $tabela and produto = $produtoBd");
     while($row1 = mysqli_fetch_array($buscaPreco, MYSQLI_ASSOC)){
-      $verificaIndexado = $Obj_Conexao_publico->Consulta("SELECT p.codigo, p.grupo, p.descricao, pc.indexado FROM cad_prod p
+      $verificaIndexado =$publico->Consulta("SELECT p.codigo, p.grupo, p.descricao, pc.indexado FROM cad_prod p
                                                           Left Outer Join prod_custos pc on (pc.PRODUTO = p.CODIGO) And (pc.FILIAL = 2)
                                                           WHERE p.codigo = $produtoBd");
       //print_r("SELECT codigo, grupo, descricao, indexado FROM cad_prod WHERE codigo = $produtoBd");
@@ -67,7 +82,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
       if($indexado == 'S'){
         $valorProduto = $row1['preco'];
         $valorPromocional = $row1['promocao'];
-        $parametro = $Obj_Conexao_vendas->Consulta("SELECT indice FROM parametros"); 
+        $parametro =$vendas->Consulta("SELECT indice FROM parametros"); 
         $resultado = $parametro->fetch_array(MYSQLI_ASSOC);
         $indice = $resultado['indice'];
         //print_r($indice);
@@ -120,7 +135,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
               ]\r\n
           }",
           CURLOPT_HTTPHEADER => array(
-            "authorization: $token",
+            "authorization:$appToken",
             "cache-control: no-cache",
             "content-type: application/json"
           ),
@@ -134,18 +149,18 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         if ($err) {
           echo "cURL Error #:" . $err;
         } else {
-          $inserePrecode = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
+          $inserePrecode =$publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
           //print_r("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");  
           if($inserePrecode == 1){
             echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Tabela produto_precode atualizada!</b></h3>';	
             echo '<br>';
             echo '</div>'; 
-            $removeDesbloqueio = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET site_desbloquear_preco = 'N' where codigo = '$produtoBd'");
+            $removeDesbloqueio =$publico->Consulta("UPDATE produto_precode SET site_desbloquear_preco = 'N' where codigo = '$produtoBd'");
             if($removeDesbloqueio == 1){
               echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Desbloqueio do produto removido com sucesso!</b></h3>';	
               echo '<br>';
               echo '</div>'; 	
-              $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'PROMOCAO INSERIDA ATRAVES DO DESBLOQUEI DO ERP', now())");
+              $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'PROMOCAO INSERIDA ATRAVES DO DESBLOQUEI DO ERP', now())");
               if($insereLog == 1){
                 echo 'Log informado com sucesso!';	
                 echo '<br>'; 	
@@ -185,7 +200,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         echo '</div>';       
         //$falhaProd = $produtoBd;
         $erro1 = $erro1.'+'.$produtoBd; 
-        $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Valor do produto em promocao nao alterado pois o produto esta com alteracao superior a 30% comparado ao valor anterior', now())");
+        $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Valor do produto em promocao nao alterado pois o produto esta com alteracao superior a 30% comparado ao valor anterior', now())");
           if($insereLog == 1){
             echo 'atualizado no log';
             echo '<br>';
@@ -226,7 +241,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
               ]\r\n
           }",
           CURLOPT_HTTPHEADER => array(
-            "authorization: $token",
+            "authorization:$appToken",
             "cache-control: no-cache",
             "content-type: application/json"
           ),
@@ -240,13 +255,13 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         if ($err) {
           echo "cURL Error #:" . $err;
         } else {
-          $inserePrecode = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
+          $inserePrecode =$publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
           //print_r("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");  
           if($inserePrecode == 1){
             echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Tabela produto_precode atualizada!</b></h3>';	
             echo '<br>';
             echo '</div>'; 
-            $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Produto em promocao alterado!', now())");
+            $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Produto em promocao alterado!', now())");
             if($insereLog == 1){
               echo 'atualizado no log';
               echo '<br>';
@@ -300,7 +315,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
               ]\r\n
           }",
           CURLOPT_HTTPHEADER => array(
-            "authorization: $token",
+            "authorization:$appToken",
             "cache-control: no-cache",
             "content-type: application/json"
           ),
@@ -314,18 +329,18 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         if ($err) {
           echo "cURL Error #:" . $err;
         } else {
-          $inserePrecode = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
+          $inserePrecode =$publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
           //print_r("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");  
           if($inserePrecode == 1){
             echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Tabela produto_precode atualizada!</b></h3>';	
             echo '<br>';
             echo '</div>'; 
-            $removeDesbloqueio = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET site_desbloquear_preco = 'N' where codigo = '$produtoBd'");
+            $removeDesbloqueio =$publico->Consulta("UPDATE produto_precode SET site_desbloquear_preco = 'N' where codigo = '$produtoBd'");
             if($removeDesbloqueio == 1){
               echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Desbloqueio do produto removido com sucesso!</b></h3>';	
               echo '<br>';
               echo '</div>'; 	
-              $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'VALOR DO PRODUTO INSERIDO ATRAVES DO DESBLOQUEI DO ERP', now())");
+              $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'VALOR DO PRODUTO INSERIDO ATRAVES DO DESBLOQUEI DO ERP', now())");
               if($insereLog == 1){
                 echo 'Log informado com sucesso!';	
                 echo '<br>';	
@@ -364,7 +379,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         $erro2 = $erro2.'+'.$produtoBd;
         //print_r("SELECT tabela, produto, preco, promocao, valid_prom FROM prod_tabprecos WHERE tabela = $tabela and produto = $produtoBd");
         //echo '<br>';
-        $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Este produto esta com diferenca acima de 30% do valor anterior', now())");
+        $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Este produto esta com diferenca acima de 30% do valor anterior', now())");
         if($insereLog == 1){
           echo 'atualizado no log';
           echo '<br>';
@@ -398,7 +413,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
               ]\r\n
           }",
           CURLOPT_HTTPHEADER => array(
-            "authorization: $token",
+            "authorization:$appToken",
             "cache-control: no-cache",
             "content-type: application/json"
           ),
@@ -411,13 +426,13 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         if ($err) {
           echo "cURL Error #:" . $err;
         } else {
-          $inserePrecode = $Obj_Conexao_publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
+          $inserePrecode =$publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
           //print_r("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");  
           if($inserePrecode == 1){
             echo '<div class="card-header alert alert-success" align="center"><h3 style="color: green;"><b>Tabela produto_precode atualizada!</b></h3>';	
             echo '<br>';
             echo '</div>'; 	
-            $insereLog = $Obj_Conexao_publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Este produto esta com valor alterado e sera atualizado', now())");
+            $insereLog =$publico->Consulta("INSERT INTO log_precode (produto, alteracao, data_modificacao) VALUES('$produtoBd', 'Este produto esta com valor alterado e sera atualizado', now())");
             if($insereLog == 1){
               echo 'atualizado no log';
               echo '<br>';
@@ -464,8 +479,8 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
   exec($msg3 ,$op);
   exec($msg4 ,$op);
   //$pid = (int)$op[0];
-  $Obj_Conexao_vendas->Desconecta();
-  $Obj_Conexao_publico->Desconecta();
+ $vendas->Desconecta();
+ $publico->Desconecta();
   echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
   //echo 'falhas '.$falhaProd;
   print_r(date('d/m/Y h:i:s'));

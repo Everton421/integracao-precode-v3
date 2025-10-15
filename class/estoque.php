@@ -2,18 +2,43 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');
-include_once('conexao_publico_rec.php');
-include_once('conexao_estoque_rec.php'); 
-include_once('conexao_vendas_rec.php');
+include(__DIR__.'/database/conexao_publico.php');
+include(__DIR__.'/database/conexao_estoque.php'); 
+include(__DIR__.'/database/conexao_vendas.php');
 
 
 $curl;    	
-$token = 'Basic SDBkSFVzOHJWNE94MkhaS3U6';
-$tabelaprecopadrao = 4;
+
+$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+
+$tabelaprecopadrao = 1;
+$setor = 1;
+
+if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+    $tabelaprecopadrao =$ini['conexao']['tabelaPreco']; 
+}
+
+
+if($ini['conexao']['setor'] && !empty($ini['conexao']['setor']) ){
+    $setor =$ini['conexao']['setor']; 
+}
+   
+
+if(empty($ini['conexao']['token'] )){
+    echo 'token da aplicação não fornecido';
+        exit();
+}
+$appToken = $ini['conexao']['token'];
+
+
 $indice; 
-$Obj_Conexao_publico = new CONEXAOPUBLICO();	
-$Obj_Conexao_vendas = new CONEXAOVENDAS();
-$Obj_Conexao_estoque = new CONEXAOESTOQUE();
+$publico = new CONEXAOPUBLICO();	
+$vendas = new CONEXAOVENDAS();
+$estoque = new CONEXAOESTOQUE();
+
+$databaseEstoque = $estoque->getBase();
+$databaseVendas = $vendas->getBase();
+$databasePublico = $publico->getBase();
 
 /*echo "<main class='login-form'>";
 echo '<div class="cotainer">';
@@ -22,7 +47,7 @@ echo '<div class="col-md-8">';*/
 echo '<div class="card">';
 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando estoque</b></h3>'; //abrindo o header com informação
 echo '</div>';
-$buscaProdutos = $Obj_Conexao_publico->Consulta("SELECT codigo_site, codigo_bd, data_recad FROM produto_precode" ); 		
+$buscaProdutos = $publico->Consulta("SELECT codigo_site, codigo_bd, data_recad FROM produto_precode" ); 		
 	 
 if((mysqli_num_rows($buscaProdutos)) == 0){
     
@@ -34,32 +59,30 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
 
         }else{
             $estoqueprod = 0;       
-            $buscaEstoque = $Obj_Conexao_estoque->Consulta("select  
-            est.CODIGO,
-            est.DESCRICAO,
-            FORMAT(if(est.estoque < 0, 0, est.estoque), 0) as ESTOQUE
-            from 
-                (select
-                P.CODIGO,
-                P.DESCRICAO,
-                (Sum(PS.ESTOQUE) - 
-                    (Select coalesce(Sum((If(PO.QTDE_SEPARADA > (PO.QUANTIDADE - PO.QTDE_MOV), PO.QTDE_SEPARADA, (PO.QUANTIDADE - PO.QTDE_MOV)) * PO.FATOR_QTDE) * If(CO.TIPO = '5', -1, 1)), 0)
-                        From mesquita_vendas.cad_orca As CO
-                        Left Outer Join mesquita_vendas.pro_orca As PO On PO.ORCAMENTO = CO.CODIGO
-                        Left Outer Join mesquita_vendas.empresas As E On E.FILIAL = 2 
-                        Where CO.SITUACAO In ('AI', 'AP', 'FP')
-                        And ((E.MONT_FATUR <> 'S' And PO.APROVADO In ('A', 'C', 'G', 'P'))
-                            Or
-                            (E.MONT_FATUR = 'S' And PO.APROVADO In ('A', 'C', 'G')))
-                        And PO.PRODUTO = P.CODIGO AND PS.SETOR not in(469,471, 475))) as estoque
-            From mesquita_estoque.prod_setor PS		
-            left join 	mesquita_publico.cad_prod P on P.CODIGO = PS.PRODUTO	
-            left join 	mesquita_publico.cad_pgru G on P.GRUPO = G.CODIGO
-            left join 	mesquita_vendas.empresas_setor S on PS.SETOR = S.SETOR and S.FILIAL = 2
-            where S.EST_ATUAL = 'X' AND P.NO_MKTP = 'S' AND P.ATIVO = 'S' 
-            AND P.CODIGO = '$codigoBd' AND PS.SETOR not in(469,471,475)
-            group by P.CODIGO) as est ");
 
+        $buscaEstoque = $estoque->Consulta(  "  SELECT  
+                                                est.CODIGO,
+                                                    IF(est.estoque < 0, 0, est.estoque) AS ESTOQUE,
+                                                    est.DATA_RECAD
+                                                FROM 
+                                                    (SELECT
+                                                    P.CODIGO,
+                                                    PS.DATA_RECAD,
+                                                    (SUM(PS.ESTOQUE) - 
+                                                        (SELECT COALESCE(SUM((IF(PO.QTDE_SEPARADA > (PO.QUANTIDADE - PO.QTDE_MOV), PO.QTDE_SEPARADA, (PO.QUANTIDADE - PO.QTDE_MOV)) * PO.FATOR_QTDE) * IF(CO.TIPO = '5', -1, 1)), 0)
+                                                        FROM ".$databaseVendas.".cad_orca AS CO
+                                                        LEFT OUTER JOIN ".$databaseVendas.".pro_orca AS PO ON PO.ORCAMENTO = CO.CODIGO
+                                                        WHERE CO.SITUACAO IN ('AI', 'AP', 'FP')
+                                                        AND PO.PRODUTO = P.CODIGO)) AS estoque
+                                                    FROM ".$databaseEstoque.".prod_setor AS PS
+                                                    LEFT JOIN ".$databasePublico.".cad_prod AS P ON P.CODIGO = PS.PRODUTO
+                                                    INNER JOIN ".$databasePublico.".cad_pgru AS G ON P.GRUPO = G.CODIGO
+                                                    LEFT JOIN ".$databaseEstoque.".setores AS S ON PS.SETOR = S.CODIGO
+                                                WHERE P.CODIGO = '$codigoBd'
+                                                    AND PS.SETOR = '$setor'
+                                                    GROUP BY P.CODIGO) AS est " );
+
+       
             $retornoestoque = mysqli_num_rows($buscaEstoque);
 
             if($retornoestoque > 0 ){   
@@ -100,7 +123,7 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                     }
                     ",        
                     CURLOPT_HTTPHEADER => array(
-                        "Authorization: Basic dng0c29BenNKek9qSUFHQ0c6",
+                        "Authorization: Basic ".$appToken,
                         "Content-Type: application/json"
                     ),
                     ));
@@ -140,11 +163,14 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                         print_r(date('d/m/Y h:i:s'));
                         echo '</div></b>';                   
                     }else{
-                        echo '<div class="card-header alert alert-danger"> <h3 style="color:red;" align="center">Erro ao atualizar estoque '.$mensagem.' <br> Código da mensagem: '.$codMensagem.'<BR> HTTP Cód: '.$httpcode;                
+                        echo '<div class="card-header alert alert-danger"> <h3 style="color:red;" align="center">Erro ao atualizar estoque  <br>  '.$mensagem.' <br> Código da mensagem: '.$codMensagem.'<BR> HTTP Cód: '.$httpcode;                
                         echo '</div>';
                         echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
                         print_r(date('d/m/Y h:i:s'));
-                        echo '</div></b>';             
+                        echo '</div></b>';           
+                        echo '<br>';           
+
+                        
                     }
                     curl_close($curl); 
                 }

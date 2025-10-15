@@ -24,27 +24,26 @@ include_once(__DIR__.'/database/conexao_publico.php');
 include(__DIR__.'/database/conexao_vendas.php');
 include(__DIR__.'/database/conexao_estoque.php');
 
+
 $curl;
 
-/**
- * CHAVE DE ENVIO HOMOLOGAÇÃO / BASETESTES
- */
-// $appToken = 'SDBkSFVzOHJWNE94MkhaS3U6'; 
-/**
- * 
- * CHAVE DE ENVIO EM PRODUÇÃO SYMA
- */
-//$appToken = 'dng0c29BenNKek9qSUFHQ0c6';
-
-
-/**
- * token teste everton
- */
- 
 $indice; 
 $publico = new CONEXAOPUBLICO();
 
-$appToken = $publico->getToken();
+$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+
+$tabelaDePreco = 1;
+if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+    $tabelaDePreco =$ini['conexao']['tabelaPreco']; 
+}
+
+
+if(empty($ini['conexao']['token'] )){
+    echo 'token da aplicação não fornecido';
+        exit();
+}
+
+$appToken = $ini['conexao']['token'];
 
 echo "<main class='login-form'>";
 echo '<div class="cotainer">';
@@ -55,23 +54,46 @@ echo '<div class="card-header alert alert-info" align="center"><h3 style="color:
 echo '</div>';            
 
 //verifica se o produto já foi cadastrado baseado na tabela produto precode
-$codigoProduto = $_POST['codigoProd'];
+$codigoProduto = $_POST['codprod'];
+ 
+if(!$appToken || empty($appToken)){
+            echo '<div class="container">';
+                echo '<div class="alert alert-danger" role="alert">';
+                echo '<strong>Erro!</strong>token da aplicação não foi fornecido ';
+                echo '<br>';
+                echo '</div>';
+            echo '</div>';
+            exit();
+      
+        }
+if(!$tabelaDePreco || empty($tabelaDePreco)){
+            echo '<div class="container">';
+                echo '<div class="alert alert-danger" role="alert">';
+                echo '<strong>Erro!</strong>não foi fornecido o codigo da tabela de preço ';
+                echo '<br>';
+                echo '</div>';
+            echo '</div>';
+            exit();
+     
+        }
+
 
 if ($codigoProduto == '' || $codigoProduto == 0) {
-    if(!$appToken || empty($appToken)){
-        return   echo 'token da aplicação não foi fornecido';
-    }
-   echo 'O Código do produto não foi preenchido';
+    
+      echo '<div class="container">';
+                echo '<div class="alert alert-danger" role="alert">';
+                echo '<strong>Erro!</strong>O Código do produto não foi preenchido ';
+                echo '<br>';
+                echo '</div>';
+            echo '</div>';
 
 } else {
-     if(!$appToken || empty($appToken)){
-    return echo 'token da aplicação não foi fornecido';
-   }
+     
     //verifica se o produto já foi incluido na tabela precode anteriormente
     $produtoPrecode = $publico->Consulta("SELECT * FROM produto_precode where codigo_bd = $codigoProduto");
 
     if ((mysqli_num_rows($produtoPrecode)) == 0) {
-        echo 'Buscando o produto para ser enviado <br>';
+     //   echo 'Buscando o produto para ser enviado <br>';
 
         $sqlProdutoIntersig = $publico->Consulta("SELECT p.CODIGO,
             p.DATA_RECAD,
@@ -91,7 +113,7 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         FROM cad_prod p
         INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
         LEFT JOIN cad_pmar m ON m.codigo = p.marca
-        WHERE (p.NO_MKTP='S'AND p.ATIVO='S')  AND tp.tabela = 1 AND p.CODIGO = $codigoProduto");
+        WHERE (p.NO_MKTP='S'AND p.ATIVO='S')  AND tp.tabela = $tabelaDePreco AND p.CODIGO = $codigoProduto");
         
         //montagem de produto no intersig
         $prod = mysqli_fetch_array($sqlProdutoIntersig, MYSQLI_ASSOC);
@@ -102,22 +124,42 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         }
 
         if ($prod['PESO'] == 0) {
-            echo 'O campo peso não foi atribuido <br>';
+               echo '<div class="container">';
+                echo '<div class="alert alert-danger" role="alert">';
+                echo '<strong>Erro!</strong>O campo PESO não foi atribuido ';
+                echo '<br>';
+                echo '</div>';
+            echo '</div>';
             exit();
         }
 
         if ($prod['LARGURA'] == 0) {
-            echo 'O campo peso não foi atribuido <br>';
+              echo '<div class="container">';
+              echo '<div class="alert alert-danger" role="alert">';
+            echo '<strong>Erro!</strong>O campo LARGURA não foi atribuido ';
+            echo '<br>';
+              echo '</div>';
+            echo '</div>';
             exit();
         }
         
         if ($prod['ALTURA'] == 0) {
-            echo 'O campo peso não foi atribuido <br>';
+             echo '<div class="container">';
+              echo '<div class="alert alert-danger" role="alert">';
+            echo '<strong>Erro!</strong>O campo ALTURA não foi atribuido ';
+            echo '<br>';
+              echo '</div>';
+            echo '</div>';
             exit();
         }
 
         if ($prod['COMPRIMENTO'] == 0) {
-            echo 'O campo peso não foi atribuido <br>';
+             echo '<div class="container">';
+              echo '<div class="alert alert-danger" role="alert">';
+            echo '<strong>Erro!</strong>O campo COMPRIMENTO não foi atribuido ';
+            echo '<br>';
+              echo '</div>';
+            echo '</div>';
             exit();
         }
 
@@ -152,7 +194,7 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
             [
                 'ref' => $prod['CODIGO'],
                 'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
-#                'sku' => '',
+                #'sku' => '',
                 'qty' => 0,
                 'ean' => !empty($prod['EAN']) ? $prod['EAN'] : null,
                 'images' => [''],
@@ -164,13 +206,10 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
                 ]
             ]
         ];
-        print_r( json_encode($json));
 
-/*
+ 
         $curl = curl_init();
 
-        print_r(json_encode($json));
-        
         
         curl_setopt($curl, CURLOPT_URL, 'https://www.replicade.com.br/api/v3/products');
         curl_setopt($curl, CURLOPT_POST, 1);
@@ -189,33 +228,49 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         curl_close($curl);
+            $retorno = json_decode($response, true);
 
         if ($httpCode == 200 || $httpCode == 201) {
-            echo '<br>O produto foi enviado para plataforma com sucesso! <br><br>';  
-             
-             // tratamento do retorno, está vindo como bool e decodifica para ARRAY
-             // 
-            $retorno = json_decode($response, true);
-            $codigo_bd = $prod['CODIGO']; //produto precisa ser defino antes da query ser executada
-            $preco_site = $prod['PRECO']; //produto precisa ser defino antes da query ser executada
-            $codigo_site = $retorno['sku'];
-            $data_recad = date('Y-m-d H:i:s');
-            $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site', $codigo_bd, $preco_site, '$data_recad')";
-        
-            //
-             // EXECUTA A QUERY PARA ENVIO PARA A TABELA PRODUTO_PRECODE
-             // 
-            $envioPrecodeBase = $publico->query($sql);        
-            if ($envioPrecodeBase) {	
-                echo "Produto inserido na tabela com sucesso!";
-            } else {
-                echo "Erro ao inserir o produto na tabela: " . $publico->link->error;
-            }
+               echo '<div class="container">';
+                echo '<div class="alert alert-success" role="alert">';
+                echo '<strong>Sucesso!</strong> O produto foi enviado para a plataforma com sucesso!';
+                echo '</div>';
+
+                $codigo_bd = $prod['CODIGO'];
+                $preco_site = $prod['PRECO'];
+                $codigo_site = isset($retorno['sku']) ? $retorno['sku'] : null; // Verifica se 'sku' existe
+                $data_recad = date('Y-m-d H:i:s');
+                $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('" . htmlspecialchars($codigo_site) . "', " . intval($codigo_bd) . ", " . floatval($preco_site) . ", '" . htmlspecialchars($data_recad) . "')";
+
+                $envioPrecodeBase = $publico->Consulta($sql);
+
+                if ($envioPrecodeBase) {
+                    echo '<div class="alert alert-info" role="alert">';
+                    echo '<strong>Informação:</strong> Produto inserido na tabela com sucesso!';
+                    echo '</div>';
+                } else {
+                    echo '<div class="alert alert-warning" role="alert">';
+                    echo '<strong>Atenção!</strong> Erro ao inserir o produto na tabela.';
+                    echo '<br>';
+                    echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
+                    echo '</div>';
+                }
+    echo '</div>'; // Fecha o container
         } else {
-            echo 'Houve um erro no envio do produto, contate a plataforma <br>';
-            var_dump($httpCode);
+             echo '<div class="container">';
+            echo '<div class="alert alert-danger" role="alert">';
+            echo '<strong>Erro!</strong> Houve um erro no envio do produto, contate a plataforma.';
+            echo '<br>';
+            echo '<strong>HTTP Code:</strong> ' . htmlspecialchars($httpCode) . '<br>';
+            if (isset($retorno['message'])) {
+                echo '<strong>Mensagem de Erro:</strong> ' . htmlspecialchars(print_r($retorno['message'], true));
+            } else {
+                echo '<strong>Mensagem de Erro:</strong> Detalhes não fornecidos.';
+            }
+            echo '</div>';
+            echo '</div>';
         }
-        */
+         
     } else {
         echo 'Produto já foi enviado para a plataforma! <br>';
     } 

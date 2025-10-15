@@ -1,131 +1,95 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Dashboard</title>
-    <style>
-        .sidebar {
-            height: 100%;
-            width: 200px;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: #f8f9fa;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            padding: 6px 8px 6px 16px;
-            text-decoration: none;
-            font-size: 18px;
-            color: #000;
-            display: block;
-        }
-        .sidebar a:hover {
-            color: #007bff;
-        }
-        .content {
-            margin-left: 200px;
-            padding: 15px;
-        }
-        .section {
-            display: none;
-        }
-    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../assets/css/fotos.css" type="text/css">
+    <link rel="icon" href="Favicon.png">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <title>Requisição</title>
 </head>
 <body>
-    <div class="sidebar">
-        <a href="#" onclick="showSection('estoque')">Estoque Precode</a>
-        <a href="#" onclick="showSection('envio')">Envio de Produto Precode</a>
-    </div>
-    <div class="content">
-        <section id="estoque" class="section">
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Estoque Precode</a>
-    </nav>
-    <div class="container">
-        <div class="card-body">
-            <form method="POST" action="" id="estoqueForm" onsubmit="return validarForm()">
-                <div class="form-group">
-                    <label for="exampleInputEmail1">Código do Produto</label>
-                    <hr>
-                    <label >Enviar estoque zero</label>
-                    <input type="checkbox" id="prodzero" name="prodzero">
-                    <input type="text" class="form-control" name="codigoProd" id="codigoProd"  placeholder="Código">
-                    <small class="form-text text-muted">Coloque apenas números.</small>
-                </div>
-                <div class="form-group">
-                    <label for="exampleFormControlSelect1">Selecione a Empresa</label>
-                    <select class="form-control" id="empresa" name="empresa">
-                        <option value="selecionar">Selecionar</option>
-                        <option value="matriz">Estoque PR</option >
-                        <option value="filialsc">Estoque SC</option>
-                        
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Atualizar</button>
-            </form>
-        </div>
-    </div>
-
-        </section>
-        <section id="envio" class="section">
-          <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Envio de produto Precode</a>
-    </nav>
-    <div class="container">
-        <div class="card-body">
-            <form method="POST" action="class/produtos.php">
-                <div class="form-group">
-                    <label for="exampleInputEmail1">Código do Produto</label>
-                    <hr>
-                    <input type="text" class="form-control" name="codigoProd" id="codigoProd" placeholder="Código">
-                    <small class="form-text text-muted">Coloque apenas números.</small>
-                </div>
-                <button type="submit" class="btn btn-primary">Enviar</button>
-            </form>
-        </div>
-    </div>
-
-
-    <script>
-        function validarForm() {
-            var empresa = document.getElementById('empresa').value;
-            
-            if (empresa === 'selecionar') {
-                alert("Por favor, selecione uma empresa.");
-                return false; // Impede o envio do formulário
-            }
+<div>
+    <form method="post" action="class/produtos.php" id="formEnvia">
+    <style>
+        .btn-list {
+            margin-right: 10px; /* Espaçamento entre os botões */
         }
-        
-        document.getElementById('empresa').addEventListener('change', function() {
-            var formAction = '';
-            if (this.value === 'matriz') {
-                formAction = 'class/estoque2.php';
-            } else if (this.value === 'filialsc') {
-                formAction = 'class/estoque3.php';
-            }
-            document.getElementById('estoqueForm').action = formAction;
-        });
-    </script>
+    </style>    
 
-        </section>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">INTERSIG</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item btn-list">
+                <button type="submit" class="btn btn-primary mt-3">Enviar produtos</button>
+            </li>
+  
+        </ul>
+    </nav>   
+
+    <div class="container">
+        <!-- Campo de pesquisa -->
+        <div class="form-group" style="margin-top: 150px;">
+            <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+        </div>
+
+
+   <div  class="card-body">
+                    <?php
+
+                        include(__DIR__.'/class/database/conexao_publico.php');
+                        $publico = new CONEXAOPUBLICO();
+                        $result = $publico->Consulta(" select cp.CODIGO, cp.DESCRICAO, pp.CODIGO_SITE
+                                                        from cad_prod cp 
+                                                        left join produto_precode pp 
+                                                        on pp.codigo_bd = cp.CODIGO
+                                                        where cp.ATIVO='S' and cp.NO_MKTP='S' 
+                                                        order by cp.CODIGO ");
+                        $numRows = mysqli_num_rows($result);
+                            if($numRows > 0 ){
+                                while($list = mysqli_fetch_array($result, MYSQLI_ASSOC)){
+                                      $codigo =  $list['CODIGO'] ;
+                                       $descricao =  $list['DESCRICAO'] ;
+                                       $codigo_site = $list['CODIGO_SITE'];
+                                         echo "<div class='col-12 col-sm-6 mb-2 product-item'>";
+                                        echo "<input type='checkbox' name='codprod' value='$codigo' class='mr-2'>";
+                                        echo "Cód: <span class='product-code'>$codigo</span>";
+                                        echo "<div class='fw-bold product-description'>$descricao</div>";
+                                        echo "<hr>";
+                                        echo "</div>";
+                                }
+                            }
+                    ?>
+
+              </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js"></script>
-    <script>
-        function showSection(sectionId) {
-            var sections = document.getElementsByClassName('section');
-            for (var i = 0; i < sections.length; i++) {
-                sections[i].style.display = 'none';
-            }
-            document.getElementById(sectionId).style.display = 'block';
+    </form>
+</div>
+
+<script>
+// Função para filtrar produtos por nome ou código
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const productItems = document.querySelectorAll('.product-item');
+
+    productItems.forEach(function(item) {
+        const productCode = item.querySelector('.product-code').textContent.toLowerCase();
+        const productDescription = item.querySelector('.product-description').textContent.toLowerCase();
+
+        // Verifica se o termo de busca está no código ou na descrição
+        if (productCode.includes(searchTerm) || productDescription.includes(searchTerm)) {
+            item.style.display = ''; // Exibe o item
+        } else {
+            item.style.display = 'none'; // Oculta o item
         }
-        // Mostra a se��o "estoque" por padr�o
-        showSection('estoque');
-    </script>
+    });
+});
+</script>
+
 </body>
 </html>

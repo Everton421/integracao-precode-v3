@@ -2,28 +2,38 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');
-include_once('conexao_publico_rec.php');
-include_once('conexao_estoque_rec.php'); 
-include_once('conexao_vendas_rec.php');
+include(__DIR__.'/database/conexao_publico.php');
+include(__DIR__.'/database/conexao_estoque.php'); 
+include(__DIR__.'/database/conexao_vendas.php');
 
 
 $curl;    	
-//$key = 'a4a08c55ac9a2a0ba2d0b99a6813db35f4a7a45431d1ecab29fbe6f68be5634900cd1203bcfcf1df108a8848650876c4'; //chave token fixa
+      
+$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
 
-      // token teste everton
-        $token = 'Basic H0dHUs8rV4Ox2HZKu';
+$tabelaprecopadrao = 1;
+if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+    $tabelaprecopadrao =$ini['conexao']['tabelaPreco']; 
+}
 
-$tabelaprecopadrao = 3;
+
+if(empty($ini['conexao']['token'] )){
+    echo 'token da aplicação não fornecido';
+        exit();
+}
+
+  $appToken =  $ini['conexao']['token'];
+
 $indice; 
-$Obj_Conexao_publico = new CONEXAOPUBLICO();	
-$Obj_Conexao_vendas = new CONEXAOVENDAS();
-$Obj_Conexao_estoque = new CONEXAOESTOQUE();
+$publico = new CONEXAOPUBLICO();	
+$vendas = new CONEXAOVENDAS();
+$estoque = new CONEXAOESTOQUE();
 
 
 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando informações fiscais..</b></h3>'; //abrindo o header com informação
 echo '</div>';
 
-$busca_nf = $Obj_Conexao_vendas->Consulta("SELECT pid.situacao, co.COD_SITE, cnf.CHAVE_NFE, cnf.NUMERO_NF, cnf.DATA_EMISSAO, cnf.SERIE, xf.XML_NFE FROM cad_orca co 
+$busca_nf = $vendas->Consulta("SELECT pid.situacao, co.COD_SITE, cnf.CHAVE_NFE, cnf.NUMERO_NF, cnf.DATA_EMISSAO, cnf.SERIE, xf.XML_NFE FROM cad_orca co 
                                                 inner join pedido_precode pid on co.codigo = pid.codigo_pedido_bd
                                                 inner join cad_nf cnf on cnf.pedido = co.codigo
                                                 inner join xml_fatur xf on xf.FATUR = cnf.CODIGO
@@ -66,7 +76,7 @@ if($retorno > 0 ){
             \r\n
         }",
         CURLOPT_HTTPHEADER => array(
-            "Authorization: $token",
+            "Authorization: $appToken",
             "Content-Type: application/json"
         ),
         ));
@@ -78,7 +88,7 @@ if($retorno > 0 ){
         $codMensagem = $decode->pedido[0]->idRetorno; 
         $mensagem_nf_err = $decode->pedido[0]->memsagem;
         $numeroPedido = $decode->pedido[0]->numeroPedido;
-        $busca_status = $Obj_Conexao_vendas->Consulta("select * from pedido_precode where codigo_pedido_site = '$id_pedido' and situacao = 'aprovado'");
+        $busca_status = $vendas->Consulta("select * from pedido_precode where codigo_pedido_site = '$id_pedido' and situacao = 'aprovado'");
         $retorno2 = mysqli_num_rows($busca_status);					
         
         if ($codMensagem == 0){
