@@ -1,18 +1,18 @@
 <?php
 header("Content-type: text/html; charset=utf-8");
 
-class CONEXAOCEP {
+class CONEXAOVENDAS {
     private string $consulta = "";
     public ?mysqli $link = null;
     private array $ini;
-    private string $url;
+    private string $host;
     private string $login;
     private string $senha;
-    private string $base_cep;
+    private string $base_vendas;
     private int $porta;
 
     public function getBase(){
-        return $this->base_cep;
+        return $this->base_vendas;
     }
     public function __construct() {
         $this->Conecta();
@@ -20,14 +20,14 @@ class CONEXAOCEP {
 
     public function Conecta(): void {
         try {
-            $this->ini = parse_ini_file('../conexao.ini', true);
-            $this->url = $this->ini['conexao']['url'];
+            $this->ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
+            $this->host = $this->ini['conexao']['host'];
             $this->login = $this->ini['conexao']['login'];
             $this->senha = $this->ini['conexao']['senha'];
-            $this->base_cep = $this->ini['conexao']['banco_cep'];
+            $this->base_vendas = $this->ini['conexao']['banco_vendas'];
             $this->porta = $this->ini['conexao']['porta'];
 
-            $this->link = new mysqli($this->url . ':' . $this->porta, $this->login, $this->senha, $this->base_cep);
+            $this->link = new mysqli($this->host . ':' . $this->porta, $this->login, $this->senha, $this->base_vendas);
 
             if ($this->link->connect_error) {
                 die('Connect Error (' . $this->link->connect_errno . ') ' . $this->link->connect_error);

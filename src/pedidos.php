@@ -2,20 +2,27 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');//
-include(__DIR__.'conexao_publico.php');
-include(__DIR__.'conexao_estoque.php'); 
-include(__DIR__.'conexao_vendas.php');
+include(__DIR__.'/database/conexao_publico.php');
+include(__DIR__.'/database/conexao_estoque.php'); 
+include(__DIR__.'/database/conexao_vendas.php');
 
 class recebePrecode{
     public $curl;    	
  
     public $tabelaprecopadrao = 1 ;
+    public $filial = 1 ;
     public $indice; 
 
     private $token;    
+    private $setor;
     private $publico;
     private $vendas;
     private $estoque;
+
+    private $codigoVendedor = 1 ;
+    private $codigoTipoRecebimento = 1 ;
+    private $formaPagamento= 1;
+    private $databaseVendas ;
    
     public function recebe(){
         $tentativas = 0;
@@ -23,11 +30,26 @@ class recebePrecode{
 			$this->publico = new CONEXAOPUBLICO();	
             $this->vendas = new CONEXAOVENDAS();
             $this->estoque = new CONEXAOESTOQUE();
-            $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+            $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
                 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
                     $this->tabelaprecopadrao = $ini['conexao']['tabelaPreco']; 
                 }
-            $token = $ini['conexao']['token']; 
+                $this->filial= $ini['conexao']['filial'];        
+                $this->databaseVendas = $this->vendas->getBase();
+                $this->setor = $ini['conexao']['setor']; 
+                $this->token = $ini['conexao']['token']; 
+                    if( $ini['conexao']['vendedor_pedido'] && !empty($ini['conexao']['vendedor_pedido'])){
+                         $this->codigoVendedor = $ini['conexao']['vendedor_pedido'];
+                    }
+                    if( $ini['conexao']['tipo_recebimento_pedido'] && !empty($ini['conexao']['tipo_recebimento_pedido'])){
+                        $this->codigoTipoRecebimento = $ini['conexao']['tipo_recebimento_pedido'];
+                    }
+
+                    if( $ini['conexao']['forma_pagamento'] && !empty($ini['conexao']['forma_pagamento'])){
+                        $this->formaPagamento = $ini['conexao']['forma_pagamento'];
+                    }
+
+
 			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Recebendo Cliente e Pedido '.date('d/m/Y h:i:s');   
             echo '</div>';
 	        $this->cadastraCliente();
@@ -54,7 +76,9 @@ class recebePrecode{
     } 
     
     return preg_replace("/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/", "\$1.\$2.\$3/\$4-\$5", $cnpj_cpf);
-    }    
+    }   
+    
+    
     public function cadastraCliente(){       
         //Recupera lista de pedidos aprovados. (pedidos prontos para serem faturados).
         $curl = curl_init();
@@ -78,7 +102,10 @@ class recebePrecode{
                 $cpf = $this->formatCnpjCpf($result->pedido[$i]->dadosCliente->cpfCnpj);
                 $tipo = $result->pedido[$i]->dadosCliente->tipo;
                 $nome = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->nomeRazao)));
+                $nome = substr($nome , 0, 99 );
                 $apelido = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->fantasia)));
+                $apelido = substr($apelido, 0 , 99 );
+
                 $sexo = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->sexo)));
                 $data_nasc = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->dataNascimento)));
                 $email = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->email)));
@@ -89,10 +116,13 @@ class recebePrecode{
                 $cidade = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->dadosEntrega->cidade)));
                 $uf = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->dadosEntrega->uf)));
                 $cep = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->dadosEntrega->cep)));
+                $cep = substr($cep, 0, 8);
                 $telefone_res = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->telefones->residencial)));
+                $telefone_res = substr($telefone_res, 0 , 14);
                 $telefone_com = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->telefones->comercial)));
+                $telefone_com = substr($telefone_com, 0 ,14);                
                 $telefone_cel = addslashes(strtoupper(utf8_decode($result->pedido[$i]->dadosCliente->telefones->celular)));
-                
+                $telefone_cel = substr($telefone_cel, 0 , 14 );
          
 
 
@@ -235,7 +265,7 @@ class recebePrecode{
     public function recebePedidos(){
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
+         CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -253,10 +283,6 @@ class recebePrecode{
      
         if(!empty($result)){  
          
-             echo "<br>";
-                echo'Resultado consulta api :';
-                print_r($result);
-            echo'<br>';
             
             for ($i = 0; $i < count($result->pedido); $i++){                 
                 $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
@@ -271,24 +297,14 @@ class recebePrecode{
                 $dispositivo = $result->pedido[$i]->dispositivo; 
                 $valorDesconto = $result->pedido[$i]->valorTotalDesconto; 
                 $valorTotalProd = $valorTotalCompra - $valorFrete;  
+                $uf_cob = $result->pedido[$i]->dadosCliente->dadosEntrega->uf;
 
                 $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
 
-                            echo'<br>';
-                            echo ' codigoMarketplace :', $PedidoMktplace;
-                            echo'<br>';
 
             // Filial cd � aonde vem o campo do sistema precode com a id da filial dadosRastreio->idFilial
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
-                    if($filial_cd == 1){
-                        $setor = 421; // id setor
-                        $filial = 2; // id da filial no intersig
-                        $tabela = 4; // tabela de pre�o no intersig
-                    }else if($filial_cd == 2){
-                        $setor = 469; // setor intersig
-                        $filial = 7; // filial id no intersig
-                        $tabela = 11; // tabela de pre�os no intersig
-                    }       
+                  
                 $buscaPedido = $this->vendas->Consulta("SELECT * FROM cad_orca co inner join pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
                 $buscaCliente = $this->publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");                
                 while($row1 = mysqli_fetch_array($buscaCliente, MYSQLI_ASSOC)){
@@ -368,7 +384,7 @@ class recebePrecode{
                                     now(),
                                     now(),
                                     now(),
-                                    '179',
+                                    $this->codigoVendedor,
                                     upper('PRECODE - $marketplace - $pedidoStatus'),
                                     '',
                                     '',
@@ -379,19 +395,19 @@ class recebePrecode{
                                     '100',
                                     'N',
                                     'N',
-                                    '$tabela',
+                                    '$this->tabelaprecopadrao',
                                     '0',
-                                    '2',
+                                    $this->formaPagamento,  # forma pagamento
                                     '0.00',
                                     '0',
                                     '0',
                                     '0',
                                     '0.00',
-                                    '51',
-                                    '$setor',
+                                    '0',
+                                    '$this->setor',
                                     IF('$uf_cob'='PR','I','E'),
                                     'S',
-                                    '$filial')";                                     
+                                    '$this->filial')";    
                                     
                                 if (mysqli_query($this->vendas->link, $sql) === TRUE){  
                                     for($p = 0; $p < count($pedidoItens); $p++){
@@ -405,20 +421,46 @@ class recebePrecode{
                                         while($row = mysqli_fetch_array($buscaCadOrca, MYSQLI_ASSOC)){
                                             $codigoOrcamento = $row['CODIGO'];                                   
                                         }
-                                        $buscaCusto = $this->publico->Consulta("SELECT pc.produto CODIGO, if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
-                                                                                            if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM prod_custos pc 
-                                                                                            left outer join cad_prod p on p.codigo = pc.produto
-                                                                                            left outer join mesquita_vendas.parametros pg on pg.id =1 
-                                                                                            where pc.filial = $filial And pc.produto = $referenciaLoja");    
+                                        
+
+                                           $buscaCusto = $this->publico->Consulta(    " SELECT pc.produto CODIGO, 
+                                                                                           if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
+                                                                                                   if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM   prod_custos pc 
+                                                                                                   left outer join cad_prod p on p.codigo = pc.produto
+                                                                                                   left outer join   ".$this->databaseVendas.".parametros pg on pg.id =1 
+                                                                                                   where  pc.produto = $referenciaLoja"  ); 
+
+                                                                              ///******* Select com validação de custo por filial   
+                                                                        // $buscaCusto = $this->publico->Consulta(    " SELECT pc.produto CODIGO, 
+                                                                        //                if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
+                                                                        //                        if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM   prod_custos pc 
+                                                                        //                        left outer join cad_prod p on p.codigo = pc.produto
+                                                                        //                        left outer join   ".$this->databaseVendas.".parametros pg on pg.id =1 
+                                                                        //                        where if( pg.CUSTO_FILIAL = 'S', ( pc.FILIAL = ".$this->filial." ), pc.FILIAL = 0 )
+                                                                        //                        And pc.produto = $referenciaLoja"  ); 
+
+                                                                                          
                                         $retorno = mysqli_num_rows($buscaCusto);
                                         if($retorno > 0 ){
                                             while($row = mysqli_fetch_array($buscaCusto, MYSQLI_ASSOC)){
                                                 $id_produto_bd = $row['CODIGO'];
                                                 $ultimo_custo = $row['ULT_CUSTO'];
                                                 $custo_medio = $row['CUSTO_MEDIO'];
-                                            }
-                                        }
-                                        $valor_prod = $valorUnitario * $quantidade;
+
+
+                                                  // 
+                                                 if(empty($id_produto_bd)){
+                                                    $id_produto_bd = 166; 
+                                                 }
+                                                 if(empty($ultimo_custo)){
+                                                     $ultimo_custo =  1;
+                                                 }
+
+                                                 if(empty($custo_medio)){
+                                                    $custo_medio=1;
+                                                 }
+                                                }
+                                                  $valor_prod = $valorUnitario * $quantidade;
                                         $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
                                             VALUES ('$codigoOrcamento',
                                             $p + 1,
@@ -433,7 +475,7 @@ class recebePrecode{
                                             '0',
                                             '$quantidade',
                                             '$valorUnitario',
-                                            '$tabela',
+                                            '$this->tabelaprecopadrao',
                                             '$valor_prod',
                                             '$custo_medio',
                                             '$ultimo_custo',
@@ -447,29 +489,48 @@ class recebePrecode{
                                             }else{
                                                 echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir produto "'.$id_produto_bd.'" no orçamento "'.$codigoOrcamento.'"';   
                                                 echo '</div>';
-                                            }                                            
+                                            } 
+                                        }else{
+                                                         
+                                                echo '<br>';     
+                                                  echo '<div class="container">';
+                                                    echo '<div class="alert alert-warning " role="alert" >';
+                                                    echo ' <h3 style="color:red;" align="center"> <strong>Atenção!</strong> ';
+                                                    echo '<br> Não foi encontrado o produto codigo:  '.$referenciaLoja ;
+                                                    echo '<br>  verifique os itens do pedido codigo: '.$PedidoMktplace. ' no marketplace: '. $marketplace      ;
+                                                    echo '<br>   verifique os itens do pedido codigo:  '. $codigoPedidoSite.' no precode </h3> ';
+                                                      
+                                                $resultDeleteOrder =  $this->vendas->Consulta("DELETE FROM cad_orca where CODIGO = '$codigoOrcamento'");
+                                                if($resultDeleteOrder == 1){
+                                                    echo '<h3 style="color:red;" align="center">  pedido nao registrado no sistema   </h3> ';
+                                                }
+                                                 echo '</div>';    
+                                                 echo '</div>'; 
+                                        }
+                                                                                 
                                     }
                                     if ($codigoOrcamento > 0){
                                         /*
                                             Prazo para a venda e forma de pagamento
                                         */
-                                        if($marketplace == 'B2W V2'){
-                                            $day = 30;
-                                        }elseif($marketplace == 'Mercado Livre'){
-                                            $day = 30;
-                                        }elseif($marketplace == 'ViaVarejo'){
-                                            $day = 30;
-                                        }elseif($marketplace == 'Magazine Luiza'){
-                                            $day = 30;                                           
-                                        }else{
-                                            $day = 30;
-                                        }
+                                        //if($marketplace == 'B2W V2'){
+                                        //    $day = 30;
+                                        //}elseif($marketplace == 'Mercado Livre'){
+                                        //    $day = 30;
+                                        //}elseif($marketplace == 'ViaVarejo'){
+                                        //    $day = 30;
+                                        //}elseif($marketplace == 'Magazine Luiza'){
+                                        //    $day = 30;                                           
+                                        //}else{
+                                        //    $day = 30;
+                                        //}
+
                                         $sql = "INSERT INTO par_orca (orcamento, parcela, valor, vencimento, tipo_receb)
                                         VALUES ('$codigoOrcamento',
                                                 '1', 
                                                 '$valorTotalPed',
-                                                (SELECT DATE_ADD(CURDATE(), INTERVAL $day DAY)),
-                                                '101'                    
+                                                ( CURDATE()  ),
+                                                 $this->codigoTipoRecebimento                    
                                                 )";	
 
                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
@@ -567,8 +628,9 @@ class recebePrecode{
                                     echo "</main>";  
                                     
                                 } else{
-                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir  orçamento"'.$codigoOrcamento.'" <br> Canal Precode:"'.$dispositivo.'' .$marketplace.'"'; 
+                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir  orçamento  <br> Canal Precode:"'.$dispositivo.'' .$marketplace.'"'; 
                                     echo '</div>';
+                                    print_r( $sql);
                                     echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
                                     print_r(date('d/m/Y h:i:s'));                    
                                     echo '</div></b>';

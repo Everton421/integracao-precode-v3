@@ -24,13 +24,17 @@
   include(__DIR__.'/database/conexao_estoque.php'); 
   include(__DIR__.'/database/conexao_vendas.php');
 
-  $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+  $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
   $tabela = 1;
   if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
     $tabela =$ini['conexao']['tabelaPreco']; 
   }
-
+$filial = 1;
+  if($ini['conexao']['filial'] && !empty($ini['conexao']['filial']) ){
+    $filial =$ini['conexao']['filial']; 
+  }
+  
 if(empty($ini['conexao']['token'] )){
     echo 'token da aplicação não fornecido';
         exit();
@@ -42,11 +46,11 @@ if(empty($ini['conexao']['token'] )){
   $vendas = new CONEXAOVENDAS();
 
   $hoje = date('Y-m-d');
-  $command = 'nohup /root/zap/sendZap_Bianca '; 
-  $erro1 = '';  
-  $erro2 = '';   
-  $erro3 = '';
-  $erro4 = '';
+//  $command = 'nohup /root/zap/sendZap_Bianca '; 
+//  $erro1 = '';  
+//  $erro2 = '';   
+//  $erro3 = '';
+//  $erro4 = '';
 
 echo "<main class='login-form'>";
 echo '<div class="cotainer"><div class="row justify-content-center"><div class="col-md-8"><div class="card">';
@@ -65,18 +69,19 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
     print_r(date('d/m/Y h:i:s'));
     echo '</div>';
     
-
+    // obtem preço do produto 
     $buscaPreco =$publico->Consulta("SELECT tabela, produto, preco, promocao, valid_prom FROM prod_tabprecos WHERE tabela = $tabela and produto = $produtoBd");
+
     while($row1 = mysqli_fetch_array($buscaPreco, MYSQLI_ASSOC)){
+
       $verificaIndexado =$publico->Consulta("SELECT p.codigo, p.grupo, p.descricao, pc.indexado FROM cad_prod p
-                                                          Left Outer Join prod_custos pc on (pc.PRODUTO = p.CODIGO) And (pc.FILIAL = 2)
+                                                          Left Outer Join prod_custos pc on (pc.PRODUTO = p.CODIGO) And (pc.FILIAL = $filial)
                                                           WHERE p.codigo = $produtoBd");
       //print_r("SELECT codigo, grupo, descricao, indexado FROM cad_prod WHERE codigo = $produtoBd");
+      
       while($resposta = mysqli_fetch_array($verificaIndexado, MYSQLI_ASSOC)){	
         $indexado = $resposta['indexado'];   
       }  
-      //$preco = $row1['preco'];
-      //$promocao = $row1['promocao'];    
       $valorProduto = $row1['preco'];
       $valorPromocional = $row1['promocao'];
       if($indexado == 'S'){
@@ -85,12 +90,11 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
         $parametro =$vendas->Consulta("SELECT indice FROM parametros"); 
         $resultado = $parametro->fetch_array(MYSQLI_ASSOC);
         $indice = $resultado['indice'];
-        //print_r($indice);
         $preco = $valorProduto * $indice;
         $promocao = $valorPromocional * $indice;         
       }else{        
-        $preco = $valorProduto;//$row1['preco'];
-        $promocao = $valorPromocional;//$row1['promocao'];
+        $preco = $valorProduto; 
+        $promocao = $valorPromocional; 
       }
       $validade = $row1['valid_prom'];
       if($validade >= $hoje){
@@ -465,7 +469,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
   }  
   /*  
     executa o comando e envia uma msg no whatsapp para o administrador com preços fora do comum
-  */
+  
   $text1 = 'Valor+destes+produtos+em+promoção+não+alterado+acimda+de+30%+';
   $text2 = 'Estes+produtos+estão+com+diferença+acima+de+30%';
   $text3 = 'Estes+produtos+foram+atualizados+com+diferença+acima+de+30%+na+promocao';
@@ -478,6 +482,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
   exec($msg2 ,$op);
   exec($msg3 ,$op);
   exec($msg4 ,$op);
+  */
   //$pid = (int)$op[0];
  $vendas->Desconecta();
  $publico->Desconecta();

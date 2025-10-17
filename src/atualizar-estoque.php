@@ -9,7 +9,7 @@ include(__DIR__.'/database/conexao_vendas.php');
 
 $curl;    	
 
-$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
 $tabelaprecopadrao = 1;
 $setor = 1;
@@ -47,7 +47,7 @@ echo '<div class="col-md-8">';*/
 echo '<div class="card">';
 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando estoque</b></h3>'; //abrindo o header com informação
 echo '</div>';
-$buscaProdutos = $publico->Consulta("SELECT codigo_site, codigo_bd, data_recad FROM produto_precode" ); 		
+$buscaProdutos = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode" ); 		
 	 
 if((mysqli_num_rows($buscaProdutos)) == 0){
     
@@ -55,7 +55,10 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
     while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
         $codigoSite = $row['codigo_site'];
         $codigoBd = $row['codigo_bd'];
-        if($codigoSite == 0){
+        $saldoEnviadoPrecode = $row['saldo_enviado'];
+        $dataRecadEstoquePrecode = new DateTime( $row['data_recad_estoque']);
+        $dataRecadEstoquePrecode =  date_format($dataRecadEstoquePrecode, 'Y-m-d H:i:s') ; // data do ultimo envio do saldo, usuada para comparar se é necessario atualizar o saldo
+         if($codigoSite == 0){
 
         }else{
             $estoqueprod = 0;       
@@ -81,15 +84,17 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                                                 WHERE P.CODIGO = '$codigoBd'
                                                     AND PS.SETOR = '$setor'
                                                     GROUP BY P.CODIGO) AS est " );
-
        
             $retornoestoque = mysqli_num_rows($buscaEstoque);
-
+ 
             if($retornoestoque > 0 ){   
                 while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                     $estoqueprod  = $row_estoque['ESTOQUE'];
-                    //print_r($estoqueprod);
-                    //echo "<br>";
+
+                    $dataRecadEstoqueSistema = new DateTime( $row_estoque['DATA_RECAD']  ); // data atualização do saldo no sistema
+                        $dataRecadEstoqueSistema = date_format($dataRecadEstoqueSistema, 'Y-m-d H:i:s');
+
+                    if(  $estoqueprod != $saldoEnviadoPrecode){
 
                     $curl = curl_init();
                     curl_setopt_array($curl, array(
@@ -133,30 +138,20 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                     $mensagem = $resultado->produto[0]->mensagem;
                     $codMensagem = $resultado->produto[0]->idMensagem;   
                     sleep(1);
-                    /*print_r("
-                    {
-                        \r\n\"produto\": 
-                        [\r\n
-                        {
-                            \r\n\"IdReferencia\": \"$codigoBd\",
-                            \r\n\"sku\": 0,
-                            \r\n\"estoque\": 
-                            [\r\n                
-                                {
-                                    \r\n\"filialSaldo\": 1,
-                                    \r\n\"saldoReal\": $estoqueprod,
-                                    \r\n\"saldoDisponivel\": $estoqueprod
-                                    \r\n                
-                                }
-                                \r\n            
-                            ]\r\n        
-                        }\r\n    
-                        ]\r\n
-                    }
-                    ");*/
                     
                             
                     if( $codMensagem == '0'){
+                            $resultUpdateProduct = $publico->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
+
+                            if($resultUpdateProduct != 1 ){
+                                    echo '<div class="alert alert-warning" role="alert">';
+                                    echo '<strong>Atenção!</strong> Ocorreu um erro ao tentar atualizar a data de envio do estoque na tabela produto_recode!.';
+                                    echo '<br>';
+                                    echo '</div>';
+                            }
+
+                        echo '<br>';
+
                         echo '<div class="card-header alert alert-success"> <h3 style="color:green;" align="center">Estoque do produto '.$codigoBd.' atualizado com sucesso! <br> Novo Saldo: '.$estoqueprod.' Ref: '.$codigoBd;                          
                         echo '</div>';  
                         echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
@@ -170,11 +165,21 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                         echo '</div></b>';           
                         echo '<br>';           
 
-                        
                     }
                     curl_close($curl); 
+                   }else{
+                      //  echo $dataRecadEstoqueSistema.' < '.$dataRecadEstoquePrecode.'<br>';
+                echo '<div class="card-header alert alert-success"> <h3 style="color:green;" align="center">';
+                 echo 'Não ouve atualização do saldo produto '.$codigoBd.' no sistema ! <br>  Ref: '.$codigoBd;                          
+                        echo '</div>';  
+                        echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
+                        print_r(date('d/m/Y h:i:s'));
+                        echo '</div></b>';
+                  }
                 }
-            }            
+            }
+            
+                
         }     
     }
 }

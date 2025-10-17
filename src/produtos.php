@@ -18,9 +18,8 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');
-include_once('databases.php');
 
-include_once(__DIR__.'/database/conexao_publico.php');
+include(__DIR__.'/database/conexao_publico.php');
 include(__DIR__.'/database/conexao_vendas.php');
 include(__DIR__.'/database/conexao_estoque.php');
 
@@ -30,7 +29,7 @@ $curl;
 $indice; 
 $publico = new CONEXAOPUBLICO();
 
-$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
 $tabelaDePreco = 1;
 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
@@ -207,7 +206,6 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
             ]
         ];
 
- 
         $curl = curl_init();
 
         

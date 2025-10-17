@@ -9,7 +9,7 @@ include(__DIR__.'/database/conexao_vendas.php');
 
 $curl;    	
       
-$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
 $tabelaprecopadrao = 1;
 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
@@ -86,7 +86,7 @@ if($retorno > 0 ){
         curl_close($curl);
         $decode = json_decode($response);
         $codMensagem = $decode->pedido[0]->idRetorno; 
-        $mensagem_nf_err = $decode->pedido[0]->memsagem;
+        $mensagem_nf_err = $decode->pedido[0]->mensagem;
         $numeroPedido = $decode->pedido[0]->numeroPedido;
         $busca_status = $vendas->Consulta("select * from pedido_precode where codigo_pedido_site = '$id_pedido' and situacao = 'aprovado'");
         $retorno2 = mysqli_num_rows($busca_status);					
@@ -96,7 +96,7 @@ if($retorno > 0 ){
             echo '</div>';
             $sql = "update pedido_precode set situacao = 'nota_enviada' where codigo_pedido_site = '$id_pedido'";
             print_r($sql);
-            if(mysqli_query($Obj_Conexao_vendas->link, $sql) === TRUE){
+            if(mysqli_query($vendas->link, $sql) === TRUE){
                 echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> XML da nota inserida com sucesso!';   
                 echo "<br><br>";
                 print_r("

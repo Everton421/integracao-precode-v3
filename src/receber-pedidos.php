@@ -1,6 +1,6 @@
 <?php
 
-    include("recebe.php");
+    include("pedidos.php");
 	$dadosEnvio = new recebePrecode();	
 	$dadosEnvio->recebe();
 ?>
