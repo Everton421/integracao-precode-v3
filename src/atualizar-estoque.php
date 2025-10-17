@@ -22,7 +22,7 @@ if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
 if($ini['conexao']['setor'] && !empty($ini['conexao']['setor']) ){
     $setor =$ini['conexao']['setor']; 
 }
-   
+    
 
 if(empty($ini['conexao']['token'] )){
     echo 'token da aplicação não fornecido';
