@@ -47,10 +47,10 @@ if(empty($ini['conexao']['token'] )){
 
   $hoje = date('Y-m-d');
 //  $command = 'nohup /root/zap/sendZap_Bianca '; 
-//  $erro1 = '';  
-//  $erro2 = '';   
-//  $erro3 = '';
-//  $erro4 = '';
+   $erro1 = '';  
+   $erro2 = '';   
+   $erro3 = '';
+   $erro4 = '';
 
 echo "<main class='login-form'>";
 echo '<div class="cotainer"><div class="row justify-content-center"><div class="col-md-8"><div class="card">';
