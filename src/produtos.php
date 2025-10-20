@@ -180,12 +180,12 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         $json['product']['height'] = !empty($prod['ALTURA']) ? floatval($prod['ALTURA']) : 0;
         $json['product']['length'] = !empty($prod['COMPRIMENTO']) ? floatval($prod['COMPRIMENTO']) : 0;
         $json['product']['brand'] = $prod['MARCA'];
-        $json['product']['nbm'] = null;
+        $json['product']['nbm'] = !empty($prod['NCM']) ? $prod['NCM']  : '';
         $json['product']['model'] = null;
         $json['product']['gender'] = '';
-        $json['product']['volumes'] = 0;
+        $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
         $json['product']['warrantyTime'] = $prod['GARANTIA'];
-        $json['product']['category'] = '';
+        $json['product']['category'] = !empty($prod['CATGORIA']) ? $prod['CATEGORIA'] : '';
         $json['product']['subcategory'] = '';
         $json['product']['endcategory'] = '';
         $json['product']['attribute'] = [['key' => '', 'value' => '']];
