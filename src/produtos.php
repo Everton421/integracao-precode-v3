@@ -169,8 +169,8 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
 #        $json['product']['sku'] = !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0;
 
         $json['product']['sku'] = null;
-        $json['product']['name'] = mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1');
-        $json['product']['description'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' );
+        $json['product']['name'] = strtolower (mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1'));
+        $json['product']['description'] = strtolower (mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ));
         $json['product']['status'] = 'enabled';
         $json['product']['price'] = floatval($prod['PRECO']);
         $json['product']['promotional_price'] = floatval($prod['PRECO']);
@@ -179,7 +179,7 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         $json['product']['width'] = !empty($prod['LARGURA']) ? floatval($prod['LARGURA']) : 0;
         $json['product']['height'] = !empty($prod['ALTURA']) ? floatval($prod['ALTURA']) : 0;
         $json['product']['length'] = !empty($prod['COMPRIMENTO']) ? floatval($prod['COMPRIMENTO']) : 0;
-        $json['product']['brand'] = $prod['MARCA'];
+        $json['product']['brand'] = strtolower ($prod['MARCA']);
         $json['product']['nbm'] = null;
         $json['product']['model'] = null;
         $json['product']['gender'] = '';
