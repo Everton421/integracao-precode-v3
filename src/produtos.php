@@ -1,4 +1,4 @@
-<html>
+ <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -185,7 +185,7 @@ if ($codigoProduto == '' || $codigoProduto == 0) {
         $json['product']['gender'] = '';
         $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
         $json['product']['warrantyTime'] = $prod['GARANTIA'];
-        $json['product']['category'] = !empty($prod['CATGORIA']) ? $prod['CATEGORIA'] : '';
+        $json['product']['category'] = !empty($prod['CATEGORIA']) ? $prod['CATEGORIA'] : '';
         $json['product']['subcategory'] = '';
         $json['product']['endcategory'] = '';
         $json['product']['attribute'] = [['key' => '', 'value' => '']];
