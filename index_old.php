@@ -83,16 +83,11 @@
             <div class="card-body">
                 <?php
                 include(__DIR__ . '/src/database/conexao_publico.php');
-                include(__DIR__ . '/src/database/conexao_vendas.php');
-                
                 $publico = new CONEXAOPUBLICO();
-                $vendas = new CONEXAOVENDAS();
-                $database_vendas = $vendas->getBase();
-                $result = $publico->Consulta("SELECT cp.CODIGO, cp.DESCRICAO, pp.CODIGO_SITE, fp.FOTO, pr.FOTOS as CAMINHO_FOTOS
+                $result = $publico->Consulta("SELECT cp.CODIGO, cp.DESCRICAO, pp.CODIGO_SITE
                                                 FROM cad_prod cp 
-                                                LEFT JOIN produto_precode pp ON pp.codigo_bd = cp.CODIGO
-                                                LEFT JOIN fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO 
-                                                JOIN ".$database_vendas.".parametros pr on pr.id = 1 
+                                                LEFT JOIN produto_precode pp 
+                                                ON pp.codigo_bd = cp.CODIGO
                                                 WHERE cp.ATIVO='S' AND cp.NO_MKTP='S' 
                                                 ORDER BY cp.CODIGO");
                 $numRows = mysqli_num_rows($result);
@@ -101,20 +96,16 @@
                         $codigo = $list['CODIGO'];
                         $descricao = $list['DESCRICAO'];
                         $codigo_site = $list['CODIGO_SITE'];
-                        $foto = $list['FOTO'];
-                        $caminho = $list['CAMINHO_FOTOS'];
                         $classe_enviado = ($codigo_site != null && $codigo_site != '') ? 'enviado' : '';
-                        $foto = ( $foto != null && $foto != '' ) ? $caminho.''.$foto : '';
-                        echo "<div class='col-12 col-sm-6 mb-2 product-item $classe_enviado'>";
-                         echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
-                         echo "<img src=".$foto." alt='N/A' width='100' height='100'>";
 
-                          echo "Cód: <span class='product-code'>$codigo</span>";
-                          echo "<div class='fw-bold product-description'><strong>$descricao</strong></div>";
-                              if ($classe_enviado != '') {
-                                 echo "<span>Enviado</span>";
-                              }
-                               echo "<hr>";
+                        echo "<div class='col-12 col-sm-6 mb-2 product-item $classe_enviado'>";
+                        echo "<input type='checkbox' name='codprod' value='$codigo' class='mr-2'>";
+                        echo "Cód: <span class='product-code'>$codigo</span>";
+                        echo "<div class='fw-bold product-description'>$descricao</div>";
+                        if ($classe_enviado != '') {
+                            echo "<span>Enviado</span>";
+                        }
+                        echo "<hr>";
                         echo "</div>";
                     }
                 }
