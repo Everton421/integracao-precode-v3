@@ -134,13 +134,13 @@ Class EnviarProduto{
                 $json['product']['length'] = !empty($prod['COMPRIMENTO']) ? floatval($prod['COMPRIMENTO']) : 0;
                 $json['product']['brand'] = $prod['MARCA'];
                 $json['product']['nbm'] = !empty($prod['NCM']) ? str_replace(".","",$prod['NCM'])  : '';
-                $json['product']['model'] =   !empty($prod['MODELO_MKTPLACE']) ? $prod['MODELO_MKTPLACE'] : null ; 
+                $json['product']['model'] =   !empty($prod['MODELO_MKTPLACE']) ? $this->removerAcentos($prod['MODELO_MKTPLACE']) : null ; 
                 $json['product']['gender'] = '';
                 $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
                 $json['product']['warrantyTime'] = $prod['GARANTIA'];
                 $json['product']['category'] = !empty($prod['CATEGORIA']) ? $prod['CATEGORIA'] : '';
-                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
-                $json['product']['endcategory'] = !empty($prod['FINALCATEGORIA_MKTPLACE']) ? $prod['FINALCATEGORIA_MKTPLACE'] : '';
+                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA']) ? $this->removerAcentos($prod['SUBCATEGORIA']) : '';
+                $json['product']['endcategory'] = !empty($prod['FINALCATEGORIA_MKTPLACE']) ? $this->removerAcentos($prod['FINALCATEGORIA_MKTPLACE']) : '';
                 $json['product']['manufacturing']  =  $origem;
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
@@ -226,6 +226,29 @@ Class EnviarProduto{
         ]);
     }
 
+
+ private   function removerAcentos(string $string): string
+{
+  $map = array(
+    '/[áàãâä]/u' => 'a',
+    '/[ÁÀÃÂÄ]/u' => 'A',
+    '/[éèêë]/u' => 'e',
+    '/[ÉÈÊË]/u' => 'E',
+    '/[íìîï]/u' => 'i',
+    '/[ÍÌÎÏ]/u' => 'I',
+    '/[óòõôö]/u' => 'o',
+    '/[ÓÒÕÔÖ]/u' => 'O',
+    '/[úùûü]/u' => 'u',
+    '/[ÚÙÛÜ]/u' => 'U',
+    '/[ç]/u' => 'c',
+    '/[Ç]/u' => 'C',
+    '/[ñ]/u' => 'n',
+    '/[Ñ]/u' => 'N',
+  );
+
+    return preg_replace(array_keys($map), array_values($map), $string);
+
+}
 }
 
 ?>
