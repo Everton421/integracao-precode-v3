@@ -81,7 +81,11 @@ Class EnviarProduto{
                     p.COMPRIMENTO,
                     p.LARGURA,
                     p.ALTURA,         
-                    p.PESO,       
+                    p.PESO,
+                    p.ORIGEM,
+                    p.CATEGORIA_MKTPLACE,
+                    p.SUBCATEGORIA_MKTPLACE,
+                    p.FINALCATEGORIA_MKTPLACE,       
                     tp.PRECO,       
                     m.descricao AS MARCA,
                     cf.NCM,
@@ -137,10 +141,17 @@ Class EnviarProduto{
                  }
 
             #  $json['product']['sku'] = !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0;
+                 $origem = 'Nacional';
+
+                 if($prod['ORIGEM'] == 1 || $prod['ORIGEM'] == 2 || $prod['ORIGEM'] == 6 || $prod['ORIGEM'] == 7  ){
+                    $origem = 'Importado';
+                 }
 
                 $json['product']['sku'] = null;
                 $json['product']['name'] =  mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1') ;
+                $json['product']['shortName'] =  mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1') ;
                 $json['product']['description'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
+                $json['product']['googleDescription'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
                 $json['product']['status'] = 'enabled';
                 $json['product']['price'] = floatval($prod['PRECO']);
                 $json['product']['promotional_price'] = floatval($prod['PRECO']);
@@ -155,9 +166,10 @@ Class EnviarProduto{
                 $json['product']['gender'] = '';
                 $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
                 $json['product']['warrantyTime'] = $prod['GARANTIA'];
-                $json['product']['category'] = !empty($prod['CATEGORIA']) ? $prod['CATEGORIA'] : '';
-                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
-                $json['product']['endcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
+                $json['product']['category'] = !empty($prod['CATEGORIA_MKTPLACE']) ? $prod['CATEGORIA_MKTPLACE'] : '';
+                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA_MKTPLACE']) ? $prod['SUBCATEGORIA_MKTPLACE'] : '';
+                $json['product']['endcategory'] = !empty($prod['FINALCATEGORIA_MKTPLACE']) ? $prod['FINALCATEGORIA_MKTPLACE'] : '';
+                $json['product']['manufacturing']  =  $origem;
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
                     [
