@@ -83,9 +83,9 @@ Class EnviarProduto{
                     p.ALTURA,         
                     p.PESO,
                     p.ORIGEM,
-                    p.CATEGORIA_MKTPLACE,
-                    p.SUBCATEGORIA_MKTPLACE,
-                    p.FINALCATEGORIA_MKTPLACE,       
+                    p.FINALCATEGORIA_MKTPLACE,
+                    p.MODELO_MKTPLACE,
+                    p.NUM_FABRICANTE,       
                     tp.PRECO,       
                     m.descricao AS MARCA,
                     cf.NCM,
@@ -150,7 +150,7 @@ Class EnviarProduto{
                 $json['product']['sku'] = null;
                 $json['product']['name'] =  mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1') ;
                 $json['product']['shortName'] =  mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1') ;
-                $json['product']['description'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
+                $json['product']['description'] = mb_convert_encoding($prod['APLICACAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
                 $json['product']['googleDescription'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
                 $json['product']['status'] = 'enabled';
                 $json['product']['price'] = floatval($prod['PRECO']);
@@ -162,12 +162,12 @@ Class EnviarProduto{
                 $json['product']['length'] = !empty($prod['COMPRIMENTO']) ? floatval($prod['COMPRIMENTO']) : 0;
                 $json['product']['brand'] = $prod['MARCA'];
                 $json['product']['nbm'] = !empty($prod['NCM']) ? str_replace(".","",$prod['NCM'])  : '';
-                $json['product']['model'] = null;
+                $json['product']['model'] =   !empty($prod['MODELO_MKTPLACE']) ? $prod['MODELO_MKTPLACE'] : null ; 
                 $json['product']['gender'] = '';
                 $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
                 $json['product']['warrantyTime'] = $prod['GARANTIA'];
-                $json['product']['category'] = !empty($prod['CATEGORIA_MKTPLACE']) ? $prod['CATEGORIA_MKTPLACE'] : '';
-                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA_MKTPLACE']) ? $prod['SUBCATEGORIA_MKTPLACE'] : '';
+                $json['product']['category'] = !empty($prod['CATEGORIA']) ? $prod['CATEGORIA'] : '';
+                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
                 $json['product']['endcategory'] = !empty($prod['FINALCATEGORIA_MKTPLACE']) ? $prod['FINALCATEGORIA_MKTPLACE'] : '';
                 $json['product']['manufacturing']  =  $origem;
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
@@ -177,7 +177,7 @@ Class EnviarProduto{
                         'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
                         #'sku' => '',
                         'qty' => 0,
-                        'ean' => !empty($prod['EAN']) ? $prod['EAN'] : null,
+                        'ean' => !empty($prod['NUM_FABRICANTE']) ? $prod['NUM_FABRICANTE'] : null,
                         'images' => $fotos,
                         'specifications' => [
                             [
