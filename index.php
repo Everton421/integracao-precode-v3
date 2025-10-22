@@ -94,7 +94,9 @@
                                                 LEFT JOIN fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO 
                                                 JOIN ".$database_vendas.".parametros pr on pr.id = 1 
                                                 WHERE cp.ATIVO='S' AND cp.NO_MKTP='S' 
-                                                ORDER BY cp.CODIGO");
+                                               GROUP BY cp.CODIGO
+                                                ORDER BY cp.CODIGO
+                                                ");
                 $numRows = mysqli_num_rows($result);
                 if ($numRows > 0) {
                     while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
@@ -107,10 +109,11 @@
                         $foto = ( $foto != null && $foto != '' ) ? $caminho.''.$foto : '';
                         echo "<div class='col-12 col-sm-6 mb-2 product-item $classe_enviado'>";
                          echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
-                         echo "<img src=".$foto." alt='N/A' width='100' height='100'>";
-
-                          echo "Cód: <span class='product-code'>$codigo</span>";
-                          echo "<div class='fw-bold product-description'><strong>$descricao</strong></div>";
+                       
+                          echo "<img src='' alt='N/A' width='80' height='80'>";
+                      
+                          echo "<div class='fw-bold product-description'> <strong> Cód:</strong> <span class='product-code'>$codigo <strong><br>  $descricao </strong></span> </div>";
+                          
                               if ($classe_enviado != '') {
                                  echo "<span>Enviado</span>";
                               }

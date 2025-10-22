@@ -70,7 +70,7 @@ Class EnviarProduto{
             //   echo 'Buscando o produto para ser enviado <br>';
 
                 $sqlProdutoIntersig = $publico->Consulta("SELECT p.CODIGO,
-                    p.DATA_RECAD,
+                  p.DATA_RECAD,
                     p.SKU_MKTPLACE,
                     p.DESCR_REDUZ,
                     p.DESCR_CURTA,
@@ -83,10 +83,16 @@ Class EnviarProduto{
                     p.ALTURA,         
                     p.PESO,       
                     tp.PRECO,       
-                    m.descricao AS MARCA
+                    m.descricao AS MARCA,
+                    cf.NCM,
+                    sg.DESCRICAO AS SUBCATEGORIA,
+                    cg.NOME AS CATEGORIA
                 FROM cad_prod p
                 INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
                 LEFT JOIN cad_pmar m ON m.codigo = p.marca
+                LEFT JOIN class_fiscal cf ON cf.CODIGO = p.CLASS_FISCAL
+                LEFT JOIN cad_pgru cg ON cg.CODIGO = p.GRUPO
+                LEFT join subgrupos sg ON sg.CODIGO = p.SUBGRUPO
                 WHERE (p.NO_MKTP='S'AND p.ATIVO='S')  AND tp.tabela = $tabelaDePreco AND p.CODIGO = $codigoProduto");
                 
                 //montagem de produto no intersig
@@ -94,10 +100,14 @@ Class EnviarProduto{
                 $resultFunction =[];
                 if ($prod == null || empty($prod)) {
                     echo 'Produto não encontrado <br>';
-
                     return $this->response(false, 'Produto não encontrado'   );
                 }
-
+                if( $prod['MARCA'] == null  || $prod['MARCA'] == 0 ){
+                    return $this->response(false, 'O campo MARCA não foi atribuido'   );
+                }
+                if( $prod['CATEGORIA'] == null  || $prod['CATEGORIA'] == 0 ){
+                    return $this->response(false, 'O campo CATEGORIA/GRUPO não foi atribuido'   );
+                }
                 if ($prod['PESO'] == 0) {
                     return $this->response(false, 'O campo PESO não foi atribuido'   );
                 }
@@ -109,7 +119,7 @@ Class EnviarProduto{
                 if ($prod['ALTURA'] == 0) {
                      return $this->response(false, 'O campo ALTURA não foi atribuido'  );
                 }
-
+                
                 if ($prod['COMPRIMENTO'] == 0) {
                       return $this->response(false, 'O campo COMPRIMENTO não foi atribuido'  );
                 }
@@ -129,8 +139,8 @@ Class EnviarProduto{
             #  $json['product']['sku'] = !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0;
 
                 $json['product']['sku'] = null;
-                $json['product']['name'] = mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1');
-                $json['product']['description'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' );
+                $json['product']['name'] =  mb_convert_encoding( str_replace('"', ' ', $prod['DESCRICAO']), 'UTF-8', 'ISO-8859-1') ;
+                $json['product']['description'] = mb_convert_encoding($prod['DESCRICAO'], 'UTF-8', 'ISO-8859-1' ); //campo descricao detalhada do produto 
                 $json['product']['status'] = 'enabled';
                 $json['product']['price'] = floatval($prod['PRECO']);
                 $json['product']['promotional_price'] = floatval($prod['PRECO']);
@@ -140,14 +150,14 @@ Class EnviarProduto{
                 $json['product']['height'] = !empty($prod['ALTURA']) ? floatval($prod['ALTURA']) : 0;
                 $json['product']['length'] = !empty($prod['COMPRIMENTO']) ? floatval($prod['COMPRIMENTO']) : 0;
                 $json['product']['brand'] = $prod['MARCA'];
-                $json['product']['nbm'] = !empty($prod['NCM']) ? $prod['NCM']  : '';
+                $json['product']['nbm'] = !empty($prod['NCM']) ? str_replace(".","",$prod['NCM'])  : '';
                 $json['product']['model'] = null;
                 $json['product']['gender'] = '';
                 $json['product']['volumes'] = !empty($prod['VOLUMES']) ? $prod['VOLUMES'] : 0 ;
                 $json['product']['warrantyTime'] = $prod['GARANTIA'];
                 $json['product']['category'] = !empty($prod['CATEGORIA']) ? $prod['CATEGORIA'] : '';
-                $json['product']['subcategory'] = '';
-                $json['product']['endcategory'] = '';
+                $json['product']['subcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
+                $json['product']['endcategory'] = !empty($prod['SUBCATEGORIA']) ? $prod['SUBCATEGORIA'] : '';
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
                     [
@@ -166,7 +176,7 @@ Class EnviarProduto{
                     ]
                 ];
 
-                //print_r(json_encode($json));
+                
                  $curl = curl_init();
 
                 
@@ -208,17 +218,18 @@ Class EnviarProduto{
                         }
                 } else {
                     if (isset($retorno['message'])) {
-                     return $this->response(true, ' Houve um erro no envio do produto, contate a plataforma. <br>  <strong>Mensagem de Erro:</strong> ' . htmlspecialchars(print_r($retorno['message'], true))  );
+                     return $this->response(false, ' Houve um erro no envio do produto, contate a plataforma. <br>  <strong>Mensagem de Erro:</strong> ' . htmlspecialchars(print_r($retorno['message'], true))  );
                     } else {
-                     return $this->response(true, ' Houve um erro no envio do produto, <strong>Mensagem de Erro:</strong> Detalhes não fornecidos.');
+                     return $this->response(false, ' Houve um erro no envio do produto, <strong>Mensagem de Erro:</strong> Detalhes não fornecidos.');
                     }
                 }
+                 
               
-                
                 } else {
                       return $this->response(false, ' Produto já foi enviado para a plataforma!'  );
 
-                } 
+                }
+                 
                }   
             }
 
