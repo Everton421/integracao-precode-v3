@@ -30,45 +30,16 @@ Class EnviarProduto{
         $appToken = $ini['conexao']['token'];
 
         
-        if(!$appToken || empty($appToken)){
-                    echo '<div class="container">';
-                        echo '<div class="alert alert-danger" role="alert">';
-                        echo '<strong>Erro!</strong>token da aplicação não foi fornecido ';
-                        echo '<br>';
-                        echo '</div>';
-                    echo '</div>';
-                    exit();
-            
+               if(!$appToken || empty($appToken)){
+                      return $this->response(false, ' token da aplicação não foi fornecido'  );
                 }
-        if(!$tabelaDePreco || empty($tabelaDePreco)){
-                    echo '<div class="container">';
-                        echo '<div class="alert alert-danger" role="alert">';
-                        echo '<strong>Erro!</strong>não foi fornecido o codigo da tabela de preço ';
-                        echo '<br>';
-                        echo '</div>';
-                    echo '</div>';
-                    exit();
-            
-                }
-
-
-        if ($codigoProduto == '' || $codigoProduto == 0) {
-            
-            echo '<div class="container">';
-                        echo '<div class="alert alert-danger" role="alert">';
-                        echo '<strong>Erro!</strong>O Código do produto não foi preenchido ';
-                        echo '<br>';
-                        echo '</div>';
-                    echo '</div>';
-
-        } else {
+    
             
             //verifica se o produto já foi incluido na tabela precode anteriormente
             $produtoPrecode = $publico->Consulta("SELECT * FROM produto_precode where codigo_bd = $codigoProduto");
 
+           
             if ((mysqli_num_rows($produtoPrecode)) == 0) {
-            //   echo 'Buscando o produto para ser enviado <br>';
-
                 $sqlProdutoIntersig = $publico->Consulta("SELECT p.CODIGO,
                   p.DATA_RECAD,
                     p.SKU_MKTPLACE,
@@ -101,11 +72,13 @@ Class EnviarProduto{
                 
                 //montagem de produto no intersig
                 $prod = mysqli_fetch_array($sqlProdutoIntersig, MYSQLI_ASSOC);
-                $resultFunction =[];
+
                 if ($prod == null || empty($prod)) {
                     echo 'Produto não encontrado <br>';
                     return $this->response(false, 'Produto não encontrado'   );
                 }
+
+
                 if( $prod['MARCA'] == null  || $prod['MARCA'] == 0 ){
                     return $this->response(false, 'O campo MARCA não foi atribuido'   );
                 }
@@ -130,17 +103,16 @@ Class EnviarProduto{
 
                 
                 $json = [];
-
+               
                 // envio das fotos
                 $fotos=[];        
-                 try {
-                     $fotos = $enviarFotos->enviarFotos($codigoProduto );   
-                     //   print_r( $fotos );
-                 } catch (Exception $e) {
-                     echo "Erro: " . $e->getMessage();
-                 }
+                  try {
+                      $fotos = $enviarFotos->enviarFotos($codigoProduto );   
+                      //   print_r( $fotos );
+                  } catch (Exception $e) {
+                      echo "Erro: " . $e->getMessage();
+                  }
 
-            #  $json['product']['sku'] = !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0;
                  $origem = 'Nacional';
 
                  if($prod['ORIGEM'] == 1 || $prod['ORIGEM'] == 2 || $prod['ORIGEM'] == 6 || $prod['ORIGEM'] == 7  ){
@@ -188,60 +160,62 @@ Class EnviarProduto{
                     ]
                 ];
 
-                
-                 $curl = curl_init();
 
-                
-                curl_setopt($curl, CURLOPT_URL, 'https://www.replicade.com.br/api/v3/products');
-                curl_setopt($curl, CURLOPT_POST, 1);
-                curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($json));
-                curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Authorization: Basic ' . $appToken 
-                ]);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                $response = curl_exec($curl);
+                    $curl = curl_init();
 
-                if (curl_errno($curl)) {
-                    throw new Exception(curl_error($curl));
-                }
+                    curl_setopt($curl, CURLOPT_URL, 'https://www.replicade.com.br/api/v3/products');
+                    curl_setopt($curl, CURLOPT_POST, 1);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($json));
+                    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/json',
+                        'Authorization: Basic ' . $appToken 
+                    ]);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    $response = curl_exec($curl);
 
-                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                    if (curl_errno($curl)) {
+                        throw new Exception(curl_error($curl));
+                    }
 
-                curl_close($curl);
-                    $retorno = json_decode($response, true);
+                    $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-                if ($httpCode == 200 || $httpCode == 201) {
+                    curl_close($curl);
+                        $retorno = json_decode($response, true);
 
-                        $codigo_bd = $prod['CODIGO'];
-                        $preco_site = $prod['PRECO'];
-                        $codigo_site = isset($retorno['sku']) ? $retorno['sku'] : null; // Verifica se 'sku' existe
-                        $data_recad = date('Y-m-d H:i:s');
-                     $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site', $codigo_bd, $preco_site, '$data_recad')";
-                        $envioPrecodeBase = $publico->Consulta($sql);
+                           
+                    if ($httpCode == 200 || $httpCode == 201) {
+                        if(!empty($retorno)){
 
-                        if ($envioPrecodeBase) {
-                            return $this->response(true, '  O produto foi enviado para a plataforma com sucesso!'  );
-                        } else {
-                            echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
-                            return $this->response(true, ' o  Produto '.$codigoProduto .' foi enviado para a plataforma <br> porém nao foi registrado na tabela de controle!  '  );
+                            $codigo_bd = $prod['CODIGO'];
+                            $preco_site = $prod['PRECO'];
+                            $codigo_site = isset($retorno['sku']) ? $retorno['sku'] : null; // Verifica se 'sku' existe
+                            $data_recad = date('Y-m-d H:i:s');
+                        $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site', $codigo_bd, $preco_site, '$data_recad')";
+                            $envioPrecodeBase = $publico->Consulta($sql);
+                                echo '<br>';
+                            if ($envioPrecodeBase) {
+                                return $this->response(true, '  O produto foi enviado para a plataforma com sucesso!'  );
+                            } else {
+                                echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
+                                return $this->response(true, ' o  Produto '.$codigoProduto .' foi enviado para a plataforma <br> porém nao foi registrado na tabela de controle!  '  );
+                            }
+                        }else{
+                                return $this->response(false, ' solicitação recebida, porém a api não deu retorno, verifique se foi feita a inclusao do produto '.$codigoProduto.' no precode  '  );
 
                         }
-                } else {
-                    if (isset($retorno['message'])) {
-                     return $this->response(false, ' Houve um erro no envio do produto, contate a plataforma. <br>  <strong>Mensagem de Erro:</strong> ' . htmlspecialchars(print_r($retorno['message'], true))  );
+
+
                     } else {
-                     return $this->response(false, ' Houve um erro no envio do produto, <strong>Mensagem de Erro:</strong> Detalhes não fornecidos.');
+                        if (isset($retorno['message'])) {
+                        return $this->response(false, ' Houve um erro no envio do produto, contate a plataforma. <br>  <strong>Mensagem de Erro:</strong> ' . htmlspecialchars(print_r($retorno['message'], true))  );
+                        } else {
+                        return $this->response(false, ' Houve um erro no envio do produto, <strong>Mensagem de Erro:</strong> Detalhes não fornecidos.');
+                        }
                     }
-                }
-                 
-              
+                     
                 } else {
                       return $this->response(false, ' Produto já foi enviado para a plataforma!'  );
-
-                }
-                 
-               }   
+                 }
             }
 
         private function response(bool $success, string $message, $data = null): string {

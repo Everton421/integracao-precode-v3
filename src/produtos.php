@@ -60,8 +60,7 @@
                 if ($result['success']) {
                     echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
                     echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                    echo '<strong>Sucesso!</strong> O produto ' . $codigo . ' foi enviado para a plataforma com sucesso!';
-                    echo "<strong> " . $result['message'] . "</strong>";
+                    echo "<strong> " . $result['message'] . "</strong><br>produto :  $codigo ";
                     echo '</div>';
                 } else {
                     echo '<div class="mensagem-container mensagem-erro" role="alert">';
