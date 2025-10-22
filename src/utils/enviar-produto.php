@@ -217,8 +217,7 @@ Class EnviarProduto{
                         $preco_site = $prod['PRECO'];
                         $codigo_site = isset($retorno['sku']) ? $retorno['sku'] : null; // Verifica se 'sku' existe
                         $data_recad = date('Y-m-d H:i:s');
-                        $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('" . htmlspecialchars($codigo_site) . "', " . intval($codigo_bd) . ", " . floatval($preco_site) . ", '" . htmlspecialchars($data_recad) . "')";
-
+                     $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site', $codigo_bd, $preco_site, '$data_recad')";
                         $envioPrecodeBase = $publico->Consulta($sql);
 
                         if ($envioPrecodeBase) {
