@@ -41,6 +41,7 @@ Class EnviarProduto{
            
             if ((mysqli_num_rows($produtoPrecode)) == 0) {
                 $sqlProdutoIntersig = $publico->Consulta("SELECT p.CODIGO,
+                p.OUTRO_COD,
                   p.DATA_RECAD,
                     p.SKU_MKTPLACE,
                     p.DESCR_REDUZ,
@@ -145,8 +146,8 @@ Class EnviarProduto{
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
                     [
-                        'ref' => $prod['CODIGO'],
-                        'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
+                        'ref' => $prod['OUTRO_COD'],
+                        #'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
                         #'sku' => '',
                         'qty' => 0,
                         'ean' => !empty($prod['NUM_FABRICANTE']) ? $prod['NUM_FABRICANTE'] : null,

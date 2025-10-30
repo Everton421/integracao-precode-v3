@@ -4,7 +4,7 @@
 
  Class ObterVinculo{
 
-       function getVinculo( int $codigoProduto ){
+       function getVinculo( string $referencia , int $codigo ){
         
         $publico = new CONEXAOPUBLICO();
         $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
@@ -18,7 +18,7 @@
 
           $curl = curl_init();
          curl_setopt_array($curl, array(
-         CURLOPT_URL => "https://www.replicade.com.br/api/v3/products/query/".$codigoProduto."/ref",
+         CURLOPT_URL => "https://www.replicade.com.br/api/v3/products/query/".$referencia."/ref",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -35,7 +35,24 @@
         curl_close($curl);  
      
         if(!empty($result)){  
-            print_r($result);
+            $idPrecode = $result->produto->codigoAgrupador;
+            $publico->consulta('INSERT INTO produto_precode ( CODIGO_SITE , CODIGO_BD )
+            VALUES(
+                    '$idPrecode',
+                    '$codigo'
+                )');
+
+
+            /***
+              
+INSERT INTO products (id, name, quantity)
+VALUES (123, 'Widget A', 50)
+ON DUPLICATE KEY UPDATE
+name = VALUES(name),
+quantity = quantity + VALUES(quantity);
+
+
+             */
         }
         
      }
