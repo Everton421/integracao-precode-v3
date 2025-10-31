@@ -139,7 +139,7 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                     $codMensagem = $resultado->produto[0]->idMensagem;   
                     sleep(1);
                     
-                            
+                            print_r($resultado);
                     if( $codMensagem == '0'){
                             $resultUpdateProduct = $publico->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
 

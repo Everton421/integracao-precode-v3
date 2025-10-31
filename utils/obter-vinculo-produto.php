@@ -55,7 +55,11 @@
            
                       echo '<div class="mensagem-container mensagem-erro" role="alert">';
                             echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                            echo "<strong>Atenção!</strong> " .   $result->mensagem;
+                            if(!empty($result->mensagem)){ 
+                             echo "<strong>Atenção!</strong> " .$result->mensagem ;
+                            }else{
+                                print_r($result);
+                            }
                             echo "<br><strong> Produto: </strong>" . $codigo.'  Não foi encontrado no precode';
                             echo '</div>';
                      return;
