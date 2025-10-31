@@ -32,7 +32,7 @@ class recebePrecode{
 			$this->publico = new CONEXAOPUBLICO();	
             $this->vendas = new CONEXAOVENDAS();
             $this->estoque = new CONEXAOESTOQUE();
-            $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+            $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
                 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
                     $this->tabelaprecopadrao = $ini['conexao']['tabelaPreco']; 
                 }
@@ -163,14 +163,7 @@ class recebePrecode{
                                             $codigoClienteBd = $row1['CODIGO'];
                                  }  
                     }
-
-                echo "<main class='login-form'>";
-                echo '<div class="cotainer">';
-                echo '<div class="row justify-content-center">';
-                echo '<div class="col-md-8">';
-                echo '<div class="card">';
-                echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Aguardando dados do pedido "'.$codigoPedidoSite.'"</b></h3>';
-                echo '</div>'; 
+ 
                 if(mysqli_num_rows($buscaPedido) > 0){
                     echo '<div class="card-header alert alert-warning"> <h3 style="color: #B8860B;" align="center"> Este pedido já foi cadastrado no ERP';   
                     echo '</div>';
@@ -341,11 +334,19 @@ class recebePrecode{
                                             
                                             //print_r ($sql);
                                             if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
-                                                echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Produto "'.$id_produto_bd.'" inserido no orçamento "'.$codigoOrcamento.'"';   
-                                                echo '</div>';                                        
+                                             
+                                                  echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                                    echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                                    echo "<strong> </strong><br>Produto  $id_produto_bd  inserido no orçamento  $codigoOrcamento. ";
+                                                    echo '</div>';                                      
                                             }else{
                                                 echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir produto "'.$id_produto_bd.'" no orçamento "'.$codigoOrcamento.'"';   
                                                 echo '</div>';
+                                                     echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                                    echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                                    echo "<strong>Atenção!</strong> " .   $result->mensagem;
+                                                    echo "<br><strong> Produto: </strong> Falha ao inserir produto  $id_produto_bd  no orçamento  $codigoOrcamento " ;
+                                                    echo '</div>';
                                             } 
                                         }else{
                                                          
@@ -460,16 +461,7 @@ class recebePrecode{
                                         } 
                                     }
                                     
-                                    echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Pedido nº "'.$codigoOrcamento.'" inserido com sucesso!<br> Dispositivo: "'.$dispositivo.' -' .$marketplace.'"';   
-                                    echo '</div>';
-                                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                                    print_r(date('d/m/Y h:i:s'));                    
-                                    echo '</div></b>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                    echo '</div>'; 
-                                    echo "</main>";  
+                                
                                     
                                 } else{
                                     echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir  orçamento  <br> Canal Precode:"'.$dispositivo.'' .$marketplace.'"'; 

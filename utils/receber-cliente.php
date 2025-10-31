@@ -9,7 +9,7 @@ class ReceberCliente{
     private $publico;
 
  public function cadastrarCliente($pedido){   
-        $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
+        $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 			
         $this->publico = new CONEXAOPUBLICO();	
 
@@ -41,13 +41,8 @@ class ReceberCliente{
          
 
 
-                echo "<main class='login-form'>";
-                echo '<div class="cotainer">';
-                echo '<div class="row justify-content-center">';
-                echo '<div class="col-md-8">';
-                echo '<div class="card">';
-                echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Cadastrando clientes</b></h3>';
-                echo '</div>'; 
+           
+              
                 
                 $pega_dados = $this->publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");
 
@@ -85,15 +80,13 @@ class ReceberCliente{
                     } 
                     $sql = "UPDATE cad_clie set $atualiza where CODIGO = '$cpf'";
                     
-                    echo ' Atualizado com sucesso !<br>Cliente:"'.$nome.'"<br>CPF: '.$cpf.'';   
-                    echo '</div>';                    
-                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';                    
-                    print_r(date('d/m/Y h:i:s'));                    
-                    echo '</div></b>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>'; 
+                  
+                     echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                     echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                     echo "<strong> </strong><br>Cliente :  $nome Atualizado com sucesso ! ";
+                     print_r(date('d/m/Y h:i:s'));                    
+                     echo '</div>';
+
                     echo "</main>"; 
 
                }else{
@@ -154,21 +147,19 @@ class ReceberCliente{
                             'S',
                             'S')";                            
                             if (mysqli_query($this->publico->link, $sql) === TRUE){ 
-                                echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Cliente "'.$nome.' - '.$cpf.' cadastrado!"';   
-                                echo '</div>';                                      
+                          
+                                echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                echo "<strong> </strong><br> Cliente $nome  -  $cpf   cadastrado! com sucesso ! ";
+                                print_r(date('d/m/Y h:i:s'));                    
+                                echo '</div>';                                     
                             }else{
                                 echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir Cliente "'.$nome.' - '.$cpf.'';   
+                                print_r(date('d/m/Y h:i:s'));                    
                                 echo '</div>';
                             }
-
-                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                    print_r(date('d/m/Y h:i:s'));                    
-                    echo '</div></b>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>'; 
-                    echo "</main>";   
+                     
+                    
                }
 
      

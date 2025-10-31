@@ -24,7 +24,7 @@
   include(__DIR__.'/database/conexao_estoque.php'); 
   include(__DIR__.'/database/conexao_vendas.php');
 
-  $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+  $ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
 
   $tabela = 1;
   if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
@@ -467,23 +467,23 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
       echo '</div>'; 
     }
   }  
-  /*  
-    executa o comando e envia uma msg no whatsapp para o administrador com preços fora do comum
-  
-  $text1 = 'Valor+destes+produtos+em+promoção+não+alterado+acimda+de+30%+';
-  $text2 = 'Estes+produtos+estão+com+diferença+acima+de+30%';
-  $text3 = 'Estes+produtos+foram+atualizados+com+diferença+acima+de+30%+na+promocao';
-  $text4 = 'Estes+produtos+foram+atualizados+com+diferença+acima+de+30%';
-  $msg1 = $command.'+'.$text1.'+'.$erro1;
-  $msg2 = $command.'+'.$text2.'+'.$erro2;
-  $msg3 = $command.'+'.$text3.'+'.$erro3;
-  $msg4 = $command.'+'.$text4.'+'.$erro4;
-  exec($msg1 ,$op);
-  exec($msg2 ,$op);
-  exec($msg3 ,$op);
-  exec($msg4 ,$op);
-  */
-  //$pid = (int)$op[0];
+    /*  
+      executa o comando e envia uma msg no whatsapp para o administrador com preços fora do comum
+    
+    $text1 = 'Valor+destes+produtos+em+promoção+não+alterado+acimda+de+30%+';
+    $text2 = 'Estes+produtos+estão+com+diferença+acima+de+30%';
+    $text3 = 'Estes+produtos+foram+atualizados+com+diferença+acima+de+30%+na+promocao';
+    $text4 = 'Estes+produtos+foram+atualizados+com+diferença+acima+de+30%';
+    $msg1 = $command.'+'.$text1.'+'.$erro1;
+    $msg2 = $command.'+'.$text2.'+'.$erro2;
+    $msg3 = $command.'+'.$text3.'+'.$erro3;
+    $msg4 = $command.'+'.$text4.'+'.$erro4;
+    exec($msg1 ,$op);
+    exec($msg2 ,$op);
+    exec($msg3 ,$op);
+    exec($msg4 ,$op);
+    */
+    //$pid = (int)$op[0];
  $vendas->Desconecta();
  $publico->Desconecta();
   echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';

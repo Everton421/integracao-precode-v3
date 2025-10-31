@@ -9,7 +9,7 @@ include(__DIR__.'/database/conexao_vendas.php');
 
 $curl;    	
 
-$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
 
 $tabelaprecopadrao = 1;
 $setor = 1;

@@ -14,7 +14,7 @@ class EnviarFotos {
         $sistemImgsPath = mysqli_fetch_array($resultSistemImgsPath, MYSQLI_ASSOC);
 
          $resultPhotosProd = $publico->Consulta('SELECT * FROM fotos_prod WHERE PRODUTO = '.$codigo );
-         $ini = parse_ini_file(__DIR__ . '/../../conexao.ini', true);
+         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
          $key = $ini['fotos']['key_imgbb'];
          $arrResult =[];
 

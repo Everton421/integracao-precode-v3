@@ -26,7 +26,7 @@ class CONEXAOPUBLICO {
 
     public function Conecta(): void {
         try {
-            $this->ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
+            $this->ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
             $this->host = $this->ini['conexao']['host'];
             $this->login = $this->ini['conexao']['login'];
             $this->senha = $this->ini['conexao']['senha'];

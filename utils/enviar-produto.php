@@ -15,7 +15,7 @@ Class EnviarProduto{
         $publico = new CONEXAOPUBLICO();
         $enviarFotos = new EnviarFotos();
 
-        $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
+        $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
         $tabelaDePreco = 1;
         if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
