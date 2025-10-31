@@ -64,12 +64,12 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
             $estoqueprod = 0;       
 
         $buscaEstoque = $estoque->Consulta(  "  SELECT  
-                                                est.CODIGO,
+                                                est.CODIGO, est.referencia,
                                                     IF(est.estoque < 0, 0, est.estoque) AS ESTOQUE,
                                                     est.DATA_RECAD
                                                 FROM 
                                                     (SELECT
-                                                    P.CODIGO,
+                                                    P.CODIGO,P.OUTRO_COD as referencia,
                                                     PS.DATA_RECAD,
                                                     (SUM(PS.ESTOQUE) - 
                                                         (SELECT COALESCE(SUM((IF(PO.QTDE_SEPARADA > (PO.QUANTIDADE - PO.QTDE_MOV), PO.QTDE_SEPARADA, (PO.QUANTIDADE - PO.QTDE_MOV)) * PO.FATOR_QTDE) * IF(CO.TIPO = '5', -1, 1)), 0)
@@ -90,6 +90,7 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
             if($retornoestoque > 0 ){   
                 while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                     $estoqueprod  = $row_estoque['ESTOQUE'];
+                    $referencia = $row_estoque['referencia'];
 
                     $dataRecadEstoqueSistema = new DateTime( $row_estoque['DATA_RECAD']  ); // data atualização do saldo no sistema
                         $dataRecadEstoqueSistema = date_format($dataRecadEstoqueSistema, 'Y-m-d H:i:s');
@@ -111,7 +112,7 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                         \r\n\"produto\": 
                         [\r\n
                         {
-                            \r\n\"IdReferencia\": \"$codigoBd\",
+                            \r\n\"IdReferencia\": \"$referencia\",
                             \r\n\"sku\": 0,
                             \r\n\"estoque\": 
                             [\r\n                
@@ -139,7 +140,6 @@ if((mysqli_num_rows($buscaProdutos)) == 0){
                     $codMensagem = $resultado->produto[0]->idMensagem;   
                     sleep(1);
                     
-                            print_r($resultado);
                     if( $codMensagem == '0'){
                             $resultUpdateProduct = $publico->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
 

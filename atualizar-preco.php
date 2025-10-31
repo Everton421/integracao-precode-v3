@@ -58,11 +58,12 @@ echo '<div class="card-header alert alert-info" align="center"><h3 style="color:
 print_r(date('d/m/Y h:i:s'));
 echo '</div>';
 
-$buscaProdutos =$publico->Consulta("SELECT pp.codigo_site, pp.codigo_bd, pp.preco_site, cp.no_mktp, pp.site_desbloquear_preco as desbloqueio from produto_precode pp 
+$buscaProdutos =$publico->Consulta("SELECT pp.codigo_site,cp.outro_cod, pp.codigo_bd, pp.preco_site, cp.no_mktp, pp.site_desbloquear_preco as desbloqueio from produto_precode pp 
 left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
   while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
     $produtoSite = $row['codigo_site'];
     $produtoBd = $row['codigo_bd'];
+    $referencia = $row['outro_cod'];
     $ultimoPreco = $row['preco_site'];    
     $desbloqueio = $row['desbloqueio'];  
     echo '<div class="card-header alert alert-warning" align="center"><h3 style="color: #DAA520;""><b>Verificando alterações de preço no produto "'.$produtoBd.'" </b></h3><br>'; //abrindo o header com informação
@@ -130,7 +131,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
             \r\n\"produto\":\r\n   
               [\r\n      
                 {
-                  \r\n\"IdReferencia\": \"$produtoBd\",
+                  \r\n\"IdReferencia\": \"$referencia\",
                   \r\n\"sku\": 0,
                   \r\n\"precoDe\": $ultimoPreco,
                   \r\n\"precoVenda\": $precoVenda,
@@ -236,7 +237,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
             \r\n\"produto\":\r\n   
               [\r\n      
                 {
-                  \r\n\"IdReferencia\": \"$produtoBd\",
+                  \r\n\"IdReferencia\": \"$referencia\",
                   \r\n\"sku\": 0,
                   \r\n\"precoDe\": $ultimoPreco,
                   \r\n\"precoVenda\": $precoVenda,
@@ -310,7 +311,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
             \r\n\"produto\":\r\n   
               [\r\n      
                 {
-                  \r\n\"IdReferencia\": \"$produtoBd\",
+                  \r\n\"IdReferencia\": \"$referencia\",
                   \r\n\"sku\": 0,
                   \r\n\"precoDe\": $ultimoPreco,
                   \r\n\"precoVenda\": $precoVenda,
@@ -408,7 +409,7 @@ left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
             \r\n\"produto\":\r\n   
               [\r\n      
                 {
-                  \r\n\"IdReferencia\": \"$produtoBd\",
+                  \r\n\"IdReferencia\": \"$referencia\",
                   \r\n\"sku\": 0,
                   \r\n\"precoDe\": $ultimoPreco,
                   \r\n\"precoVenda\": $precoVenda,
