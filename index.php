@@ -77,6 +77,9 @@
                   <li class="nav-item btn-list">
                     <button type="submit" class="btn btn-primary mt-3" name="acao" value="vincular">Obter vinculo do produto selecionado</button>
                 </li>
+            <li class="nav-item btn-list">
+                    <button type="submit" class="btn btn-primary mt-3" name="acao" value="vincularTodos">Obter vinculo de todos possiveis</button>
+                </li>
             </ul>
         </nav>
 

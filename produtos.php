@@ -48,10 +48,13 @@
     <?php
     include_once(__DIR__.'/utils/enviar-produto.php');
     include_once(__DIR__.'/utils/obter-vinculo-produto.php');
+    include_once(__DIR__.'/database/conexao_publico.php');
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $objEnviarProduto = new EnviarProduto();
         $objeObterVinculo = new ObterVinculo();
+        $publico= new CONEXAOPUBLICO();
+
         if (isset($_POST['acao'])) {
             $acao = $_POST['acao'];
 
@@ -76,16 +79,27 @@
                             echo "<br><strong> Produto: </strong>" . $codigo;
                             echo '</div>';
                         }
-                    } elseif ($acao == 'vincular') {
+                    } 
+                    if ($acao == 'vincular') {
                          $vinculo = $objeObterVinculo->getVinculo($codigo); // Supondo que exista essa função
 
-                    } else {
-                        echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Ação desconhecida.</p>";
-                    }
+                    }  
+                     
                 }
             } else {
-                echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhum produto selecionado.</p>";
+                 if($acao == 'vincularTodos'){
+                        $resultItems = $publico->consulta("SELECT * FROM cad_prod cp where cp.ATIVO='S' AND cp.NO_MKTP='S'");
+                         $numRows = mysqli_num_rows($resultItems);
+                            if($numRows > 0 )  {
+                                while ($list = mysqli_fetch_array($resultItems, MYSQLI_ASSOC)) {
+                                     $vinculo = $objeObterVinculo->getVinculo($list['CODIGO']); // Supondo que exista essa função
+                                }
+                            }
+                    }else{
+                  echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhum produto selecionado.</p>";
+                  }
             }
+
         } else {
             echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhuma ação especificada.</p>";
         }
