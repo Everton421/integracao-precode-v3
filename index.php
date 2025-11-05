@@ -61,32 +61,45 @@
 <body>
 
 <div class="sidebar">
-    <a href="atualizar-preco.php">Enviar Preços</a>
-    <a href="atualizar-estoque.php">Enviar Estoque</a>
-    <a href="receber-pedidos.php">Receber Pedidos</a>
+     <?php
+       echo '<a href="./produtos">';
+                echo '<i class="fa-solid fa-cube"></i>';
+            echo '<span style="margin: 10px;">';
+                 echo 'produtos';
+            echo '<span>';
+            echo '</a>';
+
+     ?>
 </div>
 
 <div class="content">
     <form method="post" action="produtos.php" id="formEnvia">
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-            <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">INTERSIG</a>
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item btn-list">
-                    <button type="submit" class="btn btn-primary mt-3" name="acao" value="enviar">Enviar produto selecionado</button>
-                </li>
-                  <li class="nav-item btn-list">
-                    <button type="submit" class="btn btn-primary mt-3" name="acao" value="vincular">Obter vinculo do produto selecionado</button>
-                </li>
-            <li class="nav-item btn-list">
-                    <button type="submit" class="btn btn-primary mt-3" name="acao" value="vincularTodos">Obter vinculo de todos possiveis</button>
-                </li>
-            </ul>
+            <?php
+           echo ' <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="'.__DIR__.'">INTERSIG</a>';
+          ?>
+            <button >
+                <a href="receber-pedidos.php" style="color: #495057;font-weight: bold;">
+                        Receber Pedidos
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+            </button>
+            
+
         </nav>
 
         <div class="container">
-            <div class="form-group  " style="margin-top: 150px; ">
-                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+           
+            <div class="form-group" style="margin-top: 60px; ">
+             <h2 style="font-weight: bold;" > 
+                <i class="fa-regular fa-clipboard"></i>
+                Pedidos
+            </h2>   
             </div>
+            <div class="form-group" style="margin-top: 30px; ">
+            <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+            </div>
+
 
             <div class="card-body">
                 <?php
@@ -96,48 +109,54 @@
                 $publico = new CONEXAOPUBLICO();
                 $vendas = new CONEXAOVENDAS();
                 $database_vendas = $vendas->getBase();
-                $result = $publico->Consulta("SELECT cp.CODIGO, cp.OUTRO_COD ,cp.DESCRICAO, pp.CODIGO_SITE, fp.FOTO, pr.FOTOS as CAMINHO_FOTOS,
-                                                pp.PRECO_SITE, pp.SALDO_ENVIADO, pp.DATA_RECAD_ESTOQUE
-                                                FROM cad_prod cp
-                                                LEFT JOIN produto_precode pp ON pp.codigo_bd = cp.CODIGO
-                                                LEFT JOIN fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO
-                                                JOIN ".$database_vendas.".parametros pr on pr.id = 1
-                                                WHERE cp.ATIVO='S' AND cp.NO_MKTP='S'
-                                               GROUP BY cp.CODIGO
-                                                ORDER BY cp.CODIGO
+                $database_publico= $publico->getBase();
+
+                $result = $vendas->Consulta("SELECT 
+                                                co.CODIGO,
+                                                co.COD_SITE,
+                                                pp.situacao AS SITUACAO,
+                                                cli.NOME
+                                                FROM cad_orca co 
+                                                JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
+                                                LEFT JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
+                                                
                                                 ");
                 $numRows = mysqli_num_rows($result);
                 if ($numRows > 0) {
                     while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
                         $codigo = $list['CODIGO'];
-                        $descricao = $list['DESCRICAO'];
-                        $codigo_site = $list['CODIGO_SITE'];
-                        $outro_cod= $list['OUTRO_COD'];
-                        $foto = $list['FOTO'];
-                        $caminho = $list['CAMINHO_FOTOS'];
-                        $classe_enviado = ($codigo_site != null && $codigo_site != '') ? 'enviado' : '';
-                        $foto = ( $foto != null && $foto != '' ) ? $caminho.''.$foto : '';
-                         $preco = $list['PRECO_SITE'];
-                         $saldo = $list['SALDO_ENVIADO'];
-                         $dataEstoque = $list['DATA_RECAD_ESTOQUE'];
-                        echo "<div class='col-12 col-sm-6 mb-2 product-item $classe_enviado'>";
+                        $codigo_site = $list['COD_SITE'];
+                        $situacao = $list['SITUACAO'];
+                        $nome= $list['NOME'];
+                        $classe_enviado =  $situacao != '' ? $situacao : '';
+
+                        echo "<div class=' mb-2 product-item  '>";
                          echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
 
-                          echo "<div class='fw-bold product-description'> <strong> Cód:</strong> <span class='product-code'>$codigo <strong><br>  $descricao <br> </strong>  Referencia/outro_codigo:  <strong>$outro_cod </strong></span> </div>";
+                          echo "<div class='fw-bold product-description'> <strong> Cód Sistema: <span class='product-code'>$codigo  |  Cód Precode: $codigo_site  </strong> </div>";
+                          echo "<div class='fw-bold product-description'> <strong> Nome:</strong> <span class='product-code'>$nome <strong>  </div>";
 
                               if ($classe_enviado != '') {
-                                 echo "<span> > Enviado </span>";
-                                    echo "<i class='fas fa-check-circle'></i>"; // Ícone de sucesso (Font Awesome)
-                                  echo "<br><span> > Saldo Enviado: <strong>$saldo </strong>  |  Preço Enviado: <strong>$preco </strong>   </span>";
-                                  echo "<br><span> > Último envio de estoque: <strong>$dataEstoque</strong>  </span>";
+                                //    echo "<div class='d-flex justify-content-center'>";
+                                      //  echo '<div>';
+                                        echo "<span> > ".$classe_enviado ;
+                                            echo "<i class='fas fa-check-circle'></i>"; // Ícone de sucesso (Font Awesome)
+                                        echo '</span>';
+                                      //  echo '</div>';
+
+                                     //  echo '<button> teste</button>';
+                                  //  echo "</div>";
 
                               }
+
                                echo "<hr>";
+
                         echo "</div>";
                     }
                 }
                 ?>
             </div>
+
         </div>
     </form>
 </div>
