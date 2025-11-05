@@ -145,7 +145,7 @@
                                       //  echo '</div>';
 
                                      //  echo '<button> teste</button>';
-                                  //  echo "</div>";
+                                    echo "</div>";
 
                               }
 

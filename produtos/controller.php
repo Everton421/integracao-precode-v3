@@ -46,9 +46,9 @@
 <body>
 <div class="container">
     <?php
-    include_once(__DIR__.'/utils/enviar-produto.php');
-    include_once(__DIR__.'/utils/obter-vinculo-produto.php');
-    include_once(__DIR__.'/database/conexao_publico.php');
+    include_once(__DIR__.'/../utils/enviar-produto.php');
+    include_once(__DIR__.'/../utils/obter-vinculo-produto.php');
+    include_once(__DIR__.'/../database/conexao_publico.php');
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $objEnviarProduto = new EnviarProduto();
