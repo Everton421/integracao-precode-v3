@@ -1,5 +1,4 @@
 <?php
-header("Content-type: text/html; charset=utf-8");
 class CONEXAOPUBLICO {
     private string $consulta = "";
     public ?mysqli $link = null;

@@ -101,7 +101,6 @@
                 echo '</a>';
                 
             ?>
-            
             </nav>
 
             <div class="container">
@@ -119,8 +118,8 @@
 
                 <div class="card-body">
                     <?php
-                    include(__DIR__ . '/../database/conexao_publico.php');
-                    include(__DIR__ . '/../database/conexao_vendas.php');
+                    include_once(__DIR__ . '/../database/conexao_publico.php');
+                    include_once(__DIR__ . '/../database/conexao_vendas.php');
 
                     $publico = new CONEXAOPUBLICO();
                     $vendas = new CONEXAOVENDAS();

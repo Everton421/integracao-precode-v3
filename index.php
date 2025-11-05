@@ -3,13 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Fonts -->
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="../assets/css/fotos.css" type="text/css">
     <link rel="icon" href="Favicon.png">
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -22,9 +20,9 @@
             position: fixed;
             top: 0;
             left: 0;
-            background-color: #343a40; /* Cor de fundo escura */
+            background-color: #343a40;
             padding-top: 60px;
-            color: white; /* Cor do texto */
+            color: white;
         }
 
         .sidebar a {
@@ -37,12 +35,12 @@
         }
 
         .sidebar a:hover {
-            background-color: #495057; /* Cor de fundo ao passar o mouse */
+            background-color: #495057;
         }
 
         /* Estilos para o conteúdo principal */
         .content {
-            margin-left: 250px; /* Largura da sidebar */
+            margin-left: 250px;
             padding: 20px;
         }
 
@@ -56,50 +54,73 @@
             color: green;
             font-weight: bold;
         }
+
+        /* Estilos para os itens de pedido */
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .product-code {
+            font-weight: normal; /* Remove negrito do código */
+        }
+
+        .product-description {
+            word-wrap: break-word; /* Quebra palavras longas */
+        }
+
+        /* Responsividade (opcional) */
+        @media (max-width: 768px) {
+            .content {
+                margin-left: 0; /* Remove a margem para telas menores */
+                padding: 10px;
+            }
+            .sidebar {
+                width: 100%;
+                position: static; /* Remove o posicionamento fixo */
+                height: auto;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-     <?php
-       echo '<a href="./produtos">';
-                echo '<i class="fa-solid fa-cube"></i>';
-            echo '<span style="margin: 10px;">';
-                 echo 'produtos';
-            echo '<span>';
-            echo '</a>';
-
-     ?>
+    <?php
+    echo '<a href="./produtos">';
+    echo '<i class="fa-solid fa-cube"></i>';
+    echo '<span style="margin: 10px;">';
+    echo 'produtos';
+    echo '<span>';
+    echo '</a>';
+    ?>
 </div>
 
 <div class="content">
     <form method="post" action="produtos.php" id="formEnvia">
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
             <?php
-           echo ' <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="'.__DIR__.'">INTERSIG</a>';
-          ?>
+            echo ' <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="'.__DIR__.'">INTERSIG</a>';
+            ?>
             <button >
                 <a href="receber-pedidos.php" style="color: #495057;font-weight: bold;">
-                        Receber Pedidos
-                        <i class="fa-solid fa-download"></i>
-                    </a>
+                    Receber Pedidos
+                    <i class="fa-solid fa-download"></i>
+                </a>
             </button>
-            
-
         </nav>
 
         <div class="container">
-           
             <div class="form-group" style="margin-top: 60px; ">
-             <h2 style="font-weight: bold;" > 
-                <i class="fa-regular fa-clipboard"></i>
-                Pedidos
-            </h2>   
+                <h2 style="font-weight: bold;" >
+                    <i class="fa-regular fa-clipboard"></i>
+                    Pedidos
+                </h2>
             </div>
             <div class="form-group" style="margin-top: 30px; ">
-            <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
             </div>
-
 
             <div class="card-body">
                 <?php
@@ -130,33 +151,31 @@
                         $nome= $list['NOME'];
                         $classe_enviado =  $situacao != '' ? $situacao : '';
 
-                        echo "<div class=' mb-2 product-item  '>";
-                         echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
-
-                          echo "<div class='fw-bold product-description'> <strong> Cód Sistema: <span class='product-code'>$codigo  |  Cód Precode: $codigo_site  </strong> </div>";
-                          echo "<div class='fw-bold product-description'> <strong> Nome:</strong> <span class='product-code'>$nome <strong>  </div>";
-
-                              if ($classe_enviado != '') {
-                                //    echo "<div class='d-flex justify-content-center'>";
-                                      //  echo '<div>';
-                                        echo "<span> > ".$classe_enviado ;
-                                            echo "<i class='fas fa-check-circle'></i>"; // Ícone de sucesso (Font Awesome)
-                                        echo '</span>';
-                                      //  echo '</div>';
-
-                                     //  echo '<button> teste</button>';
+                        echo "<div class='product-item'>";
+                            echo "<div class='row'>"; // Inicia uma linha (row) do Bootstrap
+                                echo "<div class='col-md-1'>"; // Coluna para o checkbox
+                                    echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
+                                echo "</div>";
+                                echo "<div class='col-md-11'>"; // Coluna para os detalhes do produto
+                                    echo "<div class='product-description'>";
+                                      echo "<strong>Cód Sistema:</strong> <span class='product-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
+                                      echo "<strong>Nome:</strong> <span class='product-code'>$nome</span>";
                                     echo "</div>";
-
-                              }
-
-                               echo "<hr>";
-
+                                    if ($classe_enviado != '') {
+                                        echo "<div>";
+                                            echo "<span>> " . $classe_enviado;
+                                            echo "<i class='fas fa-check-circle'></i>";
+                                            echo "</span>";
+                                        echo "</div>";
+                                    }
+                                echo "</div>";
+                            echo "</div>"; // Fecha a linha (row)
+                            echo "<hr>";
                         echo "</div>";
                     }
                 }
                 ?>
             </div>
-
         </div>
     </form>
 </div>
