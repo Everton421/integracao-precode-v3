@@ -74,19 +74,41 @@
         <hr>
      
 
-   <button type="submit" name="acao" value="enviar" style="color: #495057;font-weight: bold; border: none; background: none;   cursor: pointer; margin-top: 10px;">
-        Enviar produto selecionado
-        <i class="fa-solid fa-arrow-up-from-bracket"></i>
-    </button>
 
-    <button type="submit" name="acao" value="vincular" style="color: #495057;font-weight: bold; border: none; background: none;  cursor: pointer; margin-top: 25px;">
-        Obter vínculo do produto selecionado
-        <i class="fa-solid fa-paperclip"></i>
+
+    <button type="submit" name="acao" value="vincular"   style=" cursor:pointer;font-weight: bold;  border:none; margin-top: 5px;">
+          <a>
+            Obter vínculo do produto selecionado
+            <i class="fa-solid fa-paperclip"></i>
+        </a>
+
     </button>
-    <button type="submit" name="acao" value="vincularTodos" class="" style="color: #495057;font-weight: bold; border: none; background: none;  cursor: pointer; margin-top: 25px;">
+    <button type="submit" name="acao" value="vincularTodos" class=""  style=" cursor:pointer;font-weight: bold;  border:none; margin-top: 5px;">
+      <a>
           Obter vínculo de todos os produtos possíveis 
         <i class="fa-solid fa-paperclip"></i>
+        </a>
+
     </button>
+    <hr>
+    <?php
+        $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+         $enviar = false;
+        
+         if( isset($ini['config']['envio_produtos'])   ){
+             $enviar_habilitado = filter_var($ini['config']['envio_produtos'], FILTER_VALIDATE_BOOLEAN);
+        }
+            $disabled_attribute = $enviar_habilitado ? '' : 'disabled';
+       
+          echo '<button type="submit" name="acao" value="enviar" style=" cursor:pointer;font-weight: bold;  border:none; margin-top: 15px;" '.$disabled_attribute ;
+       echo '>';
+      echo '<a>';
+          echo 'Enviar produto selecionado';
+        echo '<i class="fa-solid fa-arrow-up-from-bracket"></i>';
+        echo '</a>';
+    echo '</button>';
+    ?>
+
     </div>
 
 

@@ -2,14 +2,14 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');
-include(__DIR__.'/database/conexao_publico.php');
-include(__DIR__.'/database/conexao_estoque.php'); 
-include(__DIR__.'/database/conexao_vendas.php');
+include(__DIR__.'/../database/conexao_publico.php');
+include(__DIR__.'/../database/conexao_estoque.php'); 
+include(__DIR__.'/../database/conexao_vendas.php');
 
 
 $curl;    	
       
-$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
 $tabelaprecopadrao = 1;
 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){

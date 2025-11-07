@@ -56,17 +56,17 @@
         }
 
         /* Estilos para os itens de pedido */
-        .product-item {
+        .order-item {
             border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 10px;
         }
 
-        .product-code {
+        .order-code {
             font-weight: normal; /* Remove negrito do código */
         }
 
-        .product-description {
+        .order-description {
             word-wrap: break-word; /* Quebra palavras longas */
         }
 
@@ -94,6 +94,17 @@
     echo 'produtos';
     echo '<span>';
     echo '</a>';
+
+
+        echo '<a href="#">';
+    echo '<i class="fa-regular fa-clipboard"></i>';
+    echo '<span style="margin: 10px;">';
+    echo 'Pedidos';
+    echo '<span>';
+    echo '</a>';
+                    
+
+
     ?>
 </div>
 
@@ -151,15 +162,15 @@
                         $nome= $list['NOME'];
                         $classe_enviado =  $situacao != '' ? $situacao : '';
 
-                        echo "<div class='product-item'>";
+                        echo "<div class='order-item'>";
                             echo "<div class='row'>"; // Inicia uma linha (row) do Bootstrap
                                 echo "<div class='col-md-1'>"; // Coluna para o checkbox
                                     echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
                                 echo "</div>";
                                 echo "<div class='col-md-11'>"; // Coluna para os detalhes do produto
-                                    echo "<div class='product-description'>";
-                                      echo "<strong>Cód Sistema:</strong> <span class='product-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
-                                      echo "<strong>Nome:</strong> <span class='product-code'>$nome</span>";
+                                    echo "<div class='order-description'>";
+                                      echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
+                                      echo "<strong>Nome:</strong> <span class='order-code'>$nome</span>";
                                     echo "</div>";
                                     if ($classe_enviado != '') {
                                         echo "<div>";
@@ -170,7 +181,7 @@
                                     }
                                 echo "</div>";
                             echo "</div>"; // Fecha a linha (row)
-                            echo "<hr>";
+                          //  echo "<hr>";
                         echo "</div>";
                     }
                 }
@@ -183,13 +194,13 @@
 <script>
     document.getElementById('searchInput').addEventListener('keyup', function () {
         const searchTerm = this.value.toLowerCase();
-        const productItems = document.querySelectorAll('.product-item');
+        const orderItems = document.querySelectorAll('.order-item');
 
-        productItems.forEach(function (item) {
-            const productCode = item.querySelector('.product-code').textContent.toLowerCase();
-            const productDescription = item.querySelector('.product-description').textContent.toLowerCase();
+        orderItems.forEach(function (item) {
+            const orderCod = item.querySelector('.order-code').textContent.toLowerCase();
+            const clientDescription = item.querySelector('.order-description').textContent.toLowerCase();
 
-            if (productCode.includes(searchTerm) || productDescription.includes(searchTerm)) {
+            if (orderCode.includes(searchTerm) || clientDescription.includes(searchTerm)) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';
