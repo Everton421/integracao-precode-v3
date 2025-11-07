@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
@@ -109,13 +109,13 @@
 </div>
 
 <div class="content">
-    <form method="post" action="produtos.php" id="formEnvia">
+    <form   id="formEnvia">
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
             <?php
             echo ' <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="'.__DIR__.'">INTERSIG</a>';
             ?>
             <button >
-                <a href="receber-pedidos.php" style="color: #495057;font-weight: bold;">
+                <a href="jobs/receber-pedidos.php" style="color: #495057;font-weight: bold;">
                     Receber Pedidos
                     <i class="fa-solid fa-download"></i>
                 </a>
@@ -130,7 +130,7 @@
                 </h2>
             </div>
             <div class="form-group" style="margin-top: 30px; ">
-                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar pedido por nome do cliente ou código...">
             </div>
 
             <div class="card-body">
@@ -170,12 +170,12 @@
                                 echo "<div class='col-md-11'>"; // Coluna para os detalhes do produto
                                     echo "<div class='order-description'>";
                                       echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
-                                      echo "<strong>Nome:</strong> <span class='order-code'>$nome</span>";
+                                      echo "<strong>Nome:</strong> <span class='client-name'>$nome</span>";
                                     echo "</div>";
-                                    if ($classe_enviado != '') {
-                                        echo "<div>";
-                                            echo "<span>> " . $classe_enviado;
-                                            echo "<i class='fas fa-check-circle'></i>";
+                                    if ($classe_enviado != '' && $classe_enviado == 'nota_enviada') {
+                                        echo "<div >";
+                                            echo "<span style='font-weight: bold ;color: green; '> >  " . $classe_enviado;
+                                            echo "<i class='fas fa-check-circle' style='margin-left:10px;'></i>";
                                             echo "</span>";
                                         echo "</div>";
                                     }
@@ -197,10 +197,10 @@
         const orderItems = document.querySelectorAll('.order-item');
 
         orderItems.forEach(function (item) {
-            const orderCod = item.querySelector('.order-code').textContent.toLowerCase();
-            const clientDescription = item.querySelector('.order-description').textContent.toLowerCase();
+            const orderCode = item.querySelector('.order-code').textContent.toLowerCase();
+            const clientName = item.querySelector('.client-name').textContent.toLowerCase();
 
-            if (orderCode.includes(searchTerm) || clientDescription.includes(searchTerm)) {
+            if (orderCode.includes(searchTerm) || clientName.includes(searchTerm)) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';

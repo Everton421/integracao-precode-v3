@@ -142,12 +142,12 @@ if( isset($ini['config']['forcar_envio_estoque']) ){
                         $mensagem = $resultado->produto[0]->mensagem;
                         $codMensagem = $resultado->produto[0]->idMensagem;   
                         sleep(1);
-                        
+                        //print_r( $resultado);
                         if( $codMensagem == '0'){
                                 $resultUpdateProduct = $publico->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
 
                                 if($resultUpdateProduct != 1 ){
-                                return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
+                                  return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
                                 }
                                 return $this->response(true,"$mensagem | estoque  atualizado para o produto $codigo  |  Código da mensagem:  $codMensagem  ");
                                         

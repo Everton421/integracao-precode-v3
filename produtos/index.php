@@ -63,11 +63,11 @@
 
     <div class="sidebar " style="background-color: #f2f2f2;">
         
-        <a href="../atualizar-preco.php" style="color: #495057;font-weight: bold;" >
+        <a href="../jobs/atualizar-preco.php" style="color: #495057;font-weight: bold;" >
             Enviar Preços
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
-        <a href="../atualizar-estoque.php" style="color: #495057;font-weight: bold;">
+        <a href="../jobs/atualizar-estoque.php" style="color: #495057;font-weight: bold;">
             Enviar Estoque
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
@@ -173,7 +173,7 @@
                             echo "<div class='col-12 col-sm-6 mb-2 product-item $classe_enviado'>";
                             echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
 
-                            echo "<div class='fw-bold product-description'> <strong> Cód:</strong> <span class='product-code'>$codigo <strong><br>  $descricao <br> </strong>  Referencia/outro_codigo:  <strong>$outro_cod </strong></span> </div>";
+                            echo "<div class='fw-bold product-description'> <strong> Cód:</strong> <span class='product-code'>$codigo | Cód precode: $codigo_site <strong><br>  $descricao <br> </strong>  Referencia/outro_codigo:  <strong>$outro_cod </strong></span> </div>";
 
                                 if ($classe_enviado != '') {
                                     echo "<span> > Enviado </span>";

@@ -82,6 +82,8 @@ class recebePrecode{
     }   
     
     public function recebePedidos(){
+set_time_limit(0);
+
                 $objReceberTransportadora = new ReceberTransportadora();
                 $objReceberCliente = new ReceberCliente();
         $curl = curl_init();

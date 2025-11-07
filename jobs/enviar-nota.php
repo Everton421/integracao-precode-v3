@@ -5,6 +5,7 @@ date_default_timezone_set('America/Sao_Paulo');
 include(__DIR__.'/../database/conexao_publico.php');
 include(__DIR__.'/../database/conexao_estoque.php'); 
 include(__DIR__.'/../database/conexao_vendas.php');
+set_time_limit(0);
 
 
 $curl;    	

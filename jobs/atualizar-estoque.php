@@ -4,7 +4,7 @@ include(__DIR__.'/../database/conexao_estoque.php');
 include(__DIR__.'/../database/conexao_vendas.php');
 include(__DIR__.'/../utils/enviar-saldo.php');
 
-$ini = parse_ini_file(__DIR__ .'/conexao.ini', true);
+$ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
 $setor = 1;
 
