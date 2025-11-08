@@ -1,98 +1,130 @@
 <?php
+include_once(__DIR__.'/../database/conexao_publico.php');
+include_once(__DIR__.'/../database/conexao_estoque.php'); 
+include_once(__DIR__.'/../database/conexao_vendas.php');
 
+class EnviarPreco {
 
-set_time_limit(0);
-  ini_set('mysql.connect_timeout','0');   
-  ini_set('max_execution_time', '0'); 
-  date_default_timezone_set('America/Sao_Paulo');
-  include(__DIR__.'/../database/conexao_publico.php');
-  include(__DIR__.'/../database/conexao_estoque.php'); 
-  include(__DIR__.'/../database/conexao_vendas.php');
+  public function postPreco( int $codigo){
 
-  $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+     $forcar_envio_preco = false;
+            $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
-  $tabela = 1;
-  if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
-    $tabela =$ini['conexao']['tabelaPreco']; 
-  }
-$filial = 1;
-  if($ini['conexao']['filial'] && !empty($ini['conexao']['filial']) ){
-    $filial =$ini['conexao']['filial']; 
-  }
-  
-if(empty($ini['conexao']['token'] )){
-    echo 'token da aplicação não fornecido';
-        exit();
-}
- $appToken = $ini['conexao']['token'];
+        if( isset($ini['config']['forcar_envio_preco']) ){
+            $forcar_envio_preco  = filter_var($ini['config']['forcar_envio_preco'], FILTER_VALIDATE_BOOLEAN );
+        }
+        
+      set_time_limit(0);
+      $publico = new CONEXAOPUBLICO();	
 
-
-  $publico = new CONEXAOPUBLICO();	
-  $vendas = new CONEXAOVENDAS();
-
-  $hoje = date('Y-m-d');
-//  $command = 'nohup /root/zap/sendZap_Bianca '; 
-   $erro1 = '';  
-   $erro2 = '';   
-   $erro3 = '';
-   $erro4 = '';
-
-echo "<main class='login-form'>";
-echo '<div class="cotainer"><div class="row justify-content-center"><div class="col-md-8"><div class="card">';
-echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Atualizando Preço</b></h3><br>'; //abrindo o header com informação
-print_r(date('d/m/Y h:i:s'));
-echo '</div>';
-
-$buscaProdutos =$publico->Consulta("SELECT pp.codigo_site,cp.outro_cod, pp.codigo_bd, pp.preco_site, cp.no_mktp, pp.site_desbloquear_preco as desbloqueio from produto_precode pp 
-                                    left join cad_prod cp on cp.codigo = pp.codigo_bd where no_mktp = 'S'");
-   
-    while($row1 = mysqli_fetch_array($buscaPreco, MYSQLI_ASSOC)){
-
-
-
-        $referencia = $row1['outro_cod'];
-
-        $valorProduto = $row1['preco'];
-         $curl = curl_init();
-        curl_setopt_array($curl, array(
-          CURLOPT_URL => "https://www.replicade.com.br/api/v1/produtoLoja/preco",
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => "",
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 30,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => "PUT",
-          CURLOPT_POSTFIELDS => "
-          {
-            \r\n\"produto\":\r\n   
-              [\r\n      
-                {
-                  \r\n\"IdReferencia\": \"$referencia\",
-                  \r\n\"sku\": 0,
-                  \r\n\"precoDe\": $ultimoPreco,
-                  \r\n\"precoVenda\": $precoVenda,
-                  \r\n\"precoSite\": $precoVenda\r\n     
-                }\r\n   
-              ]\r\n
-          }",
-          CURLOPT_HTTPHEADER => array(
-            "authorization:$appToken",
-            "cache-control: no-cache",
-            "content-type: application/json"
-          ),
-        ));
+      ini_set('mysql.connect_timeout','0');   
+      ini_set('max_execution_time', '0'); 
+      date_default_timezone_set('America/Sao_Paulo');
     
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
+
+        $tabela = 1;
+        if( $ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
+          $tabela =$ini['conexao']['tabelaPreco']; 
+        }
         
-        
-        curl_close($curl); 
-        if ($err) {
-          echo "cURL Error #:" . $err;
-        } else {
-          $inserePrecode =$publico->Consulta("UPDATE produto_precode SET preco_site = $precoVenda, data_recad = now() where codigo_bd = '$produtoBd'");
-        }     
+        if(empty($ini['conexao']['token'] )){
+            return $this->response(false,"token da aplicação não fornecido  ");
+        }
+      $appToken = $ini['conexao']['token'];
+
+        $resultPrice = $publico->consulta(" SELECT 
+                                                 cp.OUTRO_COD ,
+                                                 pp.PRECO_SITE,
+                                                 p.PRECO,
+                                                 p.DATA_RECAD,
+                                                 COALESCE(pp.DATA_RECAD_PRECO, '2001-01-01 00:00:00') AS DATA_RECAD_PRECO
+                                              FROM  cad_prod cp
+                                              JOIN prod_tabprecos p ON cp.CODIGO = p.PRODUTO
+                                              JOIN  produto_precode pp ON pp.CODIGO_BD = cp.CODIGO
+                                               WHERE p.PRODUTO = $codigo AND p.TABELA = $tabela");
+
+        while($row = mysqli_fetch_array($resultPrice, MYSQLI_ASSOC)){
+            $valorProduto = $row['PRECO'];
+            $referencia = $row['OUTRO_COD'];
+            $ultimoPreco = $row['PRECO_SITE'];
+            $dataUltiEnvi= $row['DATA_RECAD_PRECO']; // data ultimo envio
+            $dataRecadPrecoErp = $row['DATA_RECAD']; //data recadastro do sistema
+        }
+
+        if($forcar_envio_preco == true ){
+           $dataUltiEnvi = '2001-01-01 00:00:00';
+
+        }
+            
+        if( $dataRecadPrecoErp >  $dataUltiEnvi ){
+
+            $curl = curl_init();
+              $url = 'https://www.replicade.com.br/api/v1/produtoLoja/preco' ; // Codifica a referência para a URL
+
+              curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "PUT",
+                CURLOPT_POSTFIELDS => "
+                {
+                  \r\n\"produto\":\r\n   
+                    [\r\n      
+                      {
+                        \r\n\"IdReferencia\": \"$referencia\",
+                        \r\n\"sku\": 0,
+                        \r\n\"precoDe\": $ultimoPreco,
+                        \r\n\"precoVenda\": $valorProduto,
+                        \r\n\"precoSite\": $valorProduto\r\n     
+                      }\r\n   
+                    ]\r\n
+                }",
+                CURLOPT_HTTPHEADER => array(
+                  "authorization:$appToken",
+                  "cache-control: no-cache",
+                  "content-type: application/json"
+                ),
+              ));
+          
+              $result = curl_exec($curl);
+              $err = curl_error($curl);
+              $resultado = json_decode($result);
+              $codMensagem = $resultado->produto[0]->idMensagem;   
+              $mensagem = $resultado->produto[0]->mensagem;   
+      
+              curl_close($curl); 
+              if ($err) {
+                echo "cURL Error #:" . $err;
+                return $this->response(false, $err);
+              } else {
+                  if($codMensagem != 0){
+                        return $this->response(false, $mensagem);
+                    }
+                    if($codMensagem == 0 ){
+                      $resultUpdateProduct =$publico->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now() where codigo_bd = '$codigo'");
+                        if($resultUpdateProduct != 1 ){
+                          return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
+                        }
+                        if($resultUpdateProduct == 1 ){
+                          return $this->response(true,"$mensagem | estoque  atualizado para o produto $codigo  |  Código da mensagem:  $codMensagem  ");
+                        }
+                    }
+              }   
+            }  
+  }
+
+    private function response(bool $success, string $message, $data = null): string {
+        return json_encode([
+            'success' => $success,
+            'message' => $message,
+            'data' => $data
+        ]);
     }
 
+
+}
 
 ?>

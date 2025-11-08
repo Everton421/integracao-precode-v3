@@ -1,9 +1,11 @@
 <?php
-include_once(__DIR__ . '/../database/conexao_publico.php');
+include_once(__DIR__ .'/../database/conexao_publico.php');
 
 class ObterVinculo {
 
     function getVinculo(int $codigo) {
+        set_time_limit(0);
+
         $publico = new CONEXAOPUBLICO();
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
@@ -11,27 +13,18 @@ class ObterVinculo {
         $resultQueryProd = $publico->consulta("SELECT * FROM cad_prod WHERE CODIGO = $codigo");
 
         if (mysqli_num_rows($resultQueryProd) == 0) {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> <strong>Erro!</strong> Produto com código $codigo não encontrado no banco de dados.";
-            echo "</div>";
-            return;
+            return $this-> response(false, "Produto com código $codigo não encontrado no banco de dados.");
         }
 
         $row = mysqli_fetch_array($resultQueryProd, MYSQLI_ASSOC);
         $referencia = trim($row['OUTRO_COD']); // Remove espaços em branco
 
         if (empty($referencia)) {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> <strong>Erro!</strong> Produto com código $codigo não possui referência (OUTRO_COD).";
-            echo "</div>";
-            return;
+                return $this-> response(false," Produto com código $codigo não possui referência (OUTRO_COD).");
         }
 
         if (empty($ini['conexao']['token'])) {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> <strong>Erro!</strong> Token da aplicação não fornecido no arquivo conexao.ini.";
-            echo "</div>";
-            return;
+            return $this-> response(false,"Token da aplicação não fornecido no arquivo conexao.ini.");
         }
 
         $token = $ini['conexao']['token'];
@@ -60,25 +53,14 @@ class ObterVinculo {
         curl_close($curl);
 
         if ($error) {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> <strong>Erro de cURL!</strong> " . htmlspecialchars($error);
-            echo "</div>";
-            return;
+            return $this->response(false, "Erro de cURL!  ".htmlspecialchars($error) );
         }
 
         if ($httpcode != 200) {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> <strong>Erro na API!</strong> ";
-
             if (!empty($result->mensagem)) {
-                echo htmlspecialchars($result->mensagem);
-            } else {
-                echo "Código HTTP: " . $httpcode;
-            }
-
-            echo "<br>Produto (código: $codigo, referência: $referencia) não encontrado na API.";
-            echo "</div>";
-            return;
+                return $this->response(false, "Status Code: $httpcode  ".$result->mensagem);
+            } 
+                return $this-> response(false,"Erro inesperado ao tentar consumir a api do precode Status code: $httpcode");
         }
 
         if (!empty($result) && isset($result->produto->codigoAgrupador)) { // Verifica se $result e $result->produto existem
@@ -90,27 +72,18 @@ class ObterVinculo {
                 $insertResult = $publico->consulta("INSERT INTO produto_precode (CODIGO_SITE, CODIGO_BD) VALUES ('$idPrecode', '$codigo')");
 
                 if ($insertResult == 1) {
-                    echo "<div class='mensagem-container mensagem-sucesso' role='alert'>";
-                    echo "<i class='fas fa-check-circle'></i> Vinculo obtido com sucesso para o produto: $codigo.";
-                    echo "</div>";
+                    return $this-> response(true,"Vinculo obtido com sucesso para o produto: $codigo." );
                 } else {
-                     echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-                     echo "<i class='fas fa-exclamation-triangle'></i> Erro ao inserir vínculo para o produto: $codigo.";
-                     echo "</div>";
-                }
+                    return $this-> response(false,"Erro ao inserir vínculo para o produto: $codigo." );
+                 }
 
             } else {
                 $row = mysqli_fetch_array($validationProduct, MYSQLI_ASSOC);
                 $codigoPrecode = $row['CODIGO_SITE'];
-
-                echo "<div class='mensagem-container mensagem-sucesso' role='alert'>";
-                echo "<i class='fas fa-check-circle'></i> Produto já possui um vínculo: ERP Cód: $codigo | Referência: $referencia | Cód Precode: $codigoPrecode";
-                echo "</div>";
+                    return $this-> response(false,"Produto já possui um vínculo: ERP Cód: $codigo | Referência: $referencia | Cód Precode: $codigoPrecode" );
             }
         } else {
-            echo "<div class='mensagem-container mensagem-erro' role='alert'>";
-            echo "<i class='fas fa-exclamation-triangle'></i> Resposta da API inválida para o produto: $codigo.";
-            echo "</div>";
+                    return $this-> response(false,"Resposta da API inválida para o produto: $codigo." );
         }
     }
 

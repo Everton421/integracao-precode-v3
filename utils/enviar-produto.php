@@ -112,7 +112,8 @@ Class EnviarProduto{
                       //   print_r( $fotos );
                   } catch (Exception $e) {
                       echo "Erro: " . $e->getMessage();
-                  }
+                        
+                    }
 
                  $origem = 'Nacional';
 
@@ -193,11 +194,11 @@ Class EnviarProduto{
                             $data_recad = date('Y-m-d H:i:s');
                         $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site', $codigo_bd, $preco_site, '$data_recad')";
                             $envioPrecodeBase = $publico->Consulta($sql);
-                                echo '<br>';
+                                //echo '<br>';
                             if ($envioPrecodeBase) {
                                 return $this->response(true, '  O produto foi enviado para a plataforma com sucesso!'  );
                             } else {
-                                echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
+                               // echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
                                 return $this->response(true, ' o  Produto '.$codigoProduto .' foi enviado para a plataforma <br> porém nao foi registrado na tabela de controle!  '  );
                             }
                         }else{
