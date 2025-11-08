@@ -65,11 +65,19 @@ class ObterVinculo {
 
         if (!empty($result) && isset($result->produto->codigoAgrupador)) { // Verifica se $result e $result->produto existem
             $idPrecode = $result->produto->codigoAgrupador;
+            $skuLoja =  $result->produto->atributos[0]->sku;
+            $refLoja = $result->produto->atributos[0]->ref;
 
             $validationProduct = $publico->consulta("SELECT * FROM produto_precode WHERE CODIGO_SITE = '$idPrecode' AND CODIGO_BD = '$codigo'");
 
             if (mysqli_num_rows($validationProduct) == 0) {
-                $insertResult = $publico->consulta("INSERT INTO produto_precode (CODIGO_SITE, CODIGO_BD) VALUES ('$idPrecode', '$codigo')");
+                $insertResult = $publico->consulta("INSERT INTO produto_precode
+                                                             (  
+                                                             CODIGO_SITE,
+                                                              CODIGO_BD,
+                                                              SKU_LOJA,
+                                                              REF_LOJA
+                                                              ) VALUES ('$idPrecode', '$codigo','$skuLoja', $refLoja )");
 
                 if ($insertResult == 1) {
                     return $this-> response(true,"Vinculo obtido com sucesso para o produto: $codigo." );
