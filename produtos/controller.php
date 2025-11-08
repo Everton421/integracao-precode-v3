@@ -92,7 +92,8 @@
                          $numRows = mysqli_num_rows($resultItems);
                             if($numRows > 0 )  {
                                 while ($list = mysqli_fetch_array($resultItems, MYSQLI_ASSOC)) {
-                                     $vinculo = $objeObterVinculo->getVinculo($list['CODIGO']); // Supondo que exista essa função
+                                    sleep(1);
+                                     $vinculo = $objeObterVinculo->getVinculo($list['CODIGO']);  
                                 }
                             }
                     }else{
