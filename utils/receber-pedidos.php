@@ -246,7 +246,7 @@ set_time_limit(0);
                                     'N',
                                     'N',
                                     '$this->tabelaprecopadrao',
-                                    '0',
+                                    '1',
                                     $this->formaPagamento,  # forma pagamento
                                     '0.00',
                                     '$codigoTransport',
