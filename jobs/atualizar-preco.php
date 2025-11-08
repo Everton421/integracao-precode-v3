@@ -6,7 +6,7 @@ $publico = new CONEXAOPUBLICO();
 
   $postPreco = new EnviarPreco();
    
- $buscaProdutos = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode where codigo_bd = 8;" ); 		
+ $buscaProdutos = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode;" ); 		
     if((mysqli_num_rows($buscaProdutos))  == 0){
          return;
    }
