@@ -77,7 +77,7 @@ class ObterVinculo {
                                                               CODIGO_BD,
                                                               SKU_LOJA,
                                                               REF_LOJA
-                                                              ) VALUES ('$idPrecode', '$codigo','$skuLoja', $refLoja )");
+                                                              ) VALUES ('$idPrecode', '$codigo','$skuLoja', '$refLoja' )");
 
                 if ($insertResult == 1) {
                     return $this-> response(true,"Vinculo obtido com sucesso para o produto: $codigo." );

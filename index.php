@@ -13,6 +13,12 @@
 
     <title>Requisição</title>
     <style>
+        /* Estilos gerais */
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: #f8f9fa; /* Cor de fundo leve */
+        }
+
         /* Estilos para a sidebar */
         .sidebar {
             height: 100%;
@@ -44,41 +50,54 @@
             padding: 20px;
         }
 
-        /* Estilos para os itens da lista */
-        .btn-list {
-            margin-right: 10px;
+        /* Estilos para a navbar */
+        .navbar {
+            background-color: #343a40 !important; /* Cor de fundo escura */
+            color: white !important;
         }
 
-        /* Estilos para itens enviados */
-        .enviado {
-            color: green;
-            font-weight: bold;
+        .navbar a {
+            color: white !important;
+            text-decoration: none;
         }
 
-        /* Estilos para os itens de pedido */
+        /* Estilos para itens de pedido */
         .order-item {
             border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #fff;
         }
 
         .order-code {
-            font-weight: normal; /* Remove negrito do código */
+            font-weight: normal;
         }
 
         .order-description {
-            word-wrap: break-word; /* Quebra palavras longas */
+            word-wrap: break-word;
+        }
+
+        /* Estilos para itens enviados */
+        .nota_enviada {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+        }
+
+        .nota_enviada .order-code,
+        .nota_enviada .client-name {
+            font-weight: bold;
         }
 
         /* Responsividade (opcional) */
         @media (max-width: 768px) {
             .content {
-                margin-left: 0; /* Remove a margem para telas menores */
+                margin-left: 0;
                 padding: 10px;
             }
             .sidebar {
                 width: 100%;
-                position: static; /* Remove o posicionamento fixo */
+                position: static;
                 height: auto;
             }
         }
@@ -95,110 +114,100 @@
     echo '<span>';
     echo '</a>';
 
-
-        echo '<a href="#">';
+    echo '<a href="#">';
     echo '<i class="fa-regular fa-clipboard"></i>';
     echo '<span style="margin: 10px;">';
     echo 'Pedidos';
     echo '<span>';
     echo '</a>';
-                    
-
-
     ?>
 </div>
 
 <div class="content">
-    <form   id="formEnvia">
-        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-            <?php
-            echo ' <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="'.__DIR__.'">INTERSIG</a>';
-            ?>
-            <button >
-                <a href="jobs/receber-pedidos.php" style="color: #495057;font-weight: bold;">
-                    Receber Pedidos
-                    <i class="fa-solid fa-download"></i>
-                </a>
-            </button>
+    <form id="formEnvia">
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+            <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="<?php echo __DIR__; ?>">INTERSIG</a>
+            <a href="jobs/receber-pedidos.php">
+                Receber Pedidos
+                <i class="fa-solid fa-download"></i>
+            </a>
         </nav>
     </form>
 
-        <div class="container">
-            <div class="form-group" style="margin-top: 60px; ">
-                <h2 style="font-weight: bold;" >
-                    <i class="fa-regular fa-clipboard"></i>
-                    Pedidos
-                </h2>
-            </div>
-            <div class="form-group" style="margin-top: 30px; ">
-                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar pedido por nome do cliente ou código...">
-            </div>
-
-            <div class="card-body">
-                <?php
-                include(__DIR__ . '/database/conexao_publico.php');
-                include(__DIR__ . '/database/conexao_vendas.php');
-
-                $publico = new CONEXAOPUBLICO();
-                $vendas = new CONEXAOVENDAS();
-                $database_vendas = $vendas->getBase();
-                $database_publico= $publico->getBase();
-
-                $result = $vendas->Consulta("SELECT 
-                                                co.CODIGO,
-                                                co.COD_SITE,
-                                                pp.situacao AS SITUACAO,
-                                                cli.NOME
-                                                FROM cad_orca co 
-                                                JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
-                                                JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
-                                                
-                                                ");
-                $numRows = mysqli_num_rows($result);
-                if ($numRows > 0) {
-                    while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-                        $codigo = $list['CODIGO'];
-                        $codigo_site = $list['COD_SITE'];
-                        $situacao = $list['SITUACAO'];
-                        $nome= $list['NOME'];
-                        $classe_enviado =  $situacao != '' ? $situacao : '';
-
-                        echo "<div class='order-item'>";
-                        echo"<form action='jobs/obter-etiquetas-pedido.php' method='POST'>";
-                            echo "<div class='row'>"; // Inicia uma linha (row) do Bootstrap
-                                echo "<div class='col-md-1'>"; // Coluna para o checkbox
-                                    echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
-                                echo "</div>";
-                                echo "<div class='col-md-11'>"; // Coluna para os detalhes do produto
-                                    echo "<div class='order-description'>";
-                                      echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
-                                      echo "<strong>Nome:</strong> <span class='client-name'>$nome</span>";
-                                    echo "</div>";
-                                    
-                                    if ($classe_enviado != '' && $classe_enviado == 'nota_enviada') {
-                                        echo "<div >";
-                                            echo "<span style='font-weight: bold ;color: green; '> >  " . $classe_enviado;
-                                            echo "<i class='fas fa-check-circle' style='margin-left:10px;'></i>";
-                                            echo "</span>";
-                                        echo "</div>";
-                                    }
-                                    echo "<button type='submit' >";
-                                            echo "teste";
-                                   echo "</button>";
-
-                                echo "</div>";
-                            echo "</div>"; // Fecha a linha (row)
-                          //  echo "<hr>";
-                        echo"</form>";
-
-                        echo "</div>";
-                    }
-                    $publico->Desconecta();
-                    $vendas->Desconecta();
-                }
-                ?>
-            </div>
+    <div class="container">
+        <div class="form-group" style="margin-top: 60px;">
+            <h2 style="font-weight: bold;">
+                <i class="fa-regular fa-clipboard"></i>
+                Pedidos
+            </h2>
         </div>
+        <div class="form-group" style="margin-top: 30px;">
+            <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar pedido por nome do cliente ou código...">
+        </div>
+
+        <div class="card-body">
+            <?php
+            include(__DIR__ . '/database/conexao_publico.php');
+            include(__DIR__ . '/database/conexao_vendas.php');
+
+            $publico = new CONEXAOPUBLICO();
+            $vendas = new CONEXAOVENDAS();
+            $database_vendas = $vendas->getBase();
+            $database_publico= $publico->getBase();
+
+            $result = $vendas->Consulta("SELECT 
+                                            co.CODIGO,
+                                            co.COD_SITE,
+                                            pp.situacao AS SITUACAO,
+                                            cli.NOME
+                                            FROM cad_orca co 
+                                            JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
+                                            JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
+                                            ");
+            $numRows = mysqli_num_rows($result);
+            if ($numRows > 0) {
+                while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                    $codigo = $list['CODIGO'];
+                    $codigo_site = $list['COD_SITE'];
+                    $situacao = $list['SITUACAO'];
+                    $nome= $list['NOME'];
+
+                    // Determina a classe com base na situação
+                    $classe_enviado = ($situacao == 'nota_enviada') ? 'nota_enviada' : '';
+
+                    echo "<div class='order-item " . $classe_enviado . "'>";
+                    echo "<form action='jobs/obter-etiquetas-pedido.php' method='POST'>";
+                        echo "<div class='row'>";
+                            echo "<div class='col-md-1'>";
+                                echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
+                            echo "</div>";
+                            echo "<div class='col-md-11'>";
+                                echo "<div class='order-description'>";
+                                    echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
+                                    echo "<strong>Nome:</strong> <span class='client-name'>$nome</span>";
+                                echo "</div>";
+
+                                if ($classe_enviado == 'nota_enviada') {
+                                    echo "<div>";
+                                        echo "<span style='font-weight: bold ;color: green; '> >  " . $situacao;
+                                        echo "<i class='fas fa-check-circle' style='margin-left:10px;'></i>";
+                                        echo "</span>";
+                                    echo "</div>";
+                                }
+
+                                echo "<button type='submit' class='btn btn-primary btn-sm'>Obter Etiquetas</button>";
+
+                            echo "</div>";
+                        echo "</div>";
+                    echo "</form>";
+                    echo "</div>";
+                }
+                $publico->Desconecta();
+                $vendas->Desconecta();
+            }
+            ?>
+        </div>
+    </div>
 </div>
 
 <script>
