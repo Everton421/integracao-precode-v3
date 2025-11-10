@@ -28,7 +28,6 @@ if(empty($ini['conexao']['token'] )){
 $indice; 
 $publico = new CONEXAOPUBLICO();	
 $vendas = new CONEXAOVENDAS();
-$estoque = new CONEXAOESTOQUE();
 
 
 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando informações fiscais..</b></h3>'; //abrindo o header com informação
@@ -180,6 +179,9 @@ if($retorno > 0 ){
     echo '</div>'; 
     echo "</main>";    
 } 
+
+$vendas->Desconecta();
+$publico->Desconecta();
 ?>
 
 

@@ -6,7 +6,6 @@ include_once(__DIR__.'/../database/conexao_publico.php');
 
 class ReceberTransportadora{
 
-    private $token;    
     private $publico;
 
   /// informar os dados de rastreio vindo do objeto pedido da requisição       
@@ -99,7 +98,7 @@ public function receberTransportadora($pedido){
                             }
                 }
 
-
+        $this->publico->Desconecta();
 }
 
   public function formatCnpjCpf($cpf){

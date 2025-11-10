@@ -162,7 +162,9 @@ class EnviarSaldo{
                     
                         
                 }
-            
+            $publico->Desconecta();
+            $vendas->Desconecta();
+            $estoque->Desconecta();
             }
     }
 

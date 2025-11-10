@@ -114,7 +114,9 @@ class EnviarPreco {
                     }
               }   
             }  
-  }
+  
+  $publico->Desconecta();
+          }
 
     private function response(bool $success, string $message, $data = null): string {
         return json_encode([

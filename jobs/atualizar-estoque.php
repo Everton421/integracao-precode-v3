@@ -20,8 +20,6 @@ $appToken = $ini['conexao']['token'];
 
 $objEnvSaldo = new EnviarSaldo();
 $publico = new CONEXAOPUBLICO();	
-$vendas = new CONEXAOVENDAS();
-$estoque = new CONEXAOESTOQUE();
 $databasePublico = $publico->getBase();
 
 
@@ -38,6 +36,7 @@ $buscaProdutos = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd
         $resultEnviSaldo = $objEnvSaldo->postSaldo($codigoBd);
         print_r($resultEnviSaldo);
     }
+    $publico->Desconecta();
   print_r(date('d/m/Y h:i:s'));
 
 ?>

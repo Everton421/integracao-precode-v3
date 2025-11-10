@@ -17,6 +17,7 @@ $publico = new CONEXAOPUBLICO();
          $resultEnvPreco = $postPreco->postPreco($codigoBd);
          print_r($resultEnvPreco);
      }
+    $publico->Desconecta();
  
   print_r(date('d/m/Y h:i:s'));
 

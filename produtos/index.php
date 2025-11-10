@@ -182,9 +182,12 @@
                                     echo "<br><span> > Último envio de estoque: <strong>$dataEstoque</strong>  </span>";
 
                                 }
+
                                 echo "<hr>";
                             echo "</div>";
                         }
+                $publico->Desconecta();
+                $vendas->Desconecta();
                     }
                     ?>
                 </div>

@@ -162,8 +162,7 @@ class ReceberCliente{
                     
                }
 
-     
-        
+               $this->publico->Desconecta();
 }
 
   public function formatCnpjCpf($cpf){

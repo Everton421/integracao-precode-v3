@@ -11,10 +11,8 @@ Class EnviarProduto{
     public function enviarProduto(int $codigoProduto ){
 
 
-        $vendas = new CONEXAOVENDAS();
         $publico = new CONEXAOPUBLICO();
         $enviarFotos = new EnviarFotos();
-
         $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
         $tabelaDePreco = 1;
@@ -218,6 +216,7 @@ Class EnviarProduto{
                 } else {
                       return $this->response(false, ' Produto já foi enviado para a plataforma!'  );
                  }
+                 $publico->Desconecta();
             }
 
         private function response(bool $success, string $message, $data = null): string {

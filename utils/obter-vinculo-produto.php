@@ -93,6 +93,7 @@ class ObterVinculo {
         } else {
                     return $this-> response(false,"Resposta da API inválida para o produto: $codigo." );
         }
+         $publico->Desconecta();
     }
 
     private function response(bool $success, string $message, $data = null): string {

@@ -86,6 +86,9 @@ class EnviarFotos {
             }
             return $arrResult;
        }
+       $publico->Desconecta();
+       $vendas->Desconecta();
+
      } 
 
 }

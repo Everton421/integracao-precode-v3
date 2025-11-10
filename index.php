@@ -121,6 +121,7 @@
                 </a>
             </button>
         </nav>
+    </form>
 
         <div class="container">
             <div class="form-group" style="margin-top: 60px; ">
@@ -150,7 +151,7 @@
                                                 cli.NOME
                                                 FROM cad_orca co 
                                                 JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
-                                                LEFT JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
+                                                JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
                                                 
                                                 ");
                 $numRows = mysqli_num_rows($result);
@@ -163,6 +164,7 @@
                         $classe_enviado =  $situacao != '' ? $situacao : '';
 
                         echo "<div class='order-item'>";
+                        echo"<form action='jobs/obter-etiquetas-pedido.php' method='POST'>";
                             echo "<div class='row'>"; // Inicia uma linha (row) do Bootstrap
                                 echo "<div class='col-md-1'>"; // Coluna para o checkbox
                                     echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
@@ -172,6 +174,7 @@
                                       echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
                                       echo "<strong>Nome:</strong> <span class='client-name'>$nome</span>";
                                     echo "</div>";
+                                    
                                     if ($classe_enviado != '' && $classe_enviado == 'nota_enviada') {
                                         echo "<div >";
                                             echo "<span style='font-weight: bold ;color: green; '> >  " . $classe_enviado;
@@ -179,16 +182,23 @@
                                             echo "</span>";
                                         echo "</div>";
                                     }
+                                    echo "<button type='submit' >";
+                                            echo "teste";
+                                   echo "</button>";
+
                                 echo "</div>";
                             echo "</div>"; // Fecha a linha (row)
                           //  echo "<hr>";
+                        echo"</form>";
+
                         echo "</div>";
                     }
+                    $publico->Desconecta();
+                    $vendas->Desconecta();
                 }
                 ?>
             </div>
         </div>
-    </form>
 </div>
 
 <script>
