@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
@@ -70,6 +70,12 @@
                         }
                     }
 
+                    $resultFotosProd = $publico->consulta(" SELECT 
+                                                                CONCAT(vpar.FOTOS, fp.FOTO) AS FOTO
+                                                                FROM 
+                                                                fotos_prod fp 
+                                                                JOIN ".$databaseVendas.".parametros vpar on vpar.id = 1 
+                                                                WHERE PRODUTO = $codigoProduto");
 
         // Consulta o banco de dados para obter as informações do produto
         $result = $publico->Consulta("
@@ -95,7 +101,8 @@
                 m.descricao AS MARCA,
                 cf.NCM,
                 sg.DESCRICAO AS SUBCATEGORIA,
-                cg.NOME AS CATEGORIA
+                cg.NOME AS CATEGORIA 
+
             FROM cad_prod p
             INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
             LEFT JOIN cad_pmar m ON m.codigo = p.marca
@@ -109,18 +116,34 @@
         if ($produto) {
             // Exibe um formulário para editar as informações do produto
             echo "<form method='post' action='salvar_produto.php'>";
+          echo "<div class='row'>";
+            mysqli_data_seek($resultFotosProd, 0);
+            while($row_fotos = mysqli_fetch_array($resultFotosProd, MYSQLI_ASSOC)){
+                $caminho_foto = $row_fotos['FOTO'];
+                if (file_exists($caminho_foto)) {
+                    echo "<div class='col-md-3'>";
+                    echo "<img src='" . htmlspecialchars( $caminho_foto)  . "' alt='Imagem do Produto' class='img-thumbnail'>";
+                    echo "</div>";
+                } else {
+                    echo "<div class='col-md-3'>";
+                    echo "<p>Imagem não encontrada:  </p>";
+                    echo "</div>";
+                }
+            }
+            echo "</div>";
+            
             echo "<input type='hidden' name='codigo' value='" . $produto['CODIGO'] . "'>";
 
             // Campo: Descrição
             echo "<div class='form-group'>";
             echo "<label for='descricao'>Descrição:</label>";
-            echo "<input type='text' class='form-control' id='descricao' name='descricao' value='" . $produto['DESCRICAO'] . "'>";
+            echo "<input type='text' class='form-control' id='descricao' name='descricao' value='" . htmlspecialchars(mb_convert_encoding($produto['DESCRICAO'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Outro Código
             echo "<div class='form-group'>";
             echo "<label for='outro_cod'>Outro Código:</label>";
-            echo "<input type='text' class='form-control' id='outro_cod' name='outro_cod' value='" . $produto['OUTRO_COD'] . "'>";
+            echo "<input type='text' class='form-control' id='outro_cod' name='outro_cod' value='" . htmlspecialchars(mb_convert_encoding($produto['OUTRO_COD'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Data de Recebimento
@@ -132,85 +155,85 @@
             // Campo: SKU Marketplace
             echo "<div class='form-group'>";
             echo "<label for='sku_mktplace'>SKU Marketplace:</label>";
-            echo "<input type='text' class='form-control' id='sku_mktplace' name='sku_mktplace' value='" . $produto['SKU_MKTPLACE'] . "'>";
+            echo "<input type='text' class='form-control' id='sku_mktplace' name='sku_mktplace' value='" . htmlspecialchars(mb_convert_encoding($produto['SKU_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Descrição Reduzida
             echo "<div class='form-group'>";
             echo "<label for='descr_reduz'>Descrição Reduzida:</label>";
-            echo "<input type='text' class='form-control' id='descr_reduz' name='descr_reduz' value='" . $produto['DESCR_REDUZ'] . "'>";
+            echo "<input type='text' class='form-control' id='descr_reduz' name='descr_reduz' value='" . htmlspecialchars(mb_convert_encoding($produto['DESCR_REDUZ'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Descrição Curta
             echo "<div class='form-group'>";
             echo "<label for='descr_curta'>Descrição Curta:</label>";
-            echo "<input type='text' class='form-control' id='descr_curta' name='descr_curta' value='" . $produto['DESCR_CURTA'] . "'>";
+            echo "<input type='text' class='form-control' id='descr_curta' name='descr_curta' value='" . htmlspecialchars(mb_convert_encoding($produto['DESCR_CURTA'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Descrição Longa
             echo "<div class='form-group'>";
             echo "<label for='descr_longa'>Descrição Longa:</label>";
-            echo "<textarea class='form-control' id='descr_longa' name='descr_longa'>" . $produto['DESCR_LONGA'] . "</textarea>";
+            echo "<textarea class='form-control' id='descr_longa' name='descr_longa'>" . htmlspecialchars(mb_convert_encoding($produto['DESCR_LONGA'], 'UTF-8', 'ISO-8859-1')) . "</textarea>";
             echo "</div>";
 
             // Campo: Aplicação
             echo "<div class='form-group'>";
             echo "<label for='aplicacao'>Aplicação:</label>";
-            echo "<textarea class='form-control' id='aplicacao' name='aplicacao'>" . $produto['APLICACAO'] . "</textarea>";
+            echo "<textarea class='form-control' id='aplicacao' name='aplicacao'>" . htmlspecialchars(mb_convert_encoding($produto['APLICACAO'], 'UTF-8', 'ISO-8859-1')) . "</textarea>";
             echo "</div>";
 
             // Campo: Garantia
             echo "<div class='form-group'>";
             echo "<label for='garantia'>Garantia:</label>";
-            echo "<input type='text' class='form-control' id='garantia' name='garantia' value='" . $produto['GARANTIA'] . "'>";
+            echo "<input type='text' class='form-control' id='garantia' name='garantia' value='" . htmlspecialchars(mb_convert_encoding($produto['GARANTIA'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Comprimento
             echo "<div class='form-group'>";
             echo "<label for='comprimento'>Comprimento:</label>";
-            echo "<input type='text' class='form-control' id='comprimento' name='comprimento' value='" . $produto['COMPRIMENTO'] . "'>";
+            echo "<input type='text' class='form-control' id='comprimento' name='comprimento' value='" . htmlspecialchars(mb_convert_encoding($produto['COMPRIMENTO'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Largura
             echo "<div class='form-group'>";
             echo "<label for='largura'>Largura:</label>";
-            echo "<input type='text' class='form-control' id='largura' name='largura' value='" . $produto['LARGURA'] . "'>";
+            echo "<input type='text' class='form-control' id='largura' name='largura' value='" . htmlspecialchars(mb_convert_encoding($produto['LARGURA'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Altura
             echo "<div class='form-group'>";
             echo "<label for='altura'>Altura:</label>";
-            echo "<input type='text' class='form-control' id='altura' name='altura' value='" . $produto['ALTURA'] . "'>";
+            echo "<input type='text' class='form-control' id='altura' name='altura' value='" . htmlspecialchars(mb_convert_encoding($produto['ALTURA'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Peso
             echo "<div class='form-group'>";
             echo "<label for='peso'>Peso:</label>";
-            echo "<input type='text' class='form-control' id='peso' name='peso' value='" . $produto['PESO'] . "'>";
+            echo "<input type='text' class='form-control' id='peso' name='peso' value='" . htmlspecialchars(mb_convert_encoding($produto['PESO'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Origem
             echo "<div class='form-group'>";
             echo "<label for='origem'>Origem:</label>";
-            echo "<input type='text' class='form-control' id='origem' name='origem' value='" . $produto['ORIGEM'] . "'>";
+            echo "<input type='text' class='form-control' id='origem' name='origem' value='" . htmlspecialchars(mb_convert_encoding($produto['ORIGEM'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Categoria Final Marketplace
             echo "<div class='form-group'>";
             echo "<label for='finalcategoria_mktplace'>Categoria Final Marketplace:</label>";
-            echo "<input type='text' class='form-control' id='finalcategoria_mktplace' name='finalcategoria_mktplace' value='" . $produto['FINALCATEGORIA_MKTPLACE'] . "'>";
+            echo "<input type='text' class='form-control' id='finalcategoria_mktplace' name='finalcategoria_mktplace' value='" . htmlspecialchars(mb_convert_encoding($produto['FINALCATEGORIA_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Modelo Marketplace
             echo "<div class='form-group'>";
             echo "<label for='modelo_mktplace'>Modelo Marketplace:</label>";
-            echo "<input type='text' class='form-control' id='modelo_mktplace' name='modelo_mktplace' value='" . $produto['MODELO_MKTPLACE'] . "'>";
+            echo "<input type='text' class='form-control' id='modelo_mktplace' name='modelo_mktplace' value='" . htmlspecialchars(mb_convert_encoding($produto['MODELO_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Número do Fabricante
             echo "<div class='form-group'>";
             echo "<label for='num_fabricante'>Número do Fabricante:</label>";
-            echo "<input type='text' class='form-control' id='num_fabricante' name='num_fabricante' value='" . $produto['NUM_FABRICANTE'] . "'>";
+            echo "<input type='text' class='form-control' id='num_fabricante' name='num_fabricante' value='" . htmlspecialchars(mb_convert_encoding($produto['NUM_FABRICANTE'], 'UTF-8', 'ISO-8859-1')) . "'>";
             echo "</div>";
 
             // Campo: Preço
