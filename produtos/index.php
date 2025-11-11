@@ -241,12 +241,15 @@
                                         echo "<td>$outro_cod</td>";
                                         echo "<td>$codigo_site</td>";
                                         echo "<td>$skuLoja</td>";
-                                        echo "<td>$descricao</td>";
+                                           echo "<td> ". htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1'))." </td>";
                                         echo "<td>$saldo</td>";
                                         echo "<td>$preco</td>";
                                         echo "<td>$dataEstoque</td>";
                                         echo "<td>";
-                                        echo "<a href='editar-produto.php?codigo=$codigo' class='btn btn-primary btn-sm'>Editar</a>";
+                                        if( $codigo_site == null ||  $codigo_site == ''){ 
+                                        echo "<a href='editar-produto.php?codigo=$codigo' class='btn btn-primary btn-sm'>Editar e enviar</a>";
+                                        } 
+                                        echo "<a></a>" ; 
                                         echo "</td>";
                                     echo "</tr>";
                                 }
