@@ -57,9 +57,25 @@
 
         if (isset($_POST['acao'])) {
             $acao = $_POST['acao'];
+                if($acao == 'enviar'){
+                     $response = $objEnviarProduto->enviarProduto($_POST);
+                        $result = json_decode($response, true);
 
+                        if ($result['success']) {
+                            echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                            echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                            echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo']  ;
+                            echo '</div>';
+                        } else {
+                            echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                            echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                            echo "<strong>Atenção!</strong> " . $result['message'];
+                            echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
+                            echo '</div>';
+                        }
+                }
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
-                $codigosProdutos = $_POST['codprod'];
+              /*  $codigosProdutos = $_POST['codprod'];
 
                 foreach ($codigosProdutos as $codigo) {
                     if ($acao == 'enviar') {
@@ -82,10 +98,9 @@
                     } 
                     if ($acao == 'vincular') {
                          $vinculo = $objeObterVinculo->getVinculo($codigo); // Supondo que exista essa função
-
                     }  
-                     
                 }
+                */
             } else {
                  if($acao == 'vincularTodos'){
                         $resultItems = $publico->consulta("SELECT * FROM cad_prod cp where cp.ATIVO='S' AND cp.NO_MKTP='S'");

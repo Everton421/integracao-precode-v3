@@ -70,12 +70,20 @@
 <body>
     
     <div class="container">
-
-     <form method='post' action='salvar-produto.php' enctype='multipart/form-data'>
+      
+     <form method='post' action='controller.php' enctype='multipart/form-data'>
 
         <div class="sidebar">
-            <a  >
-                <Button type="submit">
+              <?php
+        $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+
+                if( isset($ini['config']['envio_produtos'])   ){
+                     $enviar_habilitado = filter_var($ini['config']['envio_produtos'], FILTER_VALIDATE_BOOLEAN);
+                  }
+                    $disabled_attribute = $enviar_habilitado ? '' : 'disabled';
+            echo '<a  >';
+                echo '<Button type="submit" name="acao" value="enviar" '.$disabled_attribute.'>';
+               ?>
                     Enviar Produto
                     <i class="fa-solid fa-arrow-up-from-bracket"></i>
                 </Button>
@@ -96,6 +104,7 @@
         include_once(__DIR__ . '/../database/conexao_publico.php');
         include_once(__DIR__ . '/../database/conexao_vendas.php');
         include_once(__DIR__ . '/../database/conexao_estoque.php');
+
 
         $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 
@@ -166,6 +175,7 @@
                 p.DATA_RECAD,
                 p.SKU_MKTPLACE,
                 p.DESCR_CURTA_MKTPLACE,
+                p.DESCR_LONGA_MKTPLACE,
                 p.DESCRICAO,
                 p.APLICACAO,
                 p.GARANTIA,
@@ -236,19 +246,24 @@
 
 
             // Exibe um formulário para editar as informações do produto
-          echo "<div class='row'>";
-            mysqli_data_seek($resultFotosProd, 0);
-            while($row_fotos = mysqli_fetch_array($resultFotosProd, MYSQLI_ASSOC)){
+                echo "<div class='row'>";
+                mysqli_data_seek($resultFotosProd, 0);
+                while($row_fotos = mysqli_fetch_array($resultFotosProd, MYSQLI_ASSOC)){
                 $caminho_foto = $row_fotos['FOTO'];
                 if (file_exists($caminho_foto)) {
-                    echo "<div class='col-md-3'>";
-                    echo "<img src='" . htmlspecialchars( $caminho_foto)  . "' alt='Imagem do Produto' class='img-thumbnail'>";
-                    echo "</div>";
+                $imgData = file_get_contents($caminho_foto);
+                $img = base64_encode($imgData);
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $caminho_foto);
+                finfo_close($finfo);
+                 echo "<div class='col-md-3'>";
+                  echo "<img src='data:" . $mimeType . ";base64," . $img . "' alt='Imagem do Produto' class='img-thumbnail'>";
+                echo "</div>";
                 } else {
-                    echo "<div class='col-md-3'>";
-                    echo "<p>Imagem não encontrada:  </p>";
-                    echo "</div>";
-                }
+                 echo "<div class='col-md-3'>";
+                  echo "<p>Imagem não encontrada: </p>";
+                  echo "</div>";
+              }
             }
             echo "</div>";
  
@@ -265,13 +280,18 @@
         echo "<textarea type='text' class='form-control' id='descricaocurta' name='descricaocurta' >" . htmlspecialchars(mb_convert_encoding($produto['DESCRICAO'], 'UTF-8', 'ISO-8859-1')) .  "</textarea>";
         echo "</div>";
     echo "<div class='form-group'>";
-        echo "<label for='aplicacao'>Aplicação/ descricao :</label>";
+        echo "<label for='aplicacao'>Aplicação/ descricao Informações sobre o produto (benefícios, dimensões, peso, garantia, etc.):</label>";
         echo "<textarea type='text' class='form-control' id='aplicacao' name='aplicacao' >". htmlspecialchars(mb_convert_encoding($produto['APLICACAO'], 'UTF-8', 'ISO-8859-1')). "</textarea>";
         echo "</div>";
 
-echo "<div class='form-group'>";
+        echo "<div class='form-group'>";
         echo "<label for='descricaogoogle'>Descrição curta mktplace/ descrição google :</label>";
         echo "<textarea type='text' class='form-control' id='descricaogoogle' name='descricaogoogle'  >" . htmlspecialchars(mb_convert_encoding($produto['DESCR_CURTA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
+        echo "</div>";
+
+          echo "<div class='form-group'>";
+        echo "<label for='palavraschave'>Descrição longa mktplace/ Palavras chave :</label>";
+        echo "<textarea type='text' class='form-control' id='palavraschave' name='palavraschave'  >" . htmlspecialchars(mb_convert_encoding($produto['DESCR_LONGA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
         echo "</div>";
 
 
@@ -288,13 +308,6 @@ echo "<div class='form-group'>";
                  echo "</div>";
 
             echo "</div>"; // Fecha form-group-inline
-
-
-
-            echo "<div class='form-group'>";
-            echo "<label for='aplicacao'>Aplicação:</label>";
-            echo "<textarea class='form-control' id='aplicacao' name='aplicacao'>" . htmlspecialchars(mb_convert_encoding($produto['APLICACAO'], 'UTF-8', 'ISO-8859-1')) . "</textarea>";
-            echo "</div>";
 
 
             echo "<div class='form-group-inline'>";

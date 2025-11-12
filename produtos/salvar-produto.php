@@ -16,10 +16,9 @@
 
             if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-                $objeEnv = new EnviarProduto();
-                print_r(  $objeEnv->enviarProduto($_POST)) ;
-                    
-
+               //  $objeEnv = new EnviarProduto();
+               //  print_r(  $objeEnv->enviarProduto($_POST)) ;
+print_r($_POST);
             /*
             $codigo = $_POST['codigo'];
             $descricao = $_POST['descricao'];
