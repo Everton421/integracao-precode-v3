@@ -55,6 +55,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
             $marca = $produto['marca'];
             $palavrasChave =$produto['palavraschave'];
             $ncm = $produto['ncm'];
+            $urlVideo = $produto['urlVideo'];
 
 
          if( $produto['marca'] == null  || $produto['marca'] == 0 ){
@@ -87,7 +88,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                 $json['product']['description'] =  $aplicacao;  
                 $json['product']['googleDescription'] = $descricaogoogle;
                 $json['product']['status'] = 'enabled';
-                  $json['product']['wordKeys'] =  $palavrasChave ;
+                $json['product']['wordKeys'] =  $palavrasChave ;
                 $json['product']['price'] = floatval($preco);
                 $json['product']['promotional_price'] = floatval($promocao);
                 $json['product']['cost'] = floatval($preco);
@@ -105,6 +106,8 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                 $json['product']['subcategory'] = !empty($categoriainterm) ?  $this->removerAcentos($categoriainterm) : '';
                 $json['product']['endcategory'] = !empty($categoriafinal) ?  $this->removerAcentos($categoriafinal) : '';
                 $json['product']['manufacturing']  =  $origem;
+                $json['product']['urlYoutube']  = $urlVideo; 
+
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
                     [

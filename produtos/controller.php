@@ -180,9 +180,7 @@
                                 }
                                 }
                             }
-                    }else{
-                  echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhum produto selecionado.</p>";
-                  }
+                    }
             }
 
         } else {

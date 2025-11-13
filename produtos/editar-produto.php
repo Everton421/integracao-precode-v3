@@ -176,6 +176,7 @@
                 p.SKU_MKTPLACE,
                 p.DESCR_CURTA_MKTPLACE,
                 p.DESCR_LONGA_MKTPLACE,
+                p.DESCR_CURTA_SITE,
                 p.DESCRICAO,
                 p.APLICACAO,
                 p.GARANTIA,
@@ -293,7 +294,12 @@
         echo "<label for='palavraschave'>Descrição longa mktplace/ Palavras chave :</label>";
         echo "<textarea type='text' class='form-control' id='palavraschave' name='palavraschave'  >" . htmlspecialchars(mb_convert_encoding($produto['DESCR_LONGA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
         echo "</div>";
-
+               
+        echo "<div class='form-group'>";
+                echo "<label for='urlVideo'>Descrição curta site/Url Video Youtube:</label>";
+                echo "<input type='text' class='form-control' id='urlVideo' name='urlVideo' value='" . htmlspecialchars(mb_convert_encoding($produto['DESCR_CURTA_SITE'], 'UTF-8', 'ISO-8859-1')) . "'>";
+              echo "</div>";
+            
 
         echo "<div class='form-group-inline'>";
               echo "<div class='form-group'>";
