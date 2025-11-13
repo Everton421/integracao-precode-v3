@@ -155,11 +155,12 @@
             $database_vendas = $vendas->getBase();
             $database_publico= $publico->getBase();
 
-            $result = $vendas->Consulta("SELECT 
+            $result = $vendas->Consulta("  SELECT 
                                             co.CODIGO,
                                             co.COD_SITE,
                                             pp.situacao AS SITUACAO,
-                                            cli.NOME
+                                            cli.NOME,
+                                            concat(co.DATA_CADASTRO,' ',co.HORA_CADASTRO) as DATA_CADASTRO
                                             FROM cad_orca co 
                                             JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
                                             JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
@@ -171,7 +172,8 @@
                     $codigo_site = $list['COD_SITE'];
                     $situacao = $list['SITUACAO'];
                     $nome= $list['NOME'];
-
+                    $dataCadastro = new DateTime($list['DATA_CADASTRO']);
+                        $dataCadastro = $dataCadastro->format('d/m/Y H:i:s'); 
                     // Determina a classe com base na situação
                     $classe_enviado = ($situacao == 'nota_enviada') ? 'nota_enviada' : '';
 
@@ -184,7 +186,8 @@
                             echo "<div class='col-md-11'>";
                                 echo "<div class='order-description'>";
                                     echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
-                                    echo "<strong>Nome:</strong> <span class='client-name'>$nome</span>";
+                                    echo "<strong>Nome:</strong> <span class='client-name'>$nome</span> ";
+                                     echo "<span class='client-name' style='margin-left:25px;' ><strong>Data de Cadastro:</strong> $dataCadastro</span>";
                                 echo "</div>";
 
                                 if ($classe_enviado == 'nota_enviada') {
@@ -194,9 +197,9 @@
                                         echo "</span>";
                                     echo "</div>";
                                 }
-
+                               
                                 echo "<button type='submit' class='btn btn-primary btn-sm'>Obter Etiquetas</button>";
-
+                             
                             echo "</div>";
                         echo "</div>";
                     echo "</form>";
