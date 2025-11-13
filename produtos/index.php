@@ -215,7 +215,12 @@
                             $database_vendas = $vendas->getBase();
                             $result = $publico->Consulta("SELECT cp.CODIGO, cp.OUTRO_COD ,cp.DESCRICAO,
                                                                 fp.FOTO, pr.FOTOS as CAMINHO_FOTOS,
-                                                                pp.PRECO_SITE , pp.REF_LOJA ,pp.SKU_LOJA ,pp.CODIGO_SITE, pp.SALDO_ENVIADO, pp.DATA_RECAD_ESTOQUE
+                                                                COALESCE(pp.PRECO_SITE, 0 ) AS PRECO_SITE,
+                                                                 COALESCE(pp.REF_LOJA, 0 ) AS REF_LOJA,
+                                                                 COALESCE( pp.SKU_LOJA, 0 ) AS SKU_LOJA,
+                                                                COALESCE( pp.CODIGO_SITE,0 ) AS CODIGO_SITE,
+                                                                  COALESCE(pp.SALDO_ENVIADO,0 ) as SALDO_ENVIADO,
+                                                                  COALESCE( pp.DATA_RECAD_ESTOQUE, '2001-01-01 01:00') AS DATA_RECAD_ESTOQUE 
                                                             FROM cad_prod cp
                                                             LEFT JOIN produto_precode pp ON pp.codigo_bd = cp.CODIGO
                                                             LEFT JOIN fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO
@@ -235,10 +240,12 @@
                                     $caminho = $list['CAMINHO_FOTOS'];
                                     $preco = $list['PRECO_SITE'];
                                     $saldo = $list['SALDO_ENVIADO'];
-                                    $dataEstoque = $list['DATA_RECAD_ESTOQUE'];
                                     $skuLoja = $list['SKU_LOJA'];
                                     $refLoja = $list['REF_LOJA'];
 
+
+                                $dataEstoque = new DateTime($list['DATA_RECAD_ESTOQUE']);
+                            $dataEstoque = $dataEstoque->format('d/m/Y H:i'); 
                                     // Verifica se o produto foi enviado
                                     $classe_enviado = ($codigo_site != null && $codigo_site != '') ? 'enviado' : '';
 
