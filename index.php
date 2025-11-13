@@ -76,6 +76,7 @@
 
         .order-description {
             word-wrap: break-word;
+            
         }
 
         /* Estilos para itens enviados */
@@ -185,9 +186,12 @@
                             echo "</div>";
                             echo "<div class='col-md-11'>";
                                 echo "<div class='order-description'>";
-                                    echo "<strong>Cód Sistema:</strong> <span class='order-code'>$codigo</span> | <strong>Cód Precode:</strong> <span class='product-code'>$codigo_site</span><br>";
-                                    echo "<strong>Nome:</strong> <span class='client-name'>$nome</span> ";
-                                     echo "<span class='client-name' style='margin-left:25px;' ><strong>Data de Cadastro:</strong> $dataCadastro</span>";
+                                echo '<div class="d-flex justify-content-between align-itens-center">';
+                                    echo "<span class='order-code'><strong>Cód Sistema:</strong> $codigo</span>   </span> ";
+                                    echo "  <span class='product-code'> <strong>Cód Precode:</strong>$codigo_site</span>" ;
+                                echo "</div>";
+
+                                    echo "<strong>Cliente:</strong> <span class='client-name'>$nome</span> ";
                                 echo "</div>";
 
                                 if ($classe_enviado == 'nota_enviada') {
@@ -197,8 +201,11 @@
                                         echo "</span>";
                                     echo "</div>";
                                 }
-                               
-                                echo "<button type='submit' class='btn btn-primary btn-sm'>Obter Etiquetas</button>";
+                                  echo "<div class='d-flex flex-row justify-content-between' >";
+                                   echo "<button type='submit' class='btn btn-primary btn-sm'>Obter Etiquetas</button>";
+                                     echo "<span class='client-name' style='margin-left:25px;' ><strong>Data de Cadastro:</strong> $dataCadastro</span>";
+
+                                    echo "</div>";
                              
                             echo "</div>";
                         echo "</div>";
