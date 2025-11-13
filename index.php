@@ -164,7 +164,7 @@
                                             concat(co.DATA_CADASTRO,' ',co.HORA_CADASTRO) as DATA_CADASTRO
                                             FROM cad_orca co 
                                             JOIN ".$database_publico.".cad_clie cli ON cli.CODIGO = co.CLIENTE
-                                            JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.cod_site
+                                            JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.CODIGO
                                             ");
             $numRows = mysqli_num_rows($result);
             if ($numRows > 0) {
@@ -179,10 +179,10 @@
                     $classe_enviado = ($situacao == 'nota_enviada') ? 'nota_enviada' : '';
 
                     echo "<div class='order-item " . $classe_enviado . "'>";
-                    echo "<form action='jobs/obter-etiquetas-pedido.php' method='POST'>";
+                    echo "<form action='etiqueta-pedido.php' method='POST' id='formEnvia' >";
                         echo "<div class='row'>";
                             echo "<div class='col-md-1'>";
-                                echo "<input type='checkbox' name='codprod[]' value='$codigo' class='mr-2'>";
+                                echo "<input type='checkbox'   class='mr-2'>";
                             echo "</div>";
                             echo "<div class='col-md-11'>";
                                 echo "<div class='order-description'>";
@@ -202,7 +202,9 @@
                                     echo "</div>";
                                 }
                                   echo "<div class='d-flex flex-row justify-content-between' >";
-                                   echo "<button type='submit' class='btn btn-primary btn-sm'>Obter Etiquetas</button>";
+                                   echo "<button type='submit'  class='btn btn-primary btn-sm'   name='codpedido' value='$codigo_site' >";
+                                    echo "Obter Etiquetas";
+                                   echo "</button>";
                                      echo "<span class='client-name' style='margin-left:25px;' ><strong>Data de Cadastro:</strong> $dataCadastro</span>";
 
                                     echo "</div>";
