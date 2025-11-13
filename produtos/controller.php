@@ -49,11 +49,16 @@
     include_once(__DIR__.'/../utils/enviar-produto.php');
     include_once(__DIR__.'/../utils/obter-vinculo-produto.php');
     include_once(__DIR__.'/../database/conexao_publico.php');
+    include_once(__DIR__.'/../utils/enviar-preco.php');
+    include_once(__DIR__.'/../utils/enviar-saldo.php');
+
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $objEnviarProduto = new EnviarProduto();
         $objeObterVinculo = new ObterVinculo();
         $publico= new CONEXAOPUBLICO();
+        $objEnviarPreco = new EnviarPreco();
+        $objEnviarEstoque = new EnviarSaldo();
 
         if (isset($_POST['acao'])) {
             $acao = $_POST['acao'];
@@ -75,10 +80,47 @@
                         }
                 }
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
-              /*  $codigosProdutos = $_POST['codprod'];
-
+                $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
-                    if ($acao == 'enviar') {
+                      if ($acao == 'atualizarPreco') {
+                        // Lógica para enviar o produto
+                        $response = $objEnviarPreco->postPreco($codigo);
+                        
+                        $result = json_decode($response, true);
+
+                        if ($result['success'] > 0) {
+                            echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                            echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                            echo "<strong> " . $result['message'] . "</strong><br>produto :  $codigo ";
+                            echo '</div>';
+                        } else {
+                            echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                            echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                            echo "<strong>Atenção!</strong> " . $result['message'];
+                            echo "<br><strong> Produto: </strong>" . $codigo;
+                            echo '</div>';
+                          }
+                        }
+                        if ($acao == 'atualizarEstoque') {
+                            // Lógica para enviar o produto
+                            $response = $objEnviarEstoque->postSaldo($codigo);
+                            $result = json_decode($response, true);
+                            if ($result['success'] > 0 ) {
+                                echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                echo "<strong> " . $result['message']  . "</strong><br>produto :  $codigo ";
+                                echo '</div>';
+                            } else {
+                                echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                echo "<strong>Atenção!</strong> " . $result['message'];
+                                echo "<br><strong> Produto: </strong>" . $codigo;
+                                echo '</div>';
+                            }
+                        }
+                         
+
+               /*     if ($acao == 'enviar') {
                         // Lógica para enviar o produto
                         $response = $objEnviarProduto->enviarProduto($codigo);
                         $result = json_decode($response, true);
@@ -95,12 +137,25 @@
                             echo "<br><strong> Produto: </strong>" . $codigo;
                             echo '</div>';
                         }
-                    } 
+                    } */ 
                     if ($acao == 'vincular') {
-                         $vinculo = $objeObterVinculo->getVinculo($codigo); // Supondo que exista essa função
-                    }  
+                         $vinculo = $objeObterVinculo->getVinculo($codigo);  
+                         $vinculo =json_decode($vinculo);
+                        if($vinculo->success){
+                            echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                            echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                            echo "<strong> " . $vinculo->message  . "</strong><br>produto :  $codigo ";
+                            echo '</div>';
+                        }else{
+                            echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                            echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                            echo "<strong>Atenção!</strong> " . $vinculo->message;
+                            echo "<br><strong> Produto: </strong>" . $codigo;
+                            echo '</div>';
+                         }
+                        }  
                 }
-                */
+              
             } else {
                  if($acao == 'vincularTodos'){
                         $resultItems = $publico->consulta("SELECT * FROM cad_prod cp where cp.ATIVO='S' AND cp.NO_MKTP='S'");
@@ -108,7 +163,21 @@
                             if($numRows > 0 )  {
                                 while ($list = mysqli_fetch_array($resultItems, MYSQLI_ASSOC)) {
                                     sleep(1);
-                                     $vinculo = $objeObterVinculo->getVinculo($list['CODIGO']);  
+                                      $codigo = $list['CODIGO'];
+                                     $vinculo = $objeObterVinculo->getVinculo($codigo);  
+                                     $vinculo =json_decode($vinculo);
+                               if($vinculo->success){
+                                    echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                    echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                    echo "<strong> " . $vinculo->message  . "</strong><br>produto :  $codigo ";
+                                    echo '</div>';
+                                }else{
+                                    echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                    echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                    echo "<strong>Atenção!</strong> " . $vinculo->message;
+                                    echo "<br><strong> Produto: </strong>" . $codigo;
+                                    echo '</div>';
+                                }
                                 }
                             }
                     }else{

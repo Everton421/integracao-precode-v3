@@ -122,13 +122,25 @@
     <div class="sidebar">
         
         <a href="../jobs/atualizar-preco.php">
-            Enviar Preços
+            Enviar Preços de todos produtos
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
         <a href="../jobs/atualizar-estoque.php">
-            Enviar Estoque
+            Enviar Estoque de todos produtos
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
+        <hr>
+    <button type="submit" name="acao" value="atualizarPreco">
+        
+        Enviar Preço do produto selecionado
+            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+    </button>
+
+    <button type="submit" name="acao" value="atualizarEstoque">
+            Enviar Estoque do produto selecionados
+            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+    </button>
+
         <hr>
      
     <button type="submit" name="acao" value="vincular">
@@ -145,15 +157,7 @@
         $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
         $enviar = false;
         
-        if( isset($ini['config']['envio_produtos'])   ){
-            $enviar_habilitado = filter_var($ini['config']['envio_produtos'], FILTER_VALIDATE_BOOLEAN);
-        }
-        $disabled_attribute = $enviar_habilitado ? '' : 'disabled';
-        
-        echo '<button type="submit" name="acao" value="enviar" '.$disabled_attribute.'>';
-        echo 'Enviar produto selecionado';
-        echo '<i class="fa-solid fa-arrow-up-from-bracket"></i>';
-        echo '</button>';
+       
     ?>
 
     </div>
@@ -179,7 +183,10 @@
             </div>
 
             <div class="form-group" style="margin-top: 30px;">
-                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código...">
+                <input
+                 type="text" class="form-control" id="searchInput" placeholder="Pesquisar produto por nome ou código..."
+                                        
+                >
             </div>
 
             <div class="table-responsive">
@@ -271,9 +278,10 @@
 
         tableRows.forEach(function (row) {
             const productCode = row.querySelector('td:nth-child(2)').textContent.toLowerCase(); // Código ERP
+            const productOtherCode = row.querySelector('td:nth-child(3)').textContent.toLowerCase(); // Código ERP
             const productDescription = row.querySelector('td:nth-child(6)').textContent.toLowerCase(); // Descrição
 
-            if (productCode.includes(searchTerm) || productDescription.includes(searchTerm)) {
+            if (productCode.includes(searchTerm) || productDescription.includes(searchTerm) || productOtherCode.includes(searchTerm))  {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';

@@ -79,8 +79,8 @@ class EnviarFotos {
                                     $resultInsert =  $publico->Consulta("INSERT INTO fotos_prod_precode SET  PRODUTO = '$codigo', FOTO = '$photoName',SEQ='$sequenc', BASE64_FOTO='$img', LINK='$link' ");
                                     if( $resultInsert   ){
                                     }  else{
-                                        error_log("Erro ao registrar foto no banco de dados: " . $publico->conexao->error); // Log do erro
-                                        return ['success' => false, 'message' => "erro ao registrar foto no banco de dados : HTTP Code: " . $httpCode . " - " . $publico->conexao->error];
+                                        error_log("Erro ao registrar foto no banco de dados " ); // Log do erro
+                                        return ['success' => false, 'message' => "erro ao registrar foto no banco de dados : HTTP Code: " . $httpCode . " - "  ];
                                     }     
                         } else {
                             error_log("Erro ao enviar imagem para o ImgBB: HTTP Code: " . $httpCode . " - Response: " . $response); // Log do erro
