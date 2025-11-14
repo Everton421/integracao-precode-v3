@@ -247,7 +247,7 @@
                                 $dataEstoque = new DateTime($list['DATA_RECAD_ESTOQUE']);
                             $dataEstoque = $dataEstoque->format('d/m/Y H:i'); 
                                     // Verifica se o produto foi enviado
-                                    $classe_enviado = ($codigo_site != null && $codigo_site != '') ? 'enviado' : '';
+                                    $classe_enviado = ($codigo_site != null && $codigo_site != '' && $codigo_site !=  0) ? 'enviado' : '';
 
                                     echo "<tr class='$classe_enviado'>";
                                         echo "<td><input type='checkbox' name='codprod[]' value='$codigo'></td>";
@@ -260,7 +260,7 @@
                                         echo "<td>$preco</td>";
                                         echo "<td>$dataEstoque</td>";
                                         echo "<td>";
-                                        if( $codigo_site == null ||  $codigo_site == ''){ 
+                                        if( $codigo_site == null ||  $codigo_site == '' ||  $codigo_site == 0){ 
                                         echo "<a href='editar-produto.php?codigo=$codigo' class='btn btn-primary btn-sm'>Editar e enviar</a>";
                                         } 
                                         echo "<a></a>" ; 

@@ -44,7 +44,7 @@ class EnviarSaldo{
 
             $buscaProduto = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode where codigo_bd= $codigo" ); 		
                 if((mysqli_num_rows($buscaProduto)) == 0){
-                        return $this->response(false,'produto '. $codigo .'não foi encontrado no erp!');
+                        return $this->response(false,'produto '. $codigo .' não possui vinculo com o Precode!');
                 }
 
             while($row = mysqli_fetch_array($buscaProduto, MYSQLI_ASSOC)){
