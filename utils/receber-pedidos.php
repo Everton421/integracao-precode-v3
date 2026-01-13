@@ -82,7 +82,7 @@ class recebePrecode{
     }   
     
     public function recebePedidos(){
-set_time_limit(0);
+            set_time_limit(0);
 
                 $objReceberTransportadora = new ReceberTransportadora();
                 $objReceberCliente = new ReceberCliente();

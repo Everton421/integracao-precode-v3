@@ -55,8 +55,47 @@ class EnviarPreco {
            $dataUltiEnvi = '2001-01-01 00:00:00';
 
         }
-            
-        if( $dataRecadPrecoErp >  $dataUltiEnvi ){
+
+        // Lê o delta máximo de configuração (ex.: 0.30 = 30%)
+        $maxDelta = 0.30;
+        if( isset($ini['config']['max_delta_preco']) ){
+            $maxDelta = floatval($ini['config']['max_delta_preco']);
+        }
+
+        // Envia se for forçado, se o preço desejado for diferente do preço no site, ou se houve recadastramento no ERP desde o último envio
+        if( $forcar_envio_preco == true || floatval($valorProduto) != floatval($ultimoPreco) || $dataRecadPrecoErp >  $dataUltiEnvi ){
+
+            $currentSitePrice = floatval($ultimoPreco);
+            $targetPrice = floatval($valorProduto);
+            $final = false;
+
+            if($currentSitePrice <= 0){
+                // Não é possível calcular delta relativo com preço zero ou inválido: enviamos o alvo (mas registramos aviso para revisão manual)
+                $sendPrice = round($targetPrice, 2);
+                error_log("[enviar-preco] aviso: preco_site invalido ($currentSitePrice) para codigo $codigo. Enviando alvo $sendPrice");
+            } else {
+                $diff = ($targetPrice - $currentSitePrice) / $currentSitePrice;
+                if( abs($diff) <= $maxDelta ){
+                    $sendPrice = round($targetPrice, 2);
+                    $final = true;
+                } elseif ( $diff > $maxDelta ){
+                    $sendPrice = round($currentSitePrice * (1 + $maxDelta), 2);
+                } else {
+                    $sendPrice = round($currentSitePrice * (1 - $maxDelta), 2);
+                }
+            }
+
+            $payload = [
+                'produto' => [
+                    [
+                        'IdReferencia' => $referencia,
+                        'sku' => 0,
+                        'precoDe' => floatval(number_format($currentSitePrice,2,'.','')),
+                        'precoVenda' => floatval(number_format($sendPrice,2,'.','')),
+                        'precoSite' => floatval(number_format($sendPrice,2,'.',''))
+                    ]
+                ]
+            ];
 
             $curl = curl_init();
               $url = 'https://www.replicade.com.br/api/v1/produtoLoja/preco' ; // Codifica a referência para a URL
@@ -70,10 +109,6 @@ class EnviarPreco {
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => "PUT",
                 CURLOPT_POSTFIELDS => "
-                {
-                  \r\n\"produto\":\r\n   
-                    [\r\n      
-                      {
                         \r\n\"IdReferencia\": \"$referencia\",
                         \r\n\"sku\": 0,
                         \r\n\"precoDe\": $ultimoPreco,
@@ -104,12 +139,16 @@ class EnviarPreco {
                         return $this->response(false, $mensagem);
                     }
                     if($codMensagem == 0 ){
-                      $resultUpdateProduct =$publico->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now(),data_recad_preco = now()  where codigo_bd = '$codigo'");
+                      $resultUpdateProduct =$publico->Consulta("UPDATE produto_precode SET preco_site = $sendPrice, data_recad = now(),data_recad_preco = now()  where codigo_bd = '$codigo'");
                         if($resultUpdateProduct != 1 ){
                           return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
                         }
                         if($resultUpdateProduct == 1 ){
-                          return $this->response(true,"$mensagem | estoque  atualizado para o produto $codigo  |  Código da mensagem:  $codMensagem  ");
+                          if($final){
+                            return $this->response(true,"$mensagem | preco final enviado para o produto $codigo | enviado: $sendPrice | codigo mensagem: $codMensagem");
+                          } else {
+                            return $this->response(true,"$mensagem | preco parcial enviado: $sendPrice | alvo: $targetPrice | codigo mensagem: $codMensagem");
+                          }
                         }
                     }
               }   
