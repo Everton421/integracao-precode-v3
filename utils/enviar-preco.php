@@ -41,7 +41,9 @@ class EnviarPreco {
                                               FROM  cad_prod cp
                                               JOIN prod_tabprecos p ON cp.CODIGO = p.PRODUTO
                                               JOIN  produto_precode pp ON pp.CODIGO_BD = cp.CODIGO
-                                               WHERE p.PRODUTO = $codigo AND p.TABELA = $tabela");
+                                               WHERE p.PRODUTO = $codigo AND p.TABELA = $tabela
+                                               
+                                               ");
 
         if(   mysqli_num_rows($resultPrice) == 0 ){
             echo 'nenhum registro de preço encontrado';
