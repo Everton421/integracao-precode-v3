@@ -82,12 +82,13 @@
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
                 $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
-                      if ($acao == 'atualizarPreco') {
+                      
+                    if ($acao == 'atualizarPreco') {
                         // Lógica para enviar o produto
+                       
                         $response = $objEnviarPreco->postPreco($codigo);
-                        
+                    
                         $result = json_decode($response, true);
-
                         if ($result['success'] > 0) {
                             echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
                             echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
