@@ -42,6 +42,9 @@ class CONEXAOESTOQUE {
     }
 
     public function Consulta(string $consulta): mixed {
+        if (!$this->link) {
+            throw new Exception('A conexão com o banco de dados está fechada.');
+        }
         $this->consulta = $consulta;
         $resultado = $this->link->query($this->consulta);
 
