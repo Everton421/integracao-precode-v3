@@ -7,6 +7,7 @@ include(__DIR__.'/../database/conexao_estoque.php');
 include(__DIR__.'/../database/conexao_vendas.php');
 include_once(__DIR__.'/receber-transportadora.php');
 include_once(__DIR__.'/receber-cliente.php');
+include_once(__DIR__."/../utils/registrar-logs.php");
 
 class recebePrecode{
     public $curl;    	
@@ -84,11 +85,17 @@ class recebePrecode{
     public function recebePedidos(){
             set_time_limit(0);
 
+
+                 
+
                 $objReceberTransportadora = new ReceberTransportadora();
                 $objReceberCliente = new ReceberCliente();
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
+       
+      //    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
+       
+     CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -258,8 +265,33 @@ class recebePrecode{
                                     IF('$uf_cob'='PR','I','E'),
                                     'S',
                                     '$this->filial')";    
+                                     Logs::registrar(
+                                                $this->vendas,
+                                                $this->databaseVendas,
+                                                'sucesso',
+                                                'registrar pedido',
+                                                "$sql",
+                                                    '',
+                                                "pedido  registrado no cad_orca [ codigo precode: $codigoPedidoSite ] "
+                                                );
                                     
                                 if (mysqli_query($this->vendas->link, $sql) === TRUE){  
+                                      // registrando log   
+                                    Logs::registrar(
+                                                $this->vendas,
+                                                $this->databaseVendas,
+                                                'sucesso',
+                                                'registrar pedido',
+                                                "$sql",
+                                                    '',
+                                                "pedido  registrado no cad_orca [ codigo precode: $codigoPedidoSite ] "
+                                                );
+                                    
+                                $buscaCadOrca = $this->vendas->Consulta("SELECT * FROM cad_orca where cod_site = $codigoPedidoSite");
+                                        while($row = mysqli_fetch_array($buscaCadOrca, MYSQLI_ASSOC)){
+                                            $codigoOrcamento = $row['CODIGO'];                                   
+                                        }
+                                        
                                     for($p = 0; $p < count($pedidoItens); $p++){
                                         $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
                                         $sku = $pedidoItens[$p]->sku;
@@ -267,12 +299,7 @@ class recebePrecode{
                                         $valorUnitario =  $pedidoItens[$p]->valorUnitario;
                                         $valorComDesconto = $pedidoItens[$p]->valorUnitarioLiquido;
                                         $descontoProd = $valorUnitario - $valorComDesconto;
-                                    
-                                        $buscaCadOrca = $this->vendas->Consulta("SELECT * FROM cad_orca where cod_site = $codigoPedidoSite");
-                                        while($row = mysqli_fetch_array($buscaCadOrca, MYSQLI_ASSOC)){
-                                            $codigoOrcamento = $row['CODIGO'];                                   
-                                        }
-                                        
+                                  
 
                                            $buscaCusto = $this->publico->Consulta(    " SELECT pc.produto CODIGO, 
                                                                                            if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
@@ -295,85 +322,88 @@ class recebePrecode{
                                                                                           
                                         $retorno = mysqli_num_rows($buscaCusto);
                                         if($retorno > 0 ){
-                                            while($row = mysqli_fetch_array($buscaCusto, MYSQLI_ASSOC)){
-                                                $id_produto_bd = $row['CODIGO'];
-                                                $ultimo_custo = $row['ULT_CUSTO'];
-                                                $custo_medio = $row['CUSTO_MEDIO'];
+                                                while($row = mysqli_fetch_array($buscaCusto, MYSQLI_ASSOC)){
+                                                    $id_produto_bd = $row['CODIGO'];
+                                                    $ultimo_custo = $row['ULT_CUSTO'];
+                                                    $custo_medio = $row['CUSTO_MEDIO'];
 
 
-                                                  // 
-                                                 if(empty($id_produto_bd)){
-                                                    $id_produto_bd = 166; 
-                                                 }
-                                                 if(empty($ultimo_custo)){
-                                                     $ultimo_custo =  1;
-                                                 }
+                                                    // 
+                                                    if(empty($id_produto_bd)){
+                                                        $id_produto_bd = 166; 
+                                                    }
+                                                    if(empty($ultimo_custo)){
+                                                        $ultimo_custo =  1;
+                                                    }
 
-                                                 if(empty($custo_medio)){
-                                                    $custo_medio=1;
-                                                 }
-                                                }
-                                                  $valor_prod = $valorUnitario * $quantidade;
-                                        $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, qtde_separada,quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
-                                            VALUES ('$codigoOrcamento',
-                                            $p + 1,
-                                            '$id_produto_bd',               
-                                            '0',             
-                                            '0',    
-                                            '',           
-                                            'UND',            
-                                            '1',
-                                            '0',
-                                            '0',
-                                            '0',
-                                            '$quantidade',
-                                            '$quantidade',
-                                            '$valorUnitario',
-                                            '$this->tabelaprecopadrao',
-                                            '$valor_prod',
-                                            '$custo_medio',
-                                            '$ultimo_custo',
-                                            '$valorFrete',
-                                            '$descontoProd')";
-                                            
-                                            //print_r ($sql);
-                                            if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
-                                             
-                                                  echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                                                    echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                                                    echo "<strong> </strong><br>Produto  $id_produto_bd  inserido no orçamento  $codigoOrcamento. ";
-                                                    echo '</div>';                                      
-                                            }else{
-                                                echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir produto "'.$id_produto_bd.'" no orçamento "'.$codigoOrcamento.'"';   
-                                                echo '</div>';
-                                                     echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                                                    echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                                                    echo "<strong>Atenção!</strong> " .   $result->mensagem;
-                                                    echo "<br><strong> Produto: </strong> Falha ao inserir produto  $id_produto_bd  no orçamento  $codigoOrcamento " ;
+                                                    if(empty($custo_medio)){
+                                                        $custo_medio=1;
+                                                    }
+                                                    }
+                                                    $valor_prod = $valorUnitario * $quantidade;
+                                            $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, qtde_separada,quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
+                                                VALUES ('$codigoOrcamento',
+                                                $p + 1,
+                                                '$id_produto_bd',               
+                                                '0',             
+                                                '0',    
+                                                '',           
+                                                'UND',            
+                                                '1',
+                                                '0',
+                                                '0',
+                                                '0',
+                                                '$quantidade',
+                                                '$quantidade',
+                                                '$valorUnitario',
+                                                '$this->tabelaprecopadrao',
+                                                '$valor_prod',
+                                                '$custo_medio',
+                                                '$ultimo_custo',
+                                                '$valorFrete',
+                                                '$descontoProd')";
+                                                
+                                                //print_r ($sql);
+                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                                    // registrando log   
+                                                Logs::registrar(
+                                                            $this->vendas,
+                                                            $this->databaseVendas,
+                                                            'sucesso',
+                                                            'registrar produto pedido ',
+                                                            "$sql",
+                                                                '',
+                                                            "Produto [ $id_produto_bd ] registrado na tabela pro_orca "
+                                                            );
+                                                
+                                                    echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                                        echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                                        echo "<strong> </strong><br>Produto  $id_produto_bd  inserido no orçamento  $codigoOrcamento. ";
+                                                        echo '</div>';                                      
+                                                }else{
+                                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir produto "'.$id_produto_bd.'" no orçamento "'.$codigoOrcamento.'"';   
                                                     echo '</div>';
-                                            } 
-                                        }else{
-                                                         
-                                                echo '<br>';     
-                                                  echo '<div class="container">';
-                                                    echo '<div class="alert alert-warning " role="alert" >';
-                                                    echo ' <h3 style="color:red;" align="center"> <strong>Atenção!</strong> ';
-                                                    echo '<br> Não foi encontrado o produto codigo:  '.$sku ;
-                                                    echo '<br>  verifique os itens do pedido codigo: '.$PedidoMktplace. ' no marketplace: '. $marketplace      ;
-                                                    echo '<br>   verifique os itens do pedido codigo:  '. $codigoPedidoSite.' no precode </h3> ';
-                                                      
-                                                $resultDeleteOrder =  $this->vendas->Consulta("DELETE FROM cad_orca where CODIGO = '$codigoOrcamento'");
-                                                if($resultDeleteOrder == 1){
-                                                    echo '<h3 style="color:red;" align="center">  pedido nao registrado no sistema   </h3> ';
-                                                }
-                                                 echo '</div>';    
-                                                 echo '</div>'; 
-                                        }
-                                                                                 
+                                                        echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                                        echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                                        echo "<strong>Atenção!</strong> " .   $result->mensagem;
+                                                        echo "<br><strong> Produto: </strong> Falha ao inserir produto  $id_produto_bd  no orçamento  $codigoOrcamento " ;
+                                                        echo '</div>';
+                                                } 
+                                            }else{
+                                                  Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'erro',
+                                                        'registrar produto pedido ',
+                                                        "",
+                                                            '',
+                                                        "Não foi encontrado o produto codigo: $sku, verifique os itens do pedido codigo: $PedidoMktplace no marketplace: $marketplace"
+                                                        );
+                                                            
+                                            }
                                     }
                                     if ($codigoOrcamento > 0){
                                  
-
                                         $sql = "INSERT INTO par_orca (orcamento, parcela, valor, vencimento, tipo_receb)
                                         VALUES ('$codigoOrcamento',
                                                 '1', 
@@ -382,7 +412,17 @@ class recebePrecode{
                                                  $this->codigoTipoRecebimento                    
                                                 )";	
 
+                                
                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                               Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'sucesso',
+                                                        'registrar parcela do pedido ',
+                                                        "$sql",
+                                                            '',
+                                                        "parcela do pedido: [ $codigoOrcamento ]  registrada! "
+                                                        );
                                             echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Forma de pagamento inserida no orçamento "'.$codigoOrcamento.'"';   
                                             echo '</div>';     
                                             $curl = curl_init();
@@ -419,6 +459,7 @@ class recebePrecode{
                                             curl_close($curl);
                                             //echo $response;
                                             if(!empty($response)){
+                                                 
                                                 echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center">Aceite confirmado!';   
                                                 echo '</div>'; 
                                                 echo '<br><br>';
@@ -448,7 +489,16 @@ class recebePrecode{
                                                         '$data_atual',             
                                                         '$pedidoStatus')";
         
-                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){
+                                                      Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'sucesso',
+                                                        'envio do aceite para precode ',
+                                                        "$sql",
+                                                            '',
+                                                        "Aceite confirmado e registrado  pedido: [ $codigoOrcamento ]  ! "
+                                                        ); 
                                                     echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Adicionando orçamento na tabela Precode "'.$codigoOrcamento.'"';   
                                                     echo '</div>';      
                                                 }else{
@@ -456,6 +506,22 @@ class recebePrecode{
                                                     echo '</div>';
                                                 } 
                                             }else{
+                                             
+                                                    Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'sucesso',
+                                                        'Falha ao confirmar o aceite',
+                                                        " {
+                                                                \r\n\"codigoPedido\": $codigoPedidoSite,
+                                                                \r\n\"numeroPedidoERP\": $codigoOrcamento,
+                                                                \r\n\"numeroFilialFatura\": $filial_cd,
+                                                                \r\n\"numeroFilialSaldo\": $filial_cd\r\n
+                                                            }  ",
+                                                            '',
+                                                        "Falha ao confirmar o aceite do pedido: [ $codigoOrcamento ] ! "
+                                                         ); 
+
                                                 echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao confirmar o aceite!';  
                                                 echo '</div>';
                                             }
@@ -463,11 +529,20 @@ class recebePrecode{
                                             echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir forma de pagamento no orçamento "'.$codigoOrcamento.'"';  
                                             echo '</div>';
                                         } 
+                                         
+
                                     }
                                     
-                                
-                                    
                                 } else{
+                                      Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'sucesso',
+                                                        'registrar pedido ',
+                                                        "$sql",
+                                                            '',
+                                                        "Falha ao inserir  orçamento  [ $id_produto_bd ]  "
+                                                        );
                                     echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir  orçamento  <br> Canal Precode:"'.$dispositivo.'' .$marketplace.'"'; 
                                     echo '</div>';
                                     print_r( $sql);

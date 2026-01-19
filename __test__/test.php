@@ -1,14 +1,25 @@
  <?php
 
-include_once(__DIR__."/../utils/obter-vinculo-produto.php");
-include_once(__DIR__."/../utils/enviar-saldo.php");
-include_once(__DIR__."/../utils/obter-etiqueta.php");
-include_once(__DIR__."/../utils/enviar-foto.php");
-include_once(__DIR__."/../utils/enviar-preco.php");
+include_once(__DIR__."/../utils/registrar-logs.php");
+include_once(__DIR__.'/../database/conexao_vendas.php');
+ $vendas = new CONEXAOVENDAS();
 
- $obj = new EnviarPreco();
+  $database = $vendas->getBase();
+  $acao = 'teste';
 
- 
-  $result = $obj->postPreco(659);
-print_r($result);
+    $result = Logs::registrar(
+     $vendas,
+     $database,
+     'sucesso',
+     'registrar pedido',
+        '',
+    );
+
+     
+  if( $result ){
+    echo  $result;
+  }
+
+$vendas->Desconecta();
+  
  ?> 
