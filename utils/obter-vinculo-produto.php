@@ -9,26 +9,14 @@ class ObterVinculo {
         $publico = new CONEXAOPUBLICO();
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
-        // Consulta o produto no banco de dados interno
-        $resultQueryProd = $publico->consulta("SELECT * FROM cad_prod WHERE CODIGO = $codigo");
-
-        if (mysqli_num_rows($resultQueryProd) == 0) {
-            return $this-> response(false, "Produto com código $codigo não encontrado no banco de dados.");
-        }
-
-        $row = mysqli_fetch_array($resultQueryProd, MYSQLI_ASSOC);
-        $referencia = trim($row['OUTRO_COD']); // Remove espaços em branco
-
-        if (empty($referencia)) {
-                return $this-> response(false," Produto com código $codigo não possui referência (OUTRO_COD).");
-        }
+        
 
         if (empty($ini['conexao']['token'])) {
             return $this-> response(false,"Token da aplicação não fornecido no arquivo conexao.ini.");
         }
 
         $token = $ini['conexao']['token'];
-        $url = 'https://www.replicade.com.br/api/v3/products/query/' . urlencode($referencia) . '/ref'; // Codifica a referência para a URL
+        $url = 'https://www.replicade.com.br/api/v3/products/query/' . urlencode($codigo) . '/ref'; // Codifica a referência para a URL
 
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -67,6 +55,7 @@ class ObterVinculo {
             $idPrecode = $result->produto->codigoAgrupador;
             $skuLoja =  $result->produto->atributos[0]->sku;
             $refLoja = $result->produto->atributos[0]->ref;
+            $preco_site = $result->produto->precoAvista;
 
             $validationProduct = $publico->consulta("SELECT * FROM produto_precode WHERE CODIGO_SITE = '$idPrecode' AND CODIGO_BD = '$codigo'");
 
@@ -76,8 +65,9 @@ class ObterVinculo {
                                                              CODIGO_SITE,
                                                               CODIGO_BD,
                                                               SKU_LOJA,
+                                                              PRECO_SITE,
                                                               REF_LOJA
-                                                              ) VALUES ('$idPrecode', '$codigo','$skuLoja', '$refLoja' )");
+                                                              ) VALUES ('$idPrecode', '$codigo', '$skuLoja',$preco_site, '$refLoja' )");
 
                 if ($insertResult == 1) {
                     return $this-> response(true,"Vinculo obtido com sucesso para o produto: $codigo." );
@@ -88,7 +78,7 @@ class ObterVinculo {
             } else {
                 $row = mysqli_fetch_array($validationProduct, MYSQLI_ASSOC);
                 $codigoPrecode = $row['CODIGO_SITE'];
-                    return $this-> response(false,"Produto já possui um vínculo: ERP Cód: $codigo | Referência: $referencia | Cód Precode: $codigoPrecode" );
+                    return $this-> response(false,"Produto já possui um vínculo: ERP Cód: $codigo |    Cód Precode: $codigoPrecode" );
             }
         } else {
                     return $this-> response(false,"Resposta da API inválida para o produto: $codigo." );

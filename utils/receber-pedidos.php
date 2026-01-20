@@ -52,17 +52,32 @@ class recebePrecode{
                         $this->formaPagamento = $ini['conexao']['forma_pagamento'];
                     }
 
+            // --- MELHORIA VISUAL: CSS INLINE PARA LOGS ---
+            echo '<style>
+                .log-box { border-radius: 5px; margin-bottom: 15px; padding: 15px; border: 1px solid transparent; }
+                .log-info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
+                .log-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+                .log-warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
+                .log-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+                .log-code { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; font-family: monospace; font-size: 0.9em; border-radius: 4px; overflow-x: auto; color: #333; margin-top: 10px;}
+            </style>';
 
-			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Recebendo Cliente e Pedido '.date('d/m/Y h:i:s');   
-            echo '</div>';
+			echo '<div class="log-box log-info text-center"> 
+                    <h3><i class="fas fa-sync-alt"></i> Recebendo Cliente e Pedido</h3>
+                    <small>Início: '.date('d/m/Y H:i:s').'</small>
+                  </div>';
 
 
             $this->recebePedidos();
             $this->publico->Desconecta();
 			$this->vendas->Desconecta();
 			$this->estoque->Desconecta();
-			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Fim do Recebimento de Cliente e Pedido '.date('d/m/Y h:i:s');   
-            echo '</div>';
+            
+			echo '<div class="log-box log-info text-center"> 
+                    <h3><i class="fas fa-check-double"></i> Fim do Recebimento</h3>
+                    <small>Término: '.date('d/m/Y H:i:s').'</small>
+                  </div>';
+
 		} catch (\Exception $e) {
 			var_dump("ERRO:".$e->getMessage());
 		} finally {
@@ -92,8 +107,6 @@ class recebePrecode{
                 $objReceberCliente = new ReceberCliente();
         $curl = curl_init();
         curl_setopt_array($curl, array(
-       
-      //    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
        
      CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
@@ -137,7 +150,7 @@ class recebePrecode{
                 $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
 
 
-            // Filial cd � aonde vem o campo do sistema precode com a id da filial dadosRastreio->idFilial
+            // Filial cd  aonde vem o campo do sistema precode com a id da filial dadosRastreio->idFilial
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
                   
                 $buscaPedido = $this->vendas->Consulta("SELECT * FROM cad_orca co inner join pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
@@ -173,16 +186,13 @@ class recebePrecode{
                     }
  
                 if(mysqli_num_rows($buscaPedido) > 0){
-                    echo '<div class="card-header alert alert-warning"> <h3 style="color: #B8860B;" align="center"> Este pedido já foi cadastrado no ERP';   
-                    echo '</div>';
-                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                    print_r(date('d/m/Y h:i:s'));                    
-                    echo '</div></b>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
+                    // --- MELHORIA VISUAL ---
+                    echo '<div class="log-box log-warning text-center">';
+                    echo '<h3><i class="fas fa-exclamation-triangle"></i> Pedido já cadastrado no ERP</h3>';
+                    echo '<p>Site ID: <strong>' . $codigoPedidoSite . '</strong></p>';
+                    echo '<small>' . date('d/m/Y H:i:s') . '</small>';
                     echo '</div>'; 
-                    echo "</main>";  
+                    // Removido o echo </main> solto e excesso de divs
                 }else{
                     $sql = "INSERT INTO cad_orca (
                         status, 
@@ -375,19 +385,18 @@ class recebePrecode{
                                                                 '',
                                                             "Produto [ $id_produto_bd ] registrado na tabela pro_orca "
                                                             );
-                                                
-                                                    echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                                                        echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                                                        echo "<strong> </strong><br>Produto  $id_produto_bd  inserido no orçamento  $codigoOrcamento. ";
-                                                        echo '</div>';                                      
+                                                    
+                                                    // --- MELHORIA VISUAL ---
+                                                    echo '<div class="log-box log-success">';
+                                                    echo '<i class="fas fa-check-circle"></i> Produto <strong>'.$id_produto_bd.'</strong> inserido no orçamento <strong>'.$codigoOrcamento.'</strong>.';
+                                                    echo '</div>';                                      
                                                 }else{
-                                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir produto "'.$id_produto_bd.'" no orçamento "'.$codigoOrcamento.'"';   
+                                                    // --- MELHORIA VISUAL ---
+                                                    echo '<div class="log-box log-danger">';
+                                                    echo '<h4 class="text-danger"><i class="fas fa-times-circle"></i> Falha ao inserir produto</h4>';
+                                                    echo '<p>Produto: <strong>'.$id_produto_bd.'</strong> | Orçamento: <strong>'.$codigoOrcamento.'</strong></p>';
+                                                    echo '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' . $result->mensagem . '</div>';
                                                     echo '</div>';
-                                                        echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                                                        echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                                                        echo "<strong>Atenção!</strong> " .   $result->mensagem;
-                                                        echo "<br><strong> Produto: </strong> Falha ao inserir produto  $id_produto_bd  no orçamento  $codigoOrcamento " ;
-                                                        echo '</div>';
                                                 } 
                                             }else{
                                                   Logs::registrar(
@@ -399,7 +408,9 @@ class recebePrecode{
                                                             '',
                                                         "Não foi encontrado o produto codigo: $sku, verifique os itens do pedido codigo: $PedidoMktplace no marketplace: $marketplace"
                                                         );
-                                                            
+                                                        $sql = "UPDATE cad_orca SET DESTACAR = 'S' WHERE CODIGO = $codigoOrcamento";
+                                                        $this->vendas->Consulta($sql);
+                                                         
                                             }
                                     }
                                     if ($codigoOrcamento > 0){
@@ -412,125 +423,137 @@ class recebePrecode{
                                                  $this->codigoTipoRecebimento                    
                                                 )";	
 
-                                
                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
-                                               Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
-                                                        'sucesso',
-                                                        'registrar parcela do pedido ',
-                                                        "$sql",
-                                                            '',
-                                                        "parcela do pedido: [ $codigoOrcamento ]  registrada! "
-                                                        );
-                                            echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Forma de pagamento inserida no orçamento "'.$codigoOrcamento.'"';   
-                                            echo '</div>';     
-                                            $curl = curl_init();
-                                            curl_setopt_array($curl, array(
-                                            CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aceite",
-                                            CURLOPT_RETURNTRANSFER => true,
-                                            CURLOPT_ENCODING => "",
-                                            CURLOPT_MAXREDIRS => 10,
-                                            CURLOPT_TIMEOUT => 0,
-                                            CURLOPT_FOLLOWLOCATION => true,
-                                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                            CURLOPT_CUSTOMREQUEST => "PUT",
-                                            CURLOPT_POSTFIELDS =>"
-                                            {
-                                                \r\n\"pedido\": 
-                                                [
-                                                    \r\n
-                                                    {
-                                                        \r\n\"codigoPedido\": $codigoPedidoSite,
-                                                        \r\n\"numeroPedidoERP\": $codigoOrcamento,
-                                                        \r\n\"numeroFilialFatura\": $filial_cd,
-                                                        \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                    }
-                                                    \r\n
-                                                ]
-                                                    
-                                                \r\n
-                                            }",
-                                            CURLOPT_HTTPHEADER => array(
-                                                "Authorization: ".$this->token
-                                            ),
-                                            ));
-                                            $response = curl_exec($curl);
-                                            curl_close($curl);
-                                            //echo $response;
-                                            if(!empty($response)){
-                                                 
-                                                echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center">Aceite confirmado!';   
-                                                echo '</div>'; 
-                                                echo '<br><br>';
-                                                print_r("
-                                                {
-                                                    \r\n\"pedido\": 
-                                                    [
-                                                        \r\n
-                                                        {
-                                                            \r\n\"codigoPedido\": $codigoPedidoSite,
-                                                            \r\n\"numeroPedidoERP\": $codigoOrcamento,
-                                                            \r\n\"numeroFilialFatura\": $filial_cd,
-                                                            \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                        }
-                                                        \r\n
-                                                    ]
-                                                        
-                                                    \r\n
-                                                }");
-                                                echo '<br><br>';
-
-
-                                                $data_atual = date('Y-m-d h:i:s');
-                                                $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
-                                                VALUES ('$codigoPedidoSite',
-                                                        '$codigoOrcamento',               
-                                                        '$data_atual',             
-                                                        '$pedidoStatus')";
-        
-                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){
-                                                      Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
-                                                        'sucesso',
-                                                        'envio do aceite para precode ',
-                                                        "$sql",
-                                                            '',
-                                                        "Aceite confirmado e registrado  pedido: [ $codigoOrcamento ]  ! "
-                                                        ); 
-                                                    echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Adicionando orçamento na tabela Precode "'.$codigoOrcamento.'"';   
-                                                    echo '</div>';      
-                                                }else{
-                                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir orçamnto "'.$codigoOrcamento.'" na tabela Precode';  
-                                                    echo '</div>';
-                                                } 
-                                            }else{
-                                             
                                                     Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
-                                                        'sucesso',
-                                                        'Falha ao confirmar o aceite',
-                                                        " {
+                                                                $this->vendas,
+                                                                $this->databaseVendas,
+                                                                'sucesso',
+                                                                'registrar parcela do pedido ',
+                                                                "$sql",
+                                                                    '',
+                                                                "parcela do pedido: [ $codigoOrcamento ]  registrada! "
+                                                                );
+                                                    // --- MELHORIA VISUAL ---
+                                                    echo '<div class="log-box log-success">';
+                                                    echo '<h4><i class="fas fa-money-check-alt"></i> Forma de pagamento inserida no orçamento: '.$codigoOrcamento.'</h4>';
+                                                    echo '</div>'; 
+
+                                                    $curl = curl_init();
+                                                    curl_setopt_array($curl, array(
+                                                    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aceite",
+                                                    CURLOPT_RETURNTRANSFER => true,
+                                                    CURLOPT_ENCODING => "",
+                                                    CURLOPT_MAXREDIRS => 10,
+                                                    CURLOPT_TIMEOUT => 0,
+                                                    CURLOPT_FOLLOWLOCATION => true,
+                                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                                    CURLOPT_CUSTOMREQUEST => "PUT",
+                                                    CURLOPT_POSTFIELDS =>"
+                                                    {
+                                                        \r\n\"pedido\": 
+                                                        [
+                                                            \r\n
+                                                            {
                                                                 \r\n\"codigoPedido\": $codigoPedidoSite,
                                                                 \r\n\"numeroPedidoERP\": $codigoOrcamento,
                                                                 \r\n\"numeroFilialFatura\": $filial_cd,
                                                                 \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                            }  ",
-                                                            '',
-                                                        "Falha ao confirmar o aceite do pedido: [ $codigoOrcamento ] ! "
-                                                         ); 
+                                                            }
+                                                            \r\n
+                                                        ]
+                                                            
+                                                        \r\n
+                                                    }",
+                                                    CURLOPT_HTTPHEADER => array(
+                                                        "Authorization: ".$this->token
+                                                    ),
+                                                    ));
+                                                    $response = curl_exec($curl);
+                                                    curl_close($curl);
+                                                    //echo $response;
+                                                    if(!empty($response)){
+                                                        
+                                                        // --- MELHORIA VISUAL ---
+                                                        echo '<div class="log-box log-success">';
+                                                        echo '<h3 class="text-success text-center"><i class="fas fa-thumbs-up"></i> Aceite confirmado!</h3>';
+                                                        
+                                                        // Formatando o JSON string para ficar legível
+                                                        $jsonDebug = "
+                                                        {
+                                                            \r\n\"pedido\": 
+                                                            [
+                                                                \r\n
+                                                                {
+                                                                    \r\n\"codigoPedido\": $codigoPedidoSite,
+                                                                    \r\n\"numeroPedidoERP\": $codigoOrcamento,
+                                                                    \r\n\"numeroFilialFatura\": $filial_cd,
+                                                                    \r\n\"numeroFilialSaldo\": $filial_cd\r\n
+                                                                }
+                                                                \r\n
+                                                            ]
+                                                                
+                                                            \r\n
+                                                        }";
+                                                        echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
+                                                        echo '</div>';
 
-                                                echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao confirmar o aceite!';  
+
+                                                        $data_atual = date('Y-m-d h:i:s');
+                                                        $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
+                                                        VALUES ('$codigoPedidoSite',
+                                                                '$codigoOrcamento',               
+                                                                '$data_atual',             
+                                                                '$pedidoStatus')";
+                
+                                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){
+                                                            Logs::registrar(
+                                                                $this->vendas,
+                                                                $this->databaseVendas,
+                                                                'sucesso',
+                                                                'envio do aceite para precode ',
+                                                                "$sql",
+                                                                    '',
+                                                                "Aceite confirmado e registrado  pedido: [ $codigoOrcamento ]  ! "
+                                                                ); 
+                                                            // --- MELHORIA VISUAL ---
+                                                            echo '<div class="log-box log-success">';
+                                                            echo '<i class="fas fa-database"></i> Orçamento <strong>'.$codigoOrcamento.'</strong> adicionado na tabela Precode com sucesso.';
+                                                            echo '</div>';      
+                                                        }else{
+                                                            // --- MELHORIA VISUAL ---
+                                                            echo '<div class="log-box log-danger">';
+                                                            echo '<i class="fas fa-times-circle"></i> Falha ao inserir orçamento <strong>'.$codigoOrcamento.'</strong> na tabela Precode.';
+                                                            echo '</div>';
+                                                        } 
+                                                    }else{
+                                                    
+                                                            Logs::registrar(
+                                                                $this->vendas,
+                                                                $this->databaseVendas,
+                                                                'sucesso',
+                                                                'Falha ao confirmar o aceite',
+                                                                " {
+                                                                        \r\n\"codigoPedido\": $codigoPedidoSite,
+                                                                        \r\n\"numeroPedidoERP\": $codigoOrcamento,
+                                                                        \r\n\"numeroFilialFatura\": $filial_cd,
+                                                                        \r\n\"numeroFilialSaldo\": $filial_cd\r\n
+                                                                    }  ",
+                                                                    '',
+                                                                "Falha ao confirmar o aceite do pedido: [ $codigoOrcamento ] ! "
+                                                                ); 
+                                                        // --- MELHORIA VISUAL ---
+                                                        echo '<div class="log-box log-danger">';
+                                                        echo '<h3 class="text-danger text-center"><i class="fas fa-thumbs-down"></i> Falha ao confirmar o aceite!</h3>';
+                                                        echo '</div>';
+                                                    }
+                                            }else{
+                                                // --- MELHORIA VISUAL ---
+                                                echo '<div class="log-box log-danger">';
+                                                echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
+                                                echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                 echo '</div>';
-                                            }
-                                        }else{
-                                            echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir forma de pagamento no orçamento "'.$codigoOrcamento.'"';  
-                                            echo '</div>';
-                                        } 
-                                         
-
+                                            } 
+            
                                     }
                                     
                                 } else{
@@ -543,27 +566,24 @@ class recebePrecode{
                                                             '',
                                                         "Falha ao inserir  orçamento  [ $id_produto_bd ]  "
                                                         );
-                                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center"> Falha ao inserir  orçamento  <br> Canal Precode:"'.$dispositivo.'' .$marketplace.'"'; 
-                                    echo '</div>';
-                                    print_r( $sql);
-                                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                                    print_r(date('d/m/Y h:i:s'));                    
-                                    echo '</div></b>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                    echo '</div>';
+                                    // --- MELHORIA VISUAL ---
+                                    echo '<div class="log-box log-danger text-center">';
+                                    echo '<h3 style="color: red;"><i class="fas fa-skull"></i> Falha Crítica ao inserir Orçamento</h3>';
+                                    echo '<p>Canal Precode: <strong>'.$dispositivo.' - '.$marketplace.'</strong></p>';
+                                    echo '<div class="log-code text-left"><pre>'.htmlspecialchars($sql).'</pre></div>';
+                                    echo '<br><small>Data do erro: ' . date('d/m/Y H:i:s') . '</small>';
                                     echo '</div>'; 
-                                    echo "</main>";                                        
+                                    // Removido o echo </main> solto
                                 }   
                                     
                                            
                 }                 
             }            
         } else {
-			echo '<div class="card-header alert alert-information"> <h3 style="color: blue;" align="center"> Nenhum Pedido Novo </div>';
+            // --- MELHORIA VISUAL ---
+			echo '<div class="log-box log-info text-center"> <h4><i class="fas fa-inbox"></i> Nenhum Pedido Novo</h4></div>';
 			
 		}
     }     
 } 
 ?>
-
