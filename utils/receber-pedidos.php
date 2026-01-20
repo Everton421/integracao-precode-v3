@@ -107,6 +107,7 @@ class recebePrecode{
                 $objReceberCliente = new ReceberCliente();
         $curl = curl_init();
         curl_setopt_array($curl, array(
+          //CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
        
      CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
@@ -423,7 +424,7 @@ class recebePrecode{
                                                  $this->codigoTipoRecebimento                    
                                                 )";	
 
-                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                       if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                     Logs::registrar(
                                                                 $this->vendas,
                                                                 $this->databaseVendas,
@@ -552,8 +553,8 @@ class recebePrecode{
                                                 echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
                                                 echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                 echo '</div>';
-                                            } 
-            
+                                        } 
+                                        
                                     }
                                     
                                 } else{
