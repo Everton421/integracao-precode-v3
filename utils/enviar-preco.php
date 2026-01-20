@@ -83,7 +83,7 @@ class EnviarPreco {
                     \r\n\"produto\":\r\n   
                       [\r\n      
                         {
-                          \r\n\"IdReferencia\": \"$referencia\",
+                          \r\n\"IdReferencia\": \"$codigo\",
                           \r\n\"sku\": 0,
                           \r\n\"precoDe\": $ultimoPreco,
                           \r\n\"precoVenda\": $valorProduto,

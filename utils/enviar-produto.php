@@ -37,7 +37,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
             $descricaocurta = $produto['descricaocurta'];
             $aplicacao = $produto['aplicacao'];
             $descricaogoogle = $produto['descricaogoogle'];
-            $outro_cod = $produto['outro_cod'];
+           // $outro_cod = $produto['outro_cod'];
             $garantia = $produto['garantia'];
             $comprimento = $produto['comprimento'];
             $largura = $produto['largura'];
@@ -111,7 +111,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
                     [
-                        'ref' => $outro_cod,
+                        'ref' => $codigo,
                         #'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
                         #'sku' => '',
                         'qty' => !empty($estoque) ?  $estoque : 0  ,

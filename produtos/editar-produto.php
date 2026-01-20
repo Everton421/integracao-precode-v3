@@ -303,8 +303,8 @@
 
         echo "<div class='form-group-inline'>";
               echo "<div class='form-group'>";
-                echo "<label for='outro_cod'>Outro Código/referencia:</label>";
-                echo "<input type='text' class='form-control' id='outro_cod' name='outro_cod' value='" . htmlspecialchars(mb_convert_encoding($produto['OUTRO_COD'], 'UTF-8', 'ISO-8859-1')) . "'>";
+                echo "<label for='outro_cod'> Código/referencia:</label>";
+                echo "<input type='text' class='form-control' id='codigo' name='codigo' value='" . htmlspecialchars(mb_convert_encoding($produto['CODIGO'], 'UTF-8', 'ISO-8859-1')) . "'>";
               echo "</div>";
 
               

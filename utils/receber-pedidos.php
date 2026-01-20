@@ -306,7 +306,7 @@ class recebePrecode{
                                                                                                    if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM   prod_custos pc 
                                                                                                    left outer join cad_prod p on p.codigo = pc.produto
                                                                                                    left outer join   ".$this->databaseVendas.".parametros pg on pg.id =1 
-                                                                                                   where  p.outro_cod = '$referenciaLoja'
+                                                                                                   where  p.codigo = '$referenciaLoja'
                                                                                                    group by p.codigo " 
                                                                                                  ); 
 
