@@ -108,6 +108,7 @@ class recebePrecode{
         $curl = curl_init();
         curl_setopt_array($curl, array(
           //CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
+          
        
      CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
@@ -312,13 +313,15 @@ class recebePrecode{
                                         $descontoProd = $valorUnitario - $valorComDesconto;
                                   
 
-                                           $buscaCusto = $this->publico->Consulta(    " SELECT pc.produto CODIGO, 
-                                                                                           if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
-                                                                                                   if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM   prod_custos pc 
-                                                                                                   left outer join cad_prod p on p.codigo = pc.produto
-                                                                                                   left outer join   ".$this->databaseVendas.".parametros pg on pg.id =1 
-                                                                                                   where  p.codigo = '$referenciaLoja'
-                                                                                                   group by p.codigo " 
+                                           $buscaCusto = $this->publico->Consulta(    "    SELECT  
+                                                                                                    p.CODIGO, 
+                                                                                                    COALESCE(pc.ULT_CUSTO, 0 ) as ULT_CUSTO,
+                                                                                                    COALESCE(pc.CUSTO_MEDIO, 0 ) as CUSTO_MEDIO 
+                                                                                                FROM cad_prod p 
+                                                                                                 left  join prod_custos pc   on p.CODIGO = pc.PRODUTO
+                                                                                                        where  p.CODIGO = '$referenciaLoja'
+                                                                                                        group by p.codigo
+                                                                                                   " 
                                                                                                  ); 
 
                                                                               ///******* Select com validação de custo por filial   
@@ -338,18 +341,7 @@ class recebePrecode{
                                                     $ultimo_custo = $row['ULT_CUSTO'];
                                                     $custo_medio = $row['CUSTO_MEDIO'];
 
-
-                                                    // 
-                                                    if(empty($id_produto_bd)){
-                                                        $id_produto_bd = 166; 
-                                                    }
-                                                    if(empty($ultimo_custo)){
-                                                        $ultimo_custo =  1;
-                                                    }
-
-                                                    if(empty($custo_medio)){
-                                                        $custo_medio=1;
-                                                    }
+                                                  
                                                     }
                                                     $valor_prod = $valorUnitario * $quantidade;
                                             $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, qtde_separada,quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
@@ -423,7 +415,7 @@ class recebePrecode{
                                                 DATE_ADD(CURDATE(), INTERVAL 1 DAY),
                                                  $this->codigoTipoRecebimento                    
                                                 )";	
-
+ 
                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                     Logs::registrar(
                                                                 $this->vendas,
@@ -498,14 +490,14 @@ class recebePrecode{
                                                         echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
                                                         echo '</div>';
 
-
+ 
                                                         $data_atual = date('Y-m-d h:i:s');
                                                         $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
                                                         VALUES ('$codigoPedidoSite',
                                                                 '$codigoOrcamento',               
                                                                 '$data_atual',             
                                                                 '$pedidoStatus')";
-                
+                 
                                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){
                                                             Logs::registrar(
                                                                 $this->vendas,
@@ -553,7 +545,7 @@ class recebePrecode{
                                                 echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
                                                 echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                 echo '</div>';
-                                        } 
+                                        }    
                                         
                                     }
                                     

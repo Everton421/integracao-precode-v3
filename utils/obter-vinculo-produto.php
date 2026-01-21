@@ -44,6 +44,7 @@ class ObterVinculo {
             return $this->response(false, "Erro de cURL!  ".htmlspecialchars($error) );
         }
 
+
         if ($httpcode != 200) {
             if (!empty($result->mensagem)) {
                 return $this->response(false, "Status Code: $httpcode  ".$result->mensagem);
