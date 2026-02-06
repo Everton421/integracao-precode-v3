@@ -64,7 +64,7 @@ while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
      sleep(1);
      
      // 1. Recebe o JSON em texto (ex: {"success":true, ...})
-     $jsonRetorno = $postPreco->postPreco($codigoBd);
+     $jsonRetorno = $postPreco->postPreco($codigoBd, $publico );
      
      // 2. Converte o texto JSON para um Array do PHP
      // O parâmetro 'true' força ser um array associativo

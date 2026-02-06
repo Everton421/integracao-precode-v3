@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
@@ -108,6 +108,12 @@
 
 <div class="sidebar">
     <?php
+    echo '<a href="./produtos-grade">';
+    echo '<i class="fa-solid fa-cube"></i>';
+    echo '<span style="margin: 10px;">';
+    echo 'grades produtos';
+    echo '<span>';
+    echo '</a>';
     echo '<a href="./produtos">';
     echo '<i class="fa-solid fa-cube"></i>';
     echo '<span style="margin: 10px;">';
@@ -242,3 +248,5 @@
 
 </body>
 </html>
+  
+  

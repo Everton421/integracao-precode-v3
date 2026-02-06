@@ -126,6 +126,7 @@ class recebePrecode{
         $result = json_decode($response);    
         curl_close($curl);  
      
+        
         if(!empty($result)){  
          
                 ////
@@ -340,10 +341,14 @@ class recebePrecode{
                                                     $id_produto_bd = $row['CODIGO'];
                                                     $ultimo_custo = $row['ULT_CUSTO'];
                                                     $custo_medio = $row['CUSTO_MEDIO'];
-
                                                   
                                                     }
+
+
                                                     $valor_prod = $valorUnitario * $quantidade;
+
+                                                        $frete_unitario =  ( $valor_prod / $valorTotalProd ) * $valorFrete ; 
+
                                             $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, qtde_separada,quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
                                                 VALUES ('$codigoOrcamento',
                                                 $p + 1,
@@ -363,7 +368,7 @@ class recebePrecode{
                                                 '$valor_prod',
                                                 '$custo_medio',
                                                 '$ultimo_custo',
-                                                '$valorFrete',
+                                                '$frete_unitario',
                                                 '$descontoProd')";
                                                 
                                                 //print_r ($sql);
@@ -416,62 +421,32 @@ class recebePrecode{
                                                  $this->codigoTipoRecebimento                    
                                                 )";	
  
-                                       if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
-                                                    Logs::registrar(
-                                                                $this->vendas,
-                                                                $this->databaseVendas,
-                                                                'sucesso',
-                                                                'registrar parcela do pedido ',
-                                                                "$sql",
-                                                                    '',
-                                                                "parcela do pedido: [ $codigoOrcamento ]  registrada! "
-                                                                );
-                                                    // --- MELHORIA VISUAL ---
-                                                    echo '<div class="log-box log-success">';
-                                                    echo '<h4><i class="fas fa-money-check-alt"></i> Forma de pagamento inserida no orçamento: '.$codigoOrcamento.'</h4>';
-                                                    echo '</div>'; 
-
-                                                    $curl = curl_init();
-                                                    curl_setopt_array($curl, array(
-                                                    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aceite",
-                                                    CURLOPT_RETURNTRANSFER => true,
-                                                    CURLOPT_ENCODING => "",
-                                                    CURLOPT_MAXREDIRS => 10,
-                                                    CURLOPT_TIMEOUT => 0,
-                                                    CURLOPT_FOLLOWLOCATION => true,
-                                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                                    CURLOPT_CUSTOMREQUEST => "PUT",
-                                                    CURLOPT_POSTFIELDS =>"
-                                                    {
-                                                        \r\n\"pedido\": 
-                                                        [
-                                                            \r\n
-                                                            {
-                                                                \r\n\"codigoPedido\": $codigoPedidoSite,
-                                                                \r\n\"numeroPedidoERP\": $codigoOrcamento,
-                                                                \r\n\"numeroFilialFatura\": $filial_cd,
-                                                                \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                            }
-                                                            \r\n
-                                                        ]
-                                                            
-                                                        \r\n
-                                                    }",
-                                                    CURLOPT_HTTPHEADER => array(
-                                                        "Authorization: ".$this->token
-                                                    ),
-                                                    ));
-                                                    $response = curl_exec($curl);
-                                                    curl_close($curl);
-                                                    //echo $response;
-                                                    if(!empty($response)){
-                                                        
+                                      if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                                        Logs::registrar(
+                                                                    $this->vendas,
+                                                                    $this->databaseVendas,
+                                                                    'sucesso',
+                                                                    'registrar parcela do pedido ',
+                                                                    "$sql",
+                                                                        '',
+                                                                    "parcela do pedido: [ $codigoOrcamento ]  registrada! "
+                                                                    );
                                                         // --- MELHORIA VISUAL ---
                                                         echo '<div class="log-box log-success">';
-                                                        echo '<h3 class="text-success text-center"><i class="fas fa-thumbs-up"></i> Aceite confirmado!</h3>';
-                                                        
-                                                        // Formatando o JSON string para ficar legível
-                                                        $jsonDebug = "
+                                                        echo '<h4><i class="fas fa-money-check-alt"></i> Forma de pagamento inserida no orçamento: '.$codigoOrcamento.'</h4>';
+                                                        echo '</div>'; 
+
+                                                        $curl = curl_init();
+                                                        curl_setopt_array($curl, array(
+                                                        CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aceite",
+                                                        CURLOPT_RETURNTRANSFER => true,
+                                                        CURLOPT_ENCODING => "",
+                                                        CURLOPT_MAXREDIRS => 10,
+                                                        CURLOPT_TIMEOUT => 0,
+                                                        CURLOPT_FOLLOWLOCATION => true,
+                                                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                                        CURLOPT_CUSTOMREQUEST => "PUT",
+                                                        CURLOPT_POSTFIELDS =>"
                                                         {
                                                             \r\n\"pedido\": 
                                                             [
@@ -486,69 +461,99 @@ class recebePrecode{
                                                             ]
                                                                 
                                                             \r\n
-                                                        }";
-                                                        echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
-                                                        echo '</div>';
-
- 
-                                                        $data_atual = date('Y-m-d h:i:s');
-                                                        $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
-                                                        VALUES ('$codigoPedidoSite',
-                                                                '$codigoOrcamento',               
-                                                                '$data_atual',             
-                                                                '$pedidoStatus')";
-                 
-                                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){
-                                                            Logs::registrar(
-                                                                $this->vendas,
-                                                                $this->databaseVendas,
-                                                                'sucesso',
-                                                                'envio do aceite para precode ',
-                                                                "$sql",
-                                                                    '',
-                                                                "Aceite confirmado e registrado  pedido: [ $codigoOrcamento ]  ! "
-                                                                ); 
+                                                        }",
+                                                        CURLOPT_HTTPHEADER => array(
+                                                            "Authorization: ".$this->token
+                                                        ),
+                                                        ));
+                                                        $response = curl_exec($curl);
+                                                        curl_close($curl);
+                                                        //echo $response;
+                                                        if(!empty($response)){
+                                                            
                                                             // --- MELHORIA VISUAL ---
                                                             echo '<div class="log-box log-success">';
-                                                            echo '<i class="fas fa-database"></i> Orçamento <strong>'.$codigoOrcamento.'</strong> adicionado na tabela Precode com sucesso.';
-                                                            echo '</div>';      
-                                                        }else{
-                                                            // --- MELHORIA VISUAL ---
-                                                            echo '<div class="log-box log-danger">';
-                                                            echo '<i class="fas fa-times-circle"></i> Falha ao inserir orçamento <strong>'.$codigoOrcamento.'</strong> na tabela Precode.';
-                                                            echo '</div>';
-                                                        } 
-                                                    }else{
-                                                    
-                                                            Logs::registrar(
-                                                                $this->vendas,
-                                                                $this->databaseVendas,
-                                                                'sucesso',
-                                                                'Falha ao confirmar o aceite',
-                                                                " {
+                                                            echo '<h3 class="text-success text-center"><i class="fas fa-thumbs-up"></i> Aceite confirmado!</h3>';
+                                                            
+                                                            // Formatando o JSON string para ficar legível
+                                                            $jsonDebug = "
+                                                            {
+                                                                \r\n\"pedido\": 
+                                                                [
+                                                                    \r\n
+                                                                    {
                                                                         \r\n\"codigoPedido\": $codigoPedidoSite,
                                                                         \r\n\"numeroPedidoERP\": $codigoOrcamento,
                                                                         \r\n\"numeroFilialFatura\": $filial_cd,
                                                                         \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                                    }  ",
-                                                                    '',
-                                                                "Falha ao confirmar o aceite do pedido: [ $codigoOrcamento ] ! "
-                                                                ); 
+                                                                    }
+                                                                    \r\n
+                                                                ]
+                                                                    
+                                                                \r\n
+                                                            }";
+                                                            echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
+                                                            echo '</div>';
+        
+    
+                                                            $data_atual = date('Y-m-d h:i:s');
+                                                            $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
+                                                            VALUES ('$codigoPedidoSite',
+                                                                    '$codigoOrcamento',               
+                                                                    '$data_atual',             
+                                                                    '$pedidoStatus')";
+                    
+                                                            if (mysqli_query($this->vendas->link, $sql) === TRUE){
+                                                                Logs::registrar(
+                                                                    $this->vendas,
+                                                                    $this->databaseVendas,
+                                                                    'sucesso',
+                                                                    'envio do aceite para precode ',
+                                                                    "$sql",
+                                                                        '',
+                                                                    "Aceite confirmado e registrado  pedido: [ $codigoOrcamento ]  ! "
+                                                                    ); 
+                                                                // --- MELHORIA VISUAL ---
+                                                                echo '<div class="log-box log-success">';
+                                                                echo '<i class="fas fa-database"></i> Orçamento <strong>'.$codigoOrcamento.'</strong> adicionado na tabela Precode com sucesso.';
+                                                                echo '</div>';      
+                                                            }else{
+                                                                // --- MELHORIA VISUAL ---
+                                                                echo '<div class="log-box log-danger">';
+                                                                echo '<i class="fas fa-times-circle"></i> Falha ao inserir orçamento <strong>'.$codigoOrcamento.'</strong> na tabela Precode.';
+                                                                echo '</div>';
+                                                            } 
+                                                        }else{
+                                                        
+                                                                Logs::registrar(
+                                                                    $this->vendas,
+                                                                    $this->databaseVendas,
+                                                                    'sucesso',
+                                                                    'Falha ao confirmar o aceite',
+                                                                    " {
+                                                                            \r\n\"codigoPedido\": $codigoPedidoSite,
+                                                                            \r\n\"numeroPedidoERP\": $codigoOrcamento,
+                                                                            \r\n\"numeroFilialFatura\": $filial_cd,
+                                                                            \r\n\"numeroFilialSaldo\": $filial_cd\r\n
+                                                                        }  ",
+                                                                        '',
+                                                                    "Falha ao confirmar o aceite do pedido: [ $codigoOrcamento ] ! "
+                                                                    ); 
+                                                            // --- MELHORIA VISUAL ---
+                                                            echo '<div class="log-box log-danger">';
+                                                            echo '<h3 class="text-danger text-center"><i class="fas fa-thumbs-down"></i> Falha ao confirmar o aceite!</h3>';
+                                                            echo '</div>';
+                                                        }
+                                                     
+                                                  }else{
                                                         // --- MELHORIA VISUAL ---
                                                         echo '<div class="log-box log-danger">';
-                                                        echo '<h3 class="text-danger text-center"><i class="fas fa-thumbs-down"></i> Falha ao confirmar o aceite!</h3>';
+                                                        echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
+                                                        echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                         echo '</div>';
-                                                    }
-                                            }else{
-                                                // --- MELHORIA VISUAL ---
-                                                echo '<div class="log-box log-danger">';
-                                                echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
-                                                echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
-                                                echo '</div>';
-                                        }    
-                                        
+                                         }    
+                                         
                                     }
-                                    
                                 } else{
                                       Logs::registrar(
                                                         $this->vendas,

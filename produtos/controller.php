@@ -87,11 +87,11 @@
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
                 $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
-                      
+                      print_r($acao);
                     if ($acao == 'atualizarPreco') {
                         // Lógica para enviar o produto
                        
-                        $response = $objEnviarPreco->postPreco($codigo);
+                        $response = $objEnviarPreco->postPreco($codigo, $publico);
                     
                         $result = json_decode($response, true);
                         if ($result['success'] > 0) {

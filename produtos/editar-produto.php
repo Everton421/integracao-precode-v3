@@ -129,37 +129,9 @@
         // Obtém o código do produto da URL
         $codigoProduto = $_GET['codigo'];
         $tabelaDePreco = 1;
+ 
 
-
- $buscaEstoque = $estoque->Consulta(  "  SELECT
-                                                 est.CODIGO, est.referencia,
-                                                       IF(est.estoque < 0, 0, est.estoque) AS ESTOQUE,
-                                                            est.DATA_RECAD
-                                                        FROM
-                                                            (SELECT
-                                                            P.CODIGO,P.OUTRO_COD as referencia,
-                                                            PS.DATA_RECAD,
-                                                            (SUM(PS.ESTOQUE) -
-                                                                (SELECT COALESCE(SUM((IF(PO.QTDE_SEPARADA > (PO.QUANTIDADE - PO.QTDE_MOV), PO.QTDE_SEPARADA, (PO.QUANTIDADE - PO.QTDE_MOV)) * PO.FATOR_QTDE) * IF(CO.TIPO = '5', -1, 1)), 0)
-                                                                FROM ".$databaseVendas.".cad_orca AS CO
-                                                                LEFT OUTER JOIN ".$databaseVendas.".pro_orca AS PO ON PO.ORCAMENTO = CO.CODIGO
-                                                                WHERE CO.SITUACAO IN ('AI', 'AP', 'FP')
-                                                                AND PO.PRODUTO = P.CODIGO)) AS estoque
-                                                            FROM ".$databaseEstoque.".prod_setor AS PS
-                                                            LEFT JOIN ".$databasePublico.".cad_prod AS P ON P.CODIGO = PS.PRODUTO
-                                                            INNER JOIN ".$databasePublico.".cad_pgru AS G ON P.GRUPO = G.CODIGO
-                                                            LEFT JOIN ".$databaseEstoque.".setores AS S ON PS.SETOR = S.CODIGO
-                                                        WHERE P.CODIGO = '$codigoProduto'
-                                                            AND PS.SETOR = '$setor'
-                                                            GROUP BY P.CODIGO) AS est " );
-
-                    $retornoestoque = mysqli_num_rows($buscaEstoque);
-
-                    if($retornoestoque > 0 ){
-                        while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){
-                            $estoqueprod  = $row_estoque['ESTOQUE'];
-                        }
-                    }
+                   
 
                     $resultFotosProd = $publico->consulta(" SELECT
                                                                 CONCAT(vpar.FOTOS, fp.FOTO) AS FOTO
@@ -194,7 +166,7 @@
                 cf.NCM,
                 sg.DESCRICAO AS SUBCATEGORIA,
                 cg.NOME AS CATEGORIA
-
+        
             FROM cad_prod p
             INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
             LEFT JOIN cad_pmar m ON m.codigo = p.marca
@@ -203,7 +175,41 @@
             LEFT join subgrupos sg ON sg.CODIGO = p.SUBGRUPO
             WHERE (p.NO_MKTP='S' AND p.ATIVO='S')  AND tp.tabela = $tabelaDePreco AND p.CODIGO = '$codigoProduto'");
 
-        $produto = mysqli_fetch_array($result, MYSQLI_ASSOC);
+           $estoqueprod = 0; 
+
+                while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                    $produto = $row;
+
+                    $codigo_produto = $row['CODIGO'];
+                     $buscaEstoque = $estoque->Consulta(  "  SELECT
+                                                        est.CODIGO, est.referencia,
+                                                            IF(est.estoque < 0, 0, est.estoque) AS ESTOQUE,
+                                                                    est.DATA_RECAD
+                                                                FROM
+                                                                    (SELECT
+                                                                    P.CODIGO,P.OUTRO_COD as referencia,
+                                                                    PS.DATA_RECAD,
+                                                                    (SUM(PS.ESTOQUE) -
+                                                                        (SELECT COALESCE(SUM((IF(PO.QTDE_SEPARADA > (PO.QUANTIDADE - PO.QTDE_MOV), PO.QTDE_SEPARADA, (PO.QUANTIDADE - PO.QTDE_MOV)) * PO.FATOR_QTDE) * IF(CO.TIPO = '5', -1, 1)), 0)
+                                                                        FROM ".$databaseVendas.".cad_orca AS CO
+                                                                        LEFT OUTER JOIN ".$databaseVendas.".pro_orca AS PO ON PO.ORCAMENTO = CO.CODIGO
+                                                                        WHERE CO.SITUACAO IN ('AI', 'AP', 'FP')
+                                                                        AND PO.PRODUTO = P.CODIGO)) AS estoque
+                                                                    FROM ".$databaseEstoque.".prod_setor AS PS
+                                                                    LEFT JOIN ".$databasePublico.".cad_prod AS P ON P.CODIGO = PS.PRODUTO
+                                                                    INNER JOIN ".$databasePublico.".cad_pgru AS G ON P.GRUPO = G.CODIGO
+                                                                    LEFT JOIN ".$databaseEstoque.".setores AS S ON PS.SETOR = S.CODIGO
+                                                                WHERE P.CODIGO = '$codigoProduto'
+                                                                    AND PS.SETOR = '$setor'
+                                                                    GROUP BY P.CODIGO) AS est " );
+                            $retornoestoque = mysqli_num_rows($buscaEstoque);
+                        if($retornoestoque > 0 ){
+                                        while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){
+                                            $estoqueprod  = $row_estoque['ESTOQUE'];
+                                        }
+                                    }
+                }
+
 
         if ($produto) {
 
@@ -295,10 +301,6 @@
         echo "<textarea type='text' class='form-control' id='palavraschave' name='palavraschave'  >" . htmlspecialchars(mb_convert_encoding($produto['DESCR_LONGA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
         echo "</div>";
                
-        echo "<div class='form-group'>";
-                echo "<label for='urlVideo'>Descrição curta site/Url Video Youtube:</label>";
-                echo "<input type='text' class='form-control' id='urlVideo' name='urlVideo' value='" . htmlspecialchars(mb_convert_encoding($produto['DESCR_CURTA_SITE'], 'UTF-8', 'ISO-8859-1')) . "'>";
-              echo "</div>";
             
 
         echo "<div class='form-group-inline'>";
@@ -344,12 +346,12 @@
                 echo "</div>";
                  echo "<div class='form-group'>";
                     echo "<label for='promocao'>Promoção:</label>";
-                    echo "<input type='text' class='form-control' id='promocao' name='promocao' value='" . $produto['PROMOCAO'] . "'>";
+                    echo "<input type='text' class='form-control' id='promocao' name='promocao' value='" . $produto['PRECO'] . "'>";
                 echo "</div>";
 
                     echo "<div class='form-group'>";
                         echo "<label for='estoque'>Estoque:</label>";
-                        echo "<input type='text' class='form-control' id='estoque' name='estoque' value='" . $estoqueprod  . "'>";
+                        echo "<input type='text' class='form-control' id='estoque' name='estoque' value='" .    $estoqueprod   . "'>";
                     echo "</div>";
                 echo "</div>";
             
@@ -393,8 +395,8 @@
                 echo "</div>";
            
        echo "<div class='form-group'>";
-                echo "<label for='modelo'>Modelo Marketplace:</label>";
-                echo "<input type='text' class='form-control' id='modelo' name='modelo' value='" . htmlspecialchars(mb_convert_encoding($produto['MODELO_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'>";
+                echo "<label for='modelo'>Outro cód/Modelo Marketplace:</label>";
+                echo "<input type='text' class='form-control' id='modelo' name='modelo' value='" . htmlspecialchars(mb_convert_encoding($produto['OUTRO_COD'], 'UTF-8', 'ISO-8859-1')) . "'>";
               echo "</div>";
 
                    echo "<div class='form-group'>";

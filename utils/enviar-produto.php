@@ -55,7 +55,6 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
             $marca = $produto['marca'];
             $palavrasChave =$produto['palavraschave'];
             $ncm = $produto['ncm'];
-            $urlVideo = $produto['urlVideo'];
 
 
          if( $produto['marca'] == null  || $produto['marca'] == 0 ){
@@ -106,7 +105,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                 $json['product']['subcategory'] = !empty($categoriainterm) ?  $this->removerAcentos($categoriainterm) : '';
                 $json['product']['endcategory'] = !empty($categoriafinal) ?  $this->removerAcentos($categoriafinal) : '';
                 $json['product']['manufacturing']  =  $origem;
-                $json['product']['urlYoutube']  = $urlVideo; 
+ 
 
                 $json['product']['attribute'] = [['key' => '', 'value' => '']];
                 $json['product']['variations'] = [
@@ -136,7 +135,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
 
                     curl_setopt($curl, CURLOPT_URL, 'https://www.replicade.com.br/api/v3/products');
                     curl_setopt($curl, CURLOPT_POST, 1);
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($json));
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                     curl_setopt($curl, CURLOPT_HTTPHEADER, [
                         'Content-Type: application/json',
                         'Authorization: Basic ' . $token 
@@ -163,6 +162,22 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                                 $envioPrecodeBase = $publico->Consulta($sql);
                                     //echo '<br>';
                                 if ($envioPrecodeBase) {
+                                         $modelo_db          = mb_convert_encoding($modelo, 'ISO-8859-1', 'UTF-8');
+                                        $categoria_db       = mb_convert_encoding($categoria, 'ISO-8859-1', 'UTF-8');
+                                        $cat_interm_db      = mb_convert_encoding($categoriainterm, 'ISO-8859-1', 'UTF-8');
+                                        $cat_final_db       = mb_convert_encoding($categoriafinal, 'ISO-8859-1', 'UTF-8');
+                                        $garantia_db        = mb_convert_encoding($garantia, 'ISO-8859-1', 'UTF-8');
+
+                                        $update_cad_prod  = " UPDATE cad_prod SET
+                                                MODELO_MKTPLACE = '$modelo_db',
+                                                CATEGORIA_MKTPLACE = '$categoria_db',
+                                                INTERM_CATEGORIA_MKTPLACE = '$cat_interm_db',
+                                                FINALCATEGORIA_MKTPLACE = '$cat_final_db',
+                                                PESO = '$peso',
+                                                ALTURA = '$altura',
+                                                GARANTIA = '$garantia_db' 
+                                                WHERE CODIGO =  '$codigo' ";
+                                                $envioPrecodeBase = $publico->Consulta($update_cad_prod);
                                     return $this->response(true, '  O produto foi enviado para a plataforma com sucesso!'  );
                                 } else {
                                 // echo '<strong>SQL:</strong> ' . htmlspecialchars($sql); // Mostra a query para debug
@@ -211,7 +226,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
  private function response(bool $success, string $message, $data = null): string {
         return json_encode([
             'success' => $success,
-            'message' => $message,
+            'message' =>   $message,
             'data' => $data
         ]);
     }

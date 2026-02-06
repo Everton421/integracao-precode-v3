@@ -5,7 +5,7 @@ include_once(__DIR__.'/../database/conexao_vendas.php');
 
 class EnviarPreco {
 
-  public function postPreco( int $codigo){
+  public function postPreco( int $codigo, $publico){
 
      $forcar_envio_preco = false;
             $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
@@ -15,7 +15,6 @@ class EnviarPreco {
         }
         
       set_time_limit(0);
-      $publico = new CONEXAOPUBLICO();	
 
       ini_set('mysql.connect_timeout','0');   
       ini_set('max_execution_time', '0'); 
@@ -132,9 +131,10 @@ class EnviarPreco {
    }
 
     private function response(bool $success, string $message, $data = null): string {
+      $message = $message;
         return json_encode([
             'success' => $success,
-            'message' => $message,
+            'message' =>   $message,
             'data' => $data
         ]);
     }
