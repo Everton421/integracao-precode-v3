@@ -107,10 +107,11 @@ class recebePrecode{
                 $objReceberCliente = new ReceberCliente();
         $curl = curl_init();
         curl_setopt_array($curl, array(
-          //CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
+        
+        //CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
           
        
-     CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
+      CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -304,113 +305,133 @@ class recebePrecode{
                                         while($row = mysqli_fetch_array($buscaCadOrca, MYSQLI_ASSOC)){
                                             $codigoOrcamento = $row['CODIGO'];                                   
                                         }
-                                        
-                                    for($p = 0; $p < count($pedidoItens); $p++){
-                                        $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
-                                        $sku = $pedidoItens[$p]->sku;
-                                        $quantidade = $pedidoItens[$p]->quantidade;
-                                        $valorUnitario =  $pedidoItens[$p]->valorUnitario;
-                                        $valorComDesconto = $pedidoItens[$p]->valorUnitarioLiquido;
-                                        $descontoProd = $valorUnitario - $valorComDesconto;
-                                  
 
-                                           $buscaCusto = $this->publico->Consulta(    "    SELECT  
-                                                                                                    p.CODIGO, 
-                                                                                                    COALESCE(pc.ULT_CUSTO, 0 ) as ULT_CUSTO,
-                                                                                                    COALESCE(pc.CUSTO_MEDIO, 0 ) as CUSTO_MEDIO 
-                                                                                                FROM cad_prod p 
-                                                                                                 left  join prod_custos pc   on p.CODIGO = pc.PRODUTO
-                                                                                                        where  p.CODIGO = '$referenciaLoja'
-                                                                                                        group by p.codigo
-                                                                                                   " 
-                                                                                                 ); 
+                                     $qtd_itens = count($pedidoItens);
+                                        $freteAcumulado = 0; // Inicializa o acumulador
 
-                                                                              ///******* Select com validação de custo por filial   
-                                                                        // $buscaCusto = $this->publico->Consulta(    " SELECT pc.produto CODIGO, 
-                                                                        //                if(pc.INDEXADO='S', (pc.ULT_CUSTO*pg.INDICE), pc.ULT_CUSTO) ULT_CUSTO, 
-                                                                        //                        if(pc.INDEXADO='S', (pc.CUSTO_MEDIO*pg.INDICE), pc.CUSTO_MEDIO) CUSTO_MEDIO FROM   prod_custos pc 
-                                                                        //                        left outer join cad_prod p on p.codigo = pc.produto
-                                                                        //                        left outer join   ".$this->databaseVendas.".parametros pg on pg.id =1 
-                                                                        //                        where if( pg.CUSTO_FILIAL = 'S', ( pc.FILIAL = ".$this->filial." ), pc.FILIAL = 0 )
-                                                                        //                        And pc.produto = $referenciaLoja"  ); 
+                                        for ($p = 0; $p < $qtd_itens; $p++) {
+                                            $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
+                                            $sku = $pedidoItens[$p]->sku;
+                                            $quantidade = $pedidoItens[$p]->quantidade;
+                                            $valorUnitario = $pedidoItens[$p]->valorUnitario;
+                                            $valorComDesconto = $pedidoItens[$p]->valorUnitarioLiquido;
+                                            $descontoProd = $valorUnitario - $valorComDesconto;
 
-                                                                                          
-                                        $retorno = mysqli_num_rows($buscaCusto);
-                                        if($retorno > 0 ){
-                                                while($row = mysqli_fetch_array($buscaCusto, MYSQLI_ASSOC)){
+                                            // --- CÁLCULO DO FRETE (Rateio) ---
+                                            $valor_prod = $valorUnitario * $quantidade;
+                                            $frete_item = 0;
+
+                                            if ($valorTotalProd > 0) {
+                                                // Verifica se é o ÚLTIMO item do loop
+                                                if ($p == ($qtd_itens - 1)) {
+                                                    // O último item pega a diferença (Total Frete - O que já foi distribuído)
+                                                    // Isso corrige o problema de sobrar ou faltar 1 centavo
+                                                    $frete_item = $valorFrete - $freteAcumulado;
+                                                } else {
+                                                    // Calcula proporcionalmente para os itens do meio
+                                                    $fator = $valor_prod / $valorTotalProd;
+                                                    $frete_item = round($fator * $valorFrete, 2);
+                                                    
+                                                    // Soma ao acumulado para controle
+                                                    $freteAcumulado += $frete_item;
+                                                }
+                                            }
+                                            
+                                            // Formata para garantir 2 casas decimais no banco (opcional, mas recomendado)
+                                            $frete_final_sql = number_format($frete_item, 2, '.', ''); 
+
+                                            // --- FIM CÁLCULO FRETE ---
+
+                                            $buscaCusto = $this->publico->Consulta("SELECT  
+                                                                                        p.CODIGO, 
+                                                                                        COALESCE(pc.ULT_CUSTO, 0 ) as ULT_CUSTO,
+                                                                                        COALESCE(pc.CUSTO_MEDIO, 0 ) as CUSTO_MEDIO 
+                                                                                    FROM cad_prod p 
+                                                                                    LEFT JOIN prod_custos pc ON p.CODIGO = pc.PRODUTO
+                                                                                    WHERE p.CODIGO = '$referenciaLoja'
+                                                                                    GROUP BY p.codigo");
+
+                                            $retorno = mysqli_num_rows($buscaCusto);
+                                            
+                                            if ($retorno > 0) {
+                                                // Inicializa variáveis para evitar erro de "undefined" caso o while falhe
+                                                $id_produto_bd = '';
+                                                $ultimo_custo = 0;
+                                                $custo_medio = 0;
+
+                                                while ($row = mysqli_fetch_array($buscaCusto, MYSQLI_ASSOC)) {
                                                     $id_produto_bd = $row['CODIGO'];
                                                     $ultimo_custo = $row['ULT_CUSTO'];
                                                     $custo_medio = $row['CUSTO_MEDIO'];
-                                                  
-                                                    }
+                                                }
 
+                                                // Importante: Assegure que as variáveis float usem ponto decimal no SQL
+                                                $sql = "INSERT INTO pro_orca (
+                                                            orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, 
+                                                            just_ipi, just_icms, just_subst, qtde_separada, quantidade, unitario, tabela, 
+                                                            preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO
+                                                        ) VALUES (
+                                                            '$codigoOrcamento',
+                                                            " . ($p + 1) . ",
+                                                            '$id_produto_bd',               
+                                                            '0',             
+                                                            '0',    
+                                                            '',           
+                                                            'UND',            
+                                                            '1',
+                                                            '0',
+                                                            '0',
+                                                            '0',
+                                                            '$quantidade',
+                                                            '$quantidade',
+                                                            '$valorUnitario',
+                                                            '$this->tabelaprecopadrao',
+                                                            '$valor_prod',
+                                                            '$custo_medio',
+                                                            '$ultimo_custo',
+                                                            '$frete_final_sql', 
+                                                            '$descontoProd'
+                                                        )";
 
-                                                    $valor_prod = $valorUnitario * $quantidade;
-
-                                                        $frete_unitario =  ( $valor_prod / $valorTotalProd ) * $valorFrete ; 
-
-                                            $sql = "INSERT INTO pro_orca (orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, just_ipi, just_icms, just_subst, qtde_separada,quantidade, unitario, tabela, preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO)
-                                                VALUES ('$codigoOrcamento',
-                                                $p + 1,
-                                                '$id_produto_bd',               
-                                                '0',             
-                                                '0',    
-                                                '',           
-                                                'UND',            
-                                                '1',
-                                                '0',
-                                                '0',
-                                                '0',
-                                                '$quantidade',
-                                                '$quantidade',
-                                                '$valorUnitario',
-                                                '$this->tabelaprecopadrao',
-                                                '$valor_prod',
-                                                '$custo_medio',
-                                                '$ultimo_custo',
-                                                '$frete_unitario',
-                                                '$descontoProd')";
-                                                
-                                                //print_r ($sql);
-                                                if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
-                                                    // registrando log   
-                                                Logs::registrar(
-                                                            $this->vendas,
-                                                            $this->databaseVendas,
-                                                            'sucesso',
-                                                            'registrar produto pedido ',
-                                                            "$sql",
-                                                                '',
-                                                            "Produto [ $id_produto_bd ] registrado na tabela pro_orca "
-                                                            );
+                                                if (mysqli_query($this->vendas->link, $sql) === TRUE) { 
+                                                    Logs::registrar(
+                                                        $this->vendas,
+                                                        $this->databaseVendas,
+                                                        'sucesso',
+                                                        'registrar produto pedido ',
+                                                        "$sql",
+                                                        '',
+                                                        "Produto [ $id_produto_bd ] registrado na tabela pro_orca "
+                                                    );
                                                     
-                                                    // --- MELHORIA VISUAL ---
                                                     echo '<div class="log-box log-success">';
-                                                    echo '<i class="fas fa-check-circle"></i> Produto <strong>'.$id_produto_bd.'</strong> inserido no orçamento <strong>'.$codigoOrcamento.'</strong>.';
+                                                    echo '<i class="fas fa-check-circle"></i> Produto <strong>'.$id_produto_bd.'</strong> inserido no orçamento <strong>'.$codigoOrcamento.'</strong>. (Frete rateado: R$ '.$frete_final_sql.')';
                                                     echo '</div>';                                      
-                                                }else{
-                                                    // --- MELHORIA VISUAL ---
+                                                } else {
+                                                    // Se falhar o insert
+                                                    $msgErro = isset($result->mensagem) ? $result->mensagem : mysqli_error($this->vendas->link);
+                                                    
                                                     echo '<div class="log-box log-danger">';
                                                     echo '<h4 class="text-danger"><i class="fas fa-times-circle"></i> Falha ao inserir produto</h4>';
                                                     echo '<p>Produto: <strong>'.$id_produto_bd.'</strong> | Orçamento: <strong>'.$codigoOrcamento.'</strong></p>';
-                                                    echo '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' . $result->mensagem . '</div>';
+                                                    echo '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' . $msgErro . '</div>';
                                                     echo '</div>';
                                                 } 
-                                            }else{
-                                                  Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
-                                                        'erro',
-                                                        'registrar produto pedido ',
-                                                        "",
-                                                            '',
-                                                        "Não foi encontrado o produto codigo: $sku, verifique os itens do pedido codigo: $PedidoMktplace no marketplace: $marketplace"
-                                                        );
-                                                        $sql = "UPDATE cad_orca SET DESTACAR = 'S' WHERE CODIGO = $codigoOrcamento";
-                                                        $this->vendas->Consulta($sql);
-                                                         
+                                            } else {
+                                                // Produto não encontrado
+                                                Logs::registrar(
+                                                    $this->vendas,
+                                                    $this->databaseVendas,
+                                                    'erro',
+                                                    'registrar produto pedido ',
+                                                    "",
+                                                    '',
+                                                    "Não foi encontrado o produto codigo: $sku, verifique os itens do pedido codigo: $PedidoMktplace no marketplace: $marketplace"
+                                                );
+                                                $sql = "UPDATE cad_orca SET DESTACAR = 'S' WHERE CODIGO = $codigoOrcamento";
+                                                $this->vendas->Consulta($sql);
                                             }
-                                    }
+                                        }
                                     if ($codigoOrcamento > 0){
                                  
                                         $sql = "INSERT INTO par_orca (orcamento, parcela, valor, vencimento, tipo_receb)
