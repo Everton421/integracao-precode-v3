@@ -131,11 +131,10 @@
         </a>
         <hr>
 
-     <!-- <button type="submit" name="acao" value="enviar">
+       <button type="submit" name="acao" value="enviar_lista">
         Enviar Grade selecionada
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
      </button>
-     --->
    
     <hr>
     <?php
@@ -218,7 +217,7 @@
                                     $classe_enviado = ($codigo_site != null && $codigo_site != '' && $codigo_site !=  0) ? 'enviado' : '';
 
                                     echo "<tr class='$classe_enviado'>";
-                                        echo "<td><input type='checkbox' name='codprod[]' value='$codigo'></td>";
+                                        echo "<td><input type='checkbox' name='codgrade[]' value='$codigo'></td>";
                                         echo "<td>$codigo</td>";
                                            echo "<td> ". htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1'))." </td>";
                                         echo "<td>$outro_cod</td>";

@@ -55,6 +55,8 @@
     include_once(__DIR__.'/../utils/enviar-preco.php');
     include_once(__DIR__.'/../utils/enviar-saldo.php');
 
+    include_once(__DIR__.'/../mapper/produto-grade-mapper.php');
+
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $objeObterVinculo = new ObterVinculo();
@@ -65,13 +67,15 @@
         $objEnviarEstoque = new EnviarSaldo();
         $enviarProdutoGrade = new EnviarProdutoGrade();
 
-  //         print_r($_POST);
+        $mapper = new ProdutoGradeMapper($publico, $vendas, $estoque);
 
-
+          //  print_r($_POST);
+ 
+            
         if (isset($_POST['acao'])) {
             $acao = $_POST['acao'];
+
                 if($acao == 'enviar'){
-               
                  $response = $enviarProdutoGrade->enviar($_POST);
                         $result = json_decode($response, true);
                
@@ -88,17 +92,58 @@
                             echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
                             echo '</div>';
                         }
-                       
+                }
+
+                if($acao == 'enviar_lista'){
+                    $codgrade = $_POST['codgrade'];
+
+                    $sucessos = 0;
+                    $erros = 0;
+
+                    foreach($codgrade as $cod ){
+
+                             $dadosParaEnvio = $mapper->obterDadosParaEnvio($cod);
+                             if($dadosParaEnvio){
+                                try{
+                                    $jsonResponse = $enviarProdutoGrade->enviar($dadosParaEnvio);
+                                    $resposta = json_decode($jsonResponse , true);
+                                        if($resposta['success']){
+                                        echo "<span style='color:green'>SUCESSO: " . $resposta['message'] . "</span>\n";
+                                        $sucessos++;
+                                        } 
+                                        if(!$resposta['success']){
+                                            echo "<span style='color:red'>ERRO API: " . $resposta['message'] . "</span>\n";
+                                            $erros++;
+                                        }
+                                }catch(Exception $e ){
+                                   echo "<span style='color:red'>EXCEÇÃO: " . $e->getMessage() . "</span>\n";
+                                     $erros++;
+                                }
+
+                            }else{
+                               echo "<span style='color:orange'>ALERTA: Dados incompletos ou produto não encontrado.</span>\n";
+                               $erros++;
+                            }
+                            
+                           usleep(500000); 
+                    }
+                    echo "\n------------------------------------------------";
+                    echo "\nResumo: Sucessos: $sucessos | Erros: $erros";
+                    echo "</pre>";
                 }
            
         
         } else {
             echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhuma ação especificada.</p>";
-        } 
+        }  
+
+
     } else {
         echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Formulário não enviado.</p>";
     }
         $publico->Desconecta();
+        $estoque->Desconecta();
+        $vendas->Desconecta();
 
     ?>
 </div>
