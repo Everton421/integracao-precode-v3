@@ -126,7 +126,7 @@ class EnviarProdutoGrade
                        # 'tipogradex' => !empty($row['DESCRICAO_CARACTERISTICA']) && $row['DESCRICAO_CARACTERISTICA'] == 'COR' ? $row['DESCRICAO_CARACTERISTICA']  : '',
                        # 'nomegradex' => !empty($row['DESCRICAO_CARACTERISTICA']) && $row['DESCRICAO_CARACTERISTICA'] == 'COR' ? $row['VALOR_CARACTERISTICA']  : '',
                         'qty' => $item['estoque'],
-                        'ean' => !empty($item['num_fabricante']) ? $item['num_fabricante'] : null,
+                       # 'ean' => !empty($item['num_fabricante']) ? $item['num_fabricante'] : null,
                         'images' => [],
                          'specifications' => [
                       
