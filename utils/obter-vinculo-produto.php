@@ -1,5 +1,6 @@
 <?php
 include_once(__DIR__ . '/../database/conexao_publico.php');
+include_once(__DIR__ . '/../database/conexao_integracao.php');
 
 class ObterVinculo {
 
@@ -7,6 +8,9 @@ class ObterVinculo {
         set_time_limit(0);
 
         $publico = new CONEXAOPUBLICO();
+        $integracao = new CONEXAOINTEGRACAO();
+        $databaseIntegracao = $integracao->getBase();
+
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
         if (empty($ini['conexao']['token'])) {
@@ -66,7 +70,7 @@ class ObterVinculo {
                 $sqlCheck = "SELECT CODIGO_BD FROM produto_precode 
                              WHERE CODIGO_SITE = '$sku_precode' AND CODIGO_BD = '$codigo_sistema'";
                 
-                $validationProduct = $publico->consulta($sqlCheck);
+                $validationProduct = $integracao->consulta($sqlCheck);
 
                 if (mysqli_num_rows($validationProduct) == 0) {
                     
@@ -74,7 +78,7 @@ class ObterVinculo {
                     $sqlInsert = "INSERT INTO produto_precode (CODIGO_SITE, CODIGO_BD, PRECO_SITE, EAN, SKU_LOJA, REF_LOJA) 
                                   VALUES ('$sku_precode', '$codigo_sistema', '$preco_site', '$ean', '$sku_precode', '$codigo_sistema')";
                     
-                    $insertResult = $publico->consulta($sqlInsert);
+                    $insertResult = $integracao->consulta($sqlInsert);
 
                     if ($insertResult == 1) {
                         $itensProcessados++;
@@ -92,7 +96,7 @@ class ObterVinculo {
                                 $sqlGrade = "INSERT INTO grade_precode SET CODIGO_SITE='$id_produto_pai', CODIGO_BD='$cod_grade' 
                                              ON DUPLICATE KEY UPDATE CODIGO_BD='$cod_grade'";
                                 
-                                $resultVincGrade = $publico->Consulta($sqlGrade);
+                                $resultVincGrade = $integracao->Consulta($sqlGrade);
                                 
                                 if ($resultVincGrade == 1) {
                                     // Concatena sucesso da grade
@@ -117,7 +121,8 @@ class ObterVinculo {
             }
             
             $publico->Desconecta();
-
+             $integracao->Desconecta();
+             
             // Verifica se processou algo para dar a resposta correta
             if ($itensProcessados > 0) {
                 return $this->response(true, "Processados: " . $msgRetorno);

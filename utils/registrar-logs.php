@@ -4,7 +4,7 @@
   Class Logs{
    
   public static function registrar(
-    $vendasConnection ,
+    $connection ,
     $databaseName,
     $status = 'sucesso',
     string | null $acao = null,
@@ -15,7 +15,7 @@
 
     $sql = "INSERT INTO `$databaseName`.`log_precode` SET `acao`='$acao',`dados`= "."\"$dados\"".", `status`='$status',`referencia`='$referencia', `mensagem`='$mensagem' ;";
 
-    $result =  $vendasConnection->Consulta($sql);
+    $result =  $connection->Consulta($sql);
 
         return $result;
   }

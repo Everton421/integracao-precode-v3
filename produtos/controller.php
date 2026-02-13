@@ -50,6 +50,7 @@
     include_once(__DIR__.'/../utils/obter-vinculo-produto.php');
     include_once(__DIR__.'/../database/conexao_publico.php');
     include_once(__DIR__.'/../database/conexao_vendas.php');
+    include_once(__DIR__.'/../database/conexao_integracao.php');
     include_once(__DIR__.'/../database/conexao_estoque.php');
 
     include_once(__DIR__.'/../utils/enviar-preco.php');
@@ -62,6 +63,8 @@
         $publico= new CONEXAOPUBLICO();
         $estoque= new CONEXAOESTOQUE();
         $vendas= new CONEXAOVENDAS();
+        $integracao = new CONEXAOINTEGRACAO();
+
         $objEnviarPreco = new EnviarPreco();
         $objEnviarEstoque = new EnviarSaldo();
 
@@ -91,7 +94,7 @@
                     if ($acao == 'atualizarPreco') {
                         // Lógica para enviar o produto
                        
-                        $response = $objEnviarPreco->postPreco($codigo, $publico);
+                        $response = $objEnviarPreco->postPreco($codigo, $publico, $integracao);
                     
                         $result = json_decode($response, true);
                         if ($result['success'] > 0) {
@@ -109,7 +112,7 @@
                         }
                         if ($acao == 'atualizarEstoque') {
                             // Lógica para enviar o produto
-                            $response = $objEnviarEstoque->postSaldo($codigo , $publico, $estoque, $vendas);
+                            $response = $objEnviarEstoque->postSaldo($codigo , $publico, $estoque, $vendas, $integracao);
                             $result = json_decode($response, true);
                             if ($result['success'] > 0 ) {
                                 echo '<div class="mensagem-container mensagem-sucesso" role="alert">';

@@ -3,12 +3,14 @@
 
 include_once(__DIR__.'/../database/conexao_publico.php');
 include_once(__DIR__.'/../database/conexao_vendas.php');
+include_once(__DIR__.'/../database/conexao_integracao.php');
 
 class EnviarFotos {
 
     public function enviarFotos(int $codigo) {
         $vendas = new CONEXAOVENDAS();
         $publico = new CONEXAOPUBLICO();
+        $integracao = new CONEXAOINTEGRACAO();
 
         $resultSistemImgsPath = $vendas->Consulta("SELECT FOTOS from parametros WHERE id = 1");
 
@@ -72,11 +74,11 @@ class EnviarFotos {
                             $link =  $retorno['data']['url'];
                             array_push( $arrResult, $link );
 
-                                    $oldPhotos = $publico->Consulta("SELECT * FROM fotos_prod_precode WHERE produto = '$codigo' AND SEQ ='$sequenc';");
+                                    $oldPhotos = $integracao->Consulta("SELECT * FROM fotos_prod_precode WHERE produto = '$codigo' AND SEQ ='$sequenc';");
                                     if(mysqli_num_rows($oldPhotos) > 0  ){
-                                    $resultDelete = $publico->Consulta("DELETE  FROM fotos_prod_precode WHERE PRODUTO =  '$codigo' AND SEQ ='$sequenc';");
+                                    $resultDelete = $integracao->Consulta("DELETE  FROM fotos_prod_precode WHERE PRODUTO =  '$codigo' AND SEQ ='$sequenc';");
                                     }
-                                    $resultInsert =  $publico->Consulta("INSERT INTO fotos_prod_precode SET  PRODUTO = '$codigo', FOTO = '$photoName',SEQ='$sequenc', BASE64_FOTO='$img', LINK='$link' ");
+                                    $resultInsert =  $integracao->Consulta("INSERT INTO fotos_prod_precode SET  PRODUTO = '$codigo', FOTO = '$photoName',SEQ='$sequenc', BASE64_FOTO='$img', LINK='$link' ");
                                     if( $resultInsert   ){
                                     }  else{
                                         error_log("Erro ao registrar foto no banco de dados " ); // Log do erro
@@ -96,6 +98,7 @@ class EnviarFotos {
              }
        $publico->Desconecta();
        $vendas->Desconecta();
+       $integracao->Desconecta();
 
      } 
 

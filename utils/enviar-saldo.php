@@ -4,6 +4,7 @@ date_default_timezone_set('America/Sao_Paulo');
 include_once(__DIR__.'/../database/conexao_publico.php');
 include_once(__DIR__.'/../database/conexao_estoque.php'); 
 include_once(__DIR__.'/../database/conexao_vendas.php');
+include_once(__DIR__.'/../database/conexao_integracao.php');
 
 class EnviarSaldo{
 
@@ -13,7 +14,7 @@ class EnviarSaldo{
      * @param object $estoque Instância da conexão Estoque
      * @param object $vendas Instância da conexão Vendas
      */
-    public function postSaldo(int $codigo, $publico, $estoque, $vendas){
+    public function postSaldo(int $codigo, $publico, $estoque, $vendas, $integracao){
         set_time_limit(0);
 
         $setor = 1;   
@@ -44,7 +45,7 @@ class EnviarSaldo{
         $databaseEstoque = $estoque->getBase();
         $databasePublico = $publico->getBase();
 
-        $buscaProduto = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode where codigo_bd= $codigo" ); 		
+        $buscaProduto = $integracao->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode where codigo_bd= $codigo" ); 		
         
         if((mysqli_num_rows($buscaProduto)) == 0){
             return $this->response(false,'produto '. $codigo .' não possui vinculo com o Precode!');
@@ -150,7 +151,7 @@ class EnviarSaldo{
                             sleep(1);
                             
                             if( $codMensagem == '0'){
-                                $resultUpdateProduct = $publico->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
+                                $resultUpdateProduct = $integracao->Consulta("UPDATE produto_precode set SALDO_ENVIADO =  $estoqueprod  ,DATA_RECAD_ESTOQUE = NOW() where CODIGO_SITE = '$codigoSite' ");
 
                                 if($resultUpdateProduct != 1 ){
                                     return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');

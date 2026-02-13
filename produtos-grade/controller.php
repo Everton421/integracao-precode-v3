@@ -76,7 +76,8 @@
             $acao = $_POST['acao'];
 
                 if($acao == 'enviar'){
-                 $response = $enviarProdutoGrade->enviar($_POST);
+                 
+                $response = $enviarProdutoGrade->enviar($_POST);
                         $result = json_decode($response, true);
                
 

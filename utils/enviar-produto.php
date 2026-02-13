@@ -1,11 +1,13 @@
   <?php
 include_once(__DIR__ .'/../database/conexao_publico.php');
 include_once(__DIR__.'/../utils/enviar-foto.php');
+include_once(__DIR__ . '/../database/conexao_integracao.php');
 
     class EnviarProduto{
     public function enviarProduto( $produto){
       set_time_limit(0);
         $ObjEnvFotos = new EnviarFotos();
+          $integracao = new CONEXAOINTEGRACAO();
 
         $publico = new CONEXAOPUBLICO();
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
@@ -159,7 +161,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                                 $codigo_site = isset($retorno['sku']) ? $retorno['sku'] : null; // Verifica se 'sku' existe
                                 $data_recad = date('Y-m-d H:i:s');
                                 $sql = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ('$codigo_site',  $codigo , $preco, '$data_recad')";
-                                $envioPrecodeBase = $publico->Consulta($sql);
+                                $envioPrecodeBase = $integracao->Consulta($sql);
                                     //echo '<br>';
                                 if ($envioPrecodeBase) {
                                          $modelo_db          = mb_convert_encoding($modelo, 'ISO-8859-1', 'UTF-8');
@@ -197,7 +199,7 @@ include_once(__DIR__.'/../utils/enviar-foto.php');
                      
                
                  $publico->Desconecta();
-
+                $integracao->Desconecta();
               
             }
   

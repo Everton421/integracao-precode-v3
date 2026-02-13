@@ -5,6 +5,7 @@ date_default_timezone_set('America/Sao_Paulo');//
 include(__DIR__.'/../database/conexao_publico.php');
 include(__DIR__.'/../database/conexao_estoque.php'); 
 include(__DIR__.'/../database/conexao_vendas.php');
+include(__DIR__.'/../database/conexao_integracao.php');
 include_once(__DIR__.'/receber-transportadora.php');
 include_once(__DIR__.'/receber-cliente.php');
 include_once(__DIR__."/../utils/registrar-logs.php");
@@ -21,18 +22,24 @@ class recebePrecode{
     private $publico;
     private $vendas;
     private $estoque;
+    private $integracao;
+     
 
     private $codigoVendedor = 1 ;
     private $codigoTipoRecebimento = 1 ;
     private $formaPagamento= 1;
     private $databaseVendas ;
-   
+    private $databaseIntegracao;
+
     public function recebe(){
         $tentativas = 0;
 		try {
 			$this->publico = new CONEXAOPUBLICO();	
             $this->vendas = new CONEXAOVENDAS();
             $this->estoque = new CONEXAOESTOQUE();
+            $this->integracao = new CONEXAOINTEGRACAO();
+            $this->databaseIntegracao = $this->integracao->getBase(); 
+
             $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
                 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
                     $this->tabelaprecopadrao = $ini['conexao']['tabelaPreco']; 
@@ -72,7 +79,9 @@ class recebePrecode{
             $this->publico->Desconecta();
 			$this->vendas->Desconecta();
 			$this->estoque->Desconecta();
-            
+             $this->integracao->Desconecta();
+
+
 			echo '<div class="log-box log-info text-center"> 
                     <h3><i class="fas fa-check-double"></i> Fim do Recebimento</h3>
                     <small>Término: '.date('d/m/Y H:i:s').'</small>
@@ -99,8 +108,6 @@ class recebePrecode{
     
     public function recebePedidos(){
             set_time_limit(0);
-
-
                  
 
                 $objReceberTransportadora = new ReceberTransportadora();
@@ -157,7 +164,7 @@ class recebePrecode{
             // Filial cd  aonde vem o campo do sistema precode com a id da filial dadosRastreio->idFilial
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
                   
-                $buscaPedido = $this->vendas->Consulta("SELECT * FROM cad_orca co inner join pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
+                $buscaPedido = $this->vendas->Consulta("SELECT * FROM cad_orca co inner join ".$this->databaseIntegracao.".pedido_precode pp on co.cod_site = pp.codigo_pedido_site where pp.codigo_pedido_site = '$codigoPedidoSite'");
                 $buscaCliente = $this->publico->Consulta("SELECT * from cad_clie where CPF = '$cpf'");
                 $buscaTransport = $this->publico->Consulta("SELECT * from cad_forn where CNPJ = '$cnpjTransport' ");
                 
@@ -280,8 +287,8 @@ class recebePrecode{
                                     'S',
                                     '$this->filial')";    
                                      Logs::registrar(
-                                                $this->vendas,
-                                                $this->databaseVendas,
+                                                $this->integracao,
+                                                $this->databaseIntegracao,
                                                 'sucesso',
                                                 'registrar pedido',
                                                 "$sql",
@@ -292,8 +299,8 @@ class recebePrecode{
                                 if (mysqli_query($this->vendas->link, $sql) === TRUE){  
                                       // registrando log   
                                     Logs::registrar(
-                                                $this->vendas,
-                                                $this->databaseVendas,
+                                                $this->integracao,
+                                                $this->databaseIntegracao,
                                                 'sucesso',
                                                 'registrar pedido',
                                                 "$sql",
@@ -395,8 +402,8 @@ class recebePrecode{
 
                                                 if (mysqli_query($this->vendas->link, $sql) === TRUE) { 
                                                     Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
+                                                        $this->integracao,
+                                                        $this->databaseIntegracao,
                                                         'sucesso',
                                                         'registrar produto pedido ',
                                                         "$sql",
@@ -420,8 +427,8 @@ class recebePrecode{
                                             } else {
                                                 // Produto não encontrado
                                                 Logs::registrar(
-                                                    $this->vendas,
-                                                    $this->databaseVendas,
+                                                    $this->integracao,
+                                                    $this->databaseIntegracao,
                                                     'erro',
                                                     'registrar produto pedido ',
                                                     "",
@@ -444,8 +451,8 @@ class recebePrecode{
  
                                       if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                         Logs::registrar(
-                                                                    $this->vendas,
-                                                                    $this->databaseVendas,
+                                                                    $this->integracao,
+                                                                    $this->databaseIntegracao,
                                                                     'sucesso',
                                                                     'registrar parcela do pedido ',
                                                                     "$sql",
@@ -524,10 +531,10 @@ class recebePrecode{
                                                                     '$data_atual',             
                                                                     '$pedidoStatus')";
                     
-                                                            if (mysqli_query($this->vendas->link, $sql) === TRUE){
+                                                            if (mysqli_query($this->integracao->link, $sql) === TRUE){
                                                                 Logs::registrar(
-                                                                    $this->vendas,
-                                                                    $this->databaseVendas,
+                                                                    $this->integracao,
+                                                                    $this->databaseIntegracao,
                                                                     'sucesso',
                                                                     'envio do aceite para precode ',
                                                                     "$sql",
@@ -547,8 +554,8 @@ class recebePrecode{
                                                         }else{
                                                         
                                                                 Logs::registrar(
-                                                                    $this->vendas,
-                                                                    $this->databaseVendas,
+                                                                    $this->integracao,
+                                                                    $this->databaseIntegracao,
                                                                     'sucesso',
                                                                     'Falha ao confirmar o aceite',
                                                                     " {
@@ -577,8 +584,8 @@ class recebePrecode{
                                     }
                                 } else{
                                       Logs::registrar(
-                                                        $this->vendas,
-                                                        $this->databaseVendas,
+                                                        $this->integracao,
+                                                        $this->databaseIntegracao,
                                                         'sucesso',
                                                         'registrar pedido ',
                                                         "$sql",

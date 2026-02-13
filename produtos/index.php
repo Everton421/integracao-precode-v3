@@ -209,9 +209,13 @@
                         <?php
                             include_once(__DIR__ . '/../database/conexao_publico.php');
                             include_once(__DIR__ . '/../database/conexao_vendas.php');
+                            include_once(__DIR__ . '/../database/conexao_integracao.php');
 
                             $publico = new CONEXAOPUBLICO();
                             $vendas = new CONEXAOVENDAS();
+                            $integracao = new CONEXAOINTEGRACAO();
+                            $database_integracao = $integracao->getBase();
+
                             $database_vendas = $vendas->getBase();
                             $result = $publico->Consulta("SELECT cp.CODIGO, cp.OUTRO_COD ,cp.DESCRICAO,
                                                                 fp.FOTO, pr.FOTOS as CAMINHO_FOTOS,
@@ -222,8 +226,8 @@
                                                                   COALESCE(pp.SALDO_ENVIADO,0 ) as SALDO_ENVIADO,
                                                                   COALESCE( pp.DATA_RECAD_ESTOQUE, '2001-01-01 01:00') AS DATA_RECAD_ESTOQUE 
                                                             FROM cad_prod cp
-                                                            LEFT JOIN produto_precode pp ON pp.codigo_bd = cp.CODIGO
-                                                            LEFT JOIN fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO
+                                                            LEFT JOIN ".$database_integracao.".produto_precode pp ON pp.codigo_bd = cp.CODIGO
+                                                            LEFT JOIN ".$database_integracao.".fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO
                                                             JOIN ".$database_vendas.".parametros pr on pr.id = 1
                                                             WHERE cp.ATIVO='S' AND cp.NO_MKTP='S'
                                                         GROUP BY cp.CODIGO

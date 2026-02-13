@@ -190,14 +190,20 @@
                         <?php
                             include_once(__DIR__ . '/../database/conexao_publico.php');
                             include_once(__DIR__ . '/../database/conexao_vendas.php');
+                            include_once(__DIR__ . '/../database/conexao_integracao.php');
+
+                             $integracao = new CONEXAOINTEGRACAO();
 
                             $publico = new CONEXAOPUBLICO();
                             $vendas = new CONEXAOVENDAS();
                             $database_vendas = $vendas->getBase();
+
+                            $database_integracao =    $integracao->getBase(); 
+                            
                             $result = $publico->Consulta(" SELECT g.CODIGO, g.OUTRO_COD , g.DESCRICAO,
                                                                 COALESCE( gp.CODIGO_SITE,0 ) AS CODIGO_SITE 
                                                             FROM grades as g
-                                                            LEFT JOIN grade_precode gp ON gp.codigo_bd = g.CODIGO
+                                                            LEFT JOIN ".$database_integracao.".grade_precode gp ON gp.codigo_bd = g.CODIGO
                                                              JOIN ".$database_vendas.".parametros pr on pr.id = 1
                                                             WHERE g.ATIVO='S'  
                                                         GROUP BY g.CODIGO

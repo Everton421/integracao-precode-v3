@@ -47,13 +47,16 @@
 <body>
 <?php
 include_once(__DIR__.'/../database/conexao_publico.php');
+include_once(__DIR__.'/../database/conexao_integracao.php');
 include_once(__DIR__.'/../utils/enviar-preco.php');
 
 $publico = new CONEXAOPUBLICO();    
 
 $postPreco = new EnviarPreco();
-   
-$buscaProdutos = $publico->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode ;" );       
+$integracao = new CONEXAOINTEGRACAO();
+ $databaseIntegracao =   $integracao->getBase();
+
+$buscaProdutos = $integracao->Consulta("SELECT codigo_site,saldo_enviado, codigo_bd, data_recad, data_recad_estoque FROM produto_precode ;" );       
 
 if((mysqli_num_rows($buscaProdutos))  == 0){
      return;
@@ -64,7 +67,7 @@ while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
      sleep(1);
      
      // 1. Recebe o JSON em texto (ex: {"success":true, ...})
-     $jsonRetorno = $postPreco->postPreco($codigoBd, $publico );
+     $jsonRetorno = $postPreco->postPreco($codigoBd, $publico , $integracao);
      
      // 2. Converte o texto JSON para um Array do PHP
      // O parâmetro 'true' força ser um array associativo
@@ -99,6 +102,7 @@ while($row = mysqli_fetch_array($buscaProdutos, MYSQLI_ASSOC)){
      }
 }
 $publico->Desconecta();
+$integracao->Desconecta();
 ?>
 
 

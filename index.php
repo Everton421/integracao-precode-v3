@@ -93,11 +93,17 @@
             <?php
             include(__DIR__ . '/database/conexao_publico.php');
             include(__DIR__ . '/database/conexao_vendas.php');
+            include(__DIR__ . '/database/conexao_integracao.php');
 
             $publico = new CONEXAOPUBLICO();
+            $database_publico = $publico->getBase();
+
+            $integracao = new CONEXAOINTEGRACAO();
+            $database_integracao = $integracao->getBase();
+
             $vendas = new CONEXAOVENDAS();
             $database_vendas = $vendas->getBase();
-            $database_publico = $publico->getBase();
+
 
             // Montagem da query
             $sql = "SELECT 
@@ -108,7 +114,7 @@
                         concat(co.DATA_CADASTRO,' ',co.HORA_CADASTRO) as DATA_CADASTRO
                     FROM cad_orca co 
                     JOIN " . $database_publico . ".cad_clie cli ON cli.CODIGO = co.CLIENTE
-                    JOIN pedido_precode pp ON pp.codigo_pedido_bd = co.CODIGO
+                    JOIN ".$database_integracao.".pedido_precode pp ON pp.codigo_pedido_bd = co.CODIGO
                     WHERE 1=1 ";
 
             // Aplica o filtro de data (que sempre terá valor, padrão hoje ou o escolhido)
@@ -186,6 +192,7 @@
             }
             $publico->Desconecta();
             $vendas->Desconecta();
+            $integracao->Desconecta();
             ?>
         </div>
     </div>

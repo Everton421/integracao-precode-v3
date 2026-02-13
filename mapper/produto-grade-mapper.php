@@ -48,10 +48,12 @@ class ProdutoGradeMapper
         $categoria = '';
         $categoria_interm = '';
         $categoria_final = '';
-        $comprimento = $dadosPai['COMPRIMENTO'] ;
-        $largura =$dadosPai['LARGURA'];
-        $altura = $dadosPai['ALTURA'];
         $peso = $dadosPai['PESO'] > 0 ? $dadosPai['PESO'] : 0.22  ;
+
+                    $comprimento  = $dadosPai['COMPRIMENTO'] > 0 ? $dadosPai['COMPRIMENTO'] : 17; 
+                       $altura = $dadosPai['ALTURA'] > 0 ? $dadosPai['ALTURA'] :17  ;
+                        $largura = $dadosPai['LARGURA'] > 0 ? $dadosPai['LARGURA'] : 17;
+
 
             if(!$dadosPai['CATEGORIA_MKTPLACE'] || $dadosPai['CATEGORIA_MKTPLACE'] === ''){
                 $categoria= 'Acessórios para Veículos ';
@@ -62,28 +64,20 @@ class ProdutoGradeMapper
              if(!$dadosPai['FINALCATEGORIA_MKTPLACE'] || $dadosPai['FINALCATEGORIA_MKTPLACE'] === ''){
                 if( str_contains( $dadosPai['DESCRICAO'] , 'ANEL' ) ||  str_contains( $dadosPai['DESCRICAO'] , 'ANEIS' )  ){
                     $categoria_final= 'Anéis Segmento';
-                     $comprimento  = $dadosPai['COMPRIMENTO'] > 0 ? $dadosPai['COMPRIMENTO'] : 17; 
-                       $altura = $dadosPai['ALTURA'] > 0 ? $dadosPai['ALTURA'] :17  ;
-                        $largura = $dadosPai['LARGURA'] > 0 ? $dadosPai['LARGURA'] : 17;
+                
                 }
                 if( str_contains( $dadosPai['DESCRICAO'] , 'anel' ) ||  str_contains( $dadosPai['DESCRICAO'] , 'aneis') || str_contains( $dadosPai['DESCRICAO'] , 'anéis' )){
                     $categoria_final= 'Anéis Segmento';
-                     $comprimento  = $dadosPai['COMPRIMENTO'] > 0 ? $dadosPai['COMPRIMENTO'] : 17; 
-                       $altura = $dadosPai['ALTURA'] > 0 ? $dadosPai['ALTURA'] :17  ;
-                        $largura = $dadosPai['LARGURA'] > 0 ? $dadosPai['LARGURA'] : 17;
+                
 
                 }
                  if( str_contains( $dadosPai['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $dadosPai['DESCRICAO'] , 'Bronzina' )){
                     $categoria_final= 'Bronzina de Mancal';
-                     $comprimento  = $dadosPai['COMPRIMENTO'] > 0 ? $dadosPai['COMPRIMENTO'] : 17; 
-                       $altura = $dadosPai['ALTURA'] > 0 ? $dadosPai['ALTURA'] :17  ;
-                        $largura = $dadosPai['LARGURA'] > 0 ? $dadosPai['LARGURA'] : 17;
+                    
                     }
                  if( str_contains( $dadosPai['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $dadosPai['DESCRICAO'] , 'Bronzina' )){
                     $categoria_final= 'Bronzina de Mancal';
-                     $comprimento  = $dadosPai['COMPRIMENTO'] > 0 ? $dadosPai['COMPRIMENTO'] : 17; 
-                       $altura = $dadosPai['ALTURA'] > 0 ? $dadosPai['ALTURA'] :17  ;
-                        $largura = $dadosPai['LARGURA'] > 0 ? $dadosPai['LARGURA'] : 17;
+                   
                 }
             }
             
@@ -197,7 +191,6 @@ class ProdutoGradeMapper
                 'estoque' => $estoqueReal
             ];
         }
-
         return ['itens' => $listaItens, 'estoque_total' => $estoqueTotal];
     }
 

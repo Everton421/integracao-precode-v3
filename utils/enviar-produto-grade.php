@@ -4,6 +4,7 @@ ini_set('max_execution_time', '0');
 date_default_timezone_set('America/Sao_Paulo');
 require_once(__DIR__ . '/../database/conexao_publico.php');
 include_once(__DIR__ . '/../database/conexao_vendas.php');
+include_once(__DIR__ . '/../database/conexao_integracao.php');
 include_once(__DIR__ . '/../database/conexao_estoque.php');
 include_once(__DIR__ . '/enviar-foto.php'); // Inclua o arquivo com a classe EnviarFotos
 
@@ -13,7 +14,8 @@ class EnviarProdutoGrade
     {
 
           $publico = new CONEXAOPUBLICO();
-        $enviarFotos = new EnviarFotos();
+          $integracao = new CONEXAOINTEGRACAO();
+ 
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
         $tabelaDePreco = 1;
@@ -126,7 +128,7 @@ class EnviarProdutoGrade
                        # 'tipogradex' => !empty($row['DESCRICAO_CARACTERISTICA']) && $row['DESCRICAO_CARACTERISTICA'] == 'COR' ? $row['DESCRICAO_CARACTERISTICA']  : '',
                        # 'nomegradex' => !empty($row['DESCRICAO_CARACTERISTICA']) && $row['DESCRICAO_CARACTERISTICA'] == 'COR' ? $row['VALOR_CARACTERISTICA']  : '',
                         'qty' => $item['estoque'],
-                       # 'ean' => !empty($item['num_fabricante']) ? $item['num_fabricante'] : null,
+                       'ean' => !empty($item['num_fabricante']) ? $item['num_fabricante'] : null,
                         'images' => [],
                          'specifications' => [
                       
@@ -177,7 +179,7 @@ class EnviarProdutoGrade
 
                     $sql_insert_grade = "INSERT INTO grade_precode (codigo_site, codigo_bd ) VALUES ('$sku_site', $codigo )";
 
-                    $result_insert_grade = $publico->Consulta($sql_insert_grade);
+                    $result_insert_grade = $integracao->Consulta($sql_insert_grade);
                     if ($result_insert_grade) {
                         echo ' <br> Grade registrada no banco de dados <br> ';
                     } else {
@@ -189,7 +191,7 @@ class EnviarProdutoGrade
                         $variation_ref = $value['ref'];
                         $data_recad = date('Y-m-d H:i:s');
                         $sql_insert_variations = "INSERT INTO produto_precode (codigo_site, codigo_bd, preco_site, data_recad) VALUES ( '$variation_sku' , '$variation_ref', 0, '$data_recad')";
-                        $envioPrecodeBase = $publico->Consulta($sql_insert_variations);
+                        $envioPrecodeBase = $integracao->Consulta($sql_insert_variations);
 
                         if ($envioPrecodeBase) {
                         $modelo_db          = mb_convert_encoding($modelo, 'ISO-8859-1', 'UTF-8');

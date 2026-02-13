@@ -2,10 +2,11 @@
 include_once(__DIR__.'/../database/conexao_publico.php');
 include_once(__DIR__.'/../database/conexao_estoque.php'); 
 include_once(__DIR__.'/../database/conexao_vendas.php');
+include_once(__DIR__.'/../database/conexao_integracao.php');
 
 class EnviarPreco {
 
-  public function postPreco( int $codigo, $publico){
+  public function postPreco( int $codigo, $publico, $integracao){
 
      $forcar_envio_preco = false;
             $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
@@ -19,7 +20,8 @@ class EnviarPreco {
       ini_set('mysql.connect_timeout','0');   
       ini_set('max_execution_time', '0'); 
       date_default_timezone_set('America/Sao_Paulo');
-    
+
+      $databaseIntegracao = $integracao->getBase();
 
         $tabela = 1;
         if( $ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
@@ -39,7 +41,7 @@ class EnviarPreco {
                                                  COALESCE(pp.DATA_RECAD_PRECO, '2001-01-01 00:00:00') AS DATA_RECAD_PRECO
                                               FROM  cad_prod cp
                                               JOIN prod_tabprecos p ON cp.CODIGO = p.PRODUTO
-                                              JOIN  produto_precode pp ON pp.CODIGO_BD = cp.CODIGO
+                                              JOIN ".$databaseIntegracao.".produto_precode pp ON pp.CODIGO_BD = cp.CODIGO
                                                WHERE p.PRODUTO = $codigo AND p.TABELA = $tabela
                                                
                                                ");
@@ -113,7 +115,7 @@ class EnviarPreco {
                           return $this->response(false, $mensagem);
                       }
                       if($codMensagem == 0 ){
-                        $resultUpdateProduct =$publico->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now(),data_recad_preco = now()  where codigo_bd = '$codigo'");
+                        $resultUpdateProduct =$integracao->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now(),data_recad_preco = now()  where codigo_bd = '$codigo'");
                           if($resultUpdateProduct != 1 ){
                             return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
                           }

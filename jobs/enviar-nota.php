@@ -5,6 +5,7 @@ date_default_timezone_set('America/Sao_Paulo');
 include(__DIR__.'/../database/conexao_publico.php');
 include(__DIR__.'/../database/conexao_estoque.php'); 
 include(__DIR__.'/../database/conexao_vendas.php');
+include(__DIR__.'/../database/conexao_integracao.php');
 set_time_limit(0);
 
 
@@ -28,13 +29,15 @@ if(empty($ini['conexao']['token'] )){
 $indice; 
 $publico = new CONEXAOPUBLICO();	
 $vendas = new CONEXAOVENDAS();
+$integracao = new CONEXAOINTEGRACAO();
 
+$databaseIntegracao = $integracao->getBase();
 
 echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando informações fiscais..</b></h3>'; //abrindo o header com informação
 echo '</div>';
 
 $busca_nf = $vendas->Consulta("SELECT pid.situacao, co.COD_SITE, cnf.CHAVE_NFE, cnf.NUMERO_NF, cnf.DATA_EMISSAO, cnf.SERIE, xf.XML_NFE FROM cad_orca co 
-                                                inner join pedido_precode pid on co.codigo = pid.codigo_pedido_bd
+                                                inner join ".$databaseIntegracao.".pedido_precode pid on co.codigo = pid.codigo_pedido_bd
                                                 inner join cad_nf cnf on cnf.pedido = co.codigo
                                                 inner join xml_fatur xf on xf.FATUR = cnf.CODIGO
                                                 where cnf.CHAVE_NFE != ''
@@ -88,7 +91,7 @@ if($retorno > 0 ){
         $codMensagem = $decode->pedido[0]->idRetorno; 
         $mensagem_nf_err = $decode->pedido[0]->mensagem;
         $numeroPedido = $decode->pedido[0]->numeroPedido;
-        $busca_status = $vendas->Consulta("select * from pedido_precode where codigo_pedido_site = '$id_pedido' and situacao = 'aprovado'");
+        $busca_status = $integracao->Consulta("select * from pedido_precode where codigo_pedido_site = '$id_pedido' and situacao = 'aprovado'");
         $retorno2 = mysqli_num_rows($busca_status);					
         
         if ($codMensagem == 0){
@@ -96,7 +99,7 @@ if($retorno > 0 ){
             echo '</div>';
             $sql = "update pedido_precode set situacao = 'nota_enviada' where codigo_pedido_site = '$id_pedido'";
             print_r($sql);
-            if(mysqli_query($vendas->link, $sql) === TRUE){
+            if(mysqli_query($integracao->link, $sql) === TRUE){
                 echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> XML da nota inserida com sucesso!';   
                 echo "<br><br>";
                 print_r("
@@ -182,6 +185,7 @@ if($retorno > 0 ){
 
 $vendas->Desconecta();
 $publico->Desconecta();
+$integracao->Desconecta();
 ?>
 
 

@@ -254,7 +254,32 @@
                     if (array_key_exists($produto['ORIGEM'], $origemMap)) {
                         $origemFormatada = $origemMap[$produto['ORIGEM']];
                     }
+                    }
 
+                             $categoria=  $produto['CATEGORIA_MKTPLACE'] ;
+                             $categoria_interm= $produto['INTERM_CATEGORIA_MKTPLACE'];
+
+                             $categoria_final= $produto['FINALCATEGORIA_MKTPLACE'] ;
+
+                        if(!$produto['CATEGORIA_MKTPLACE'] || $produto['CATEGORIA_MKTPLACE'] === ''){
+                            $categoria= 'Acessórios para Veículos ';
+                        }
+                        if(!$produto['INTERM_CATEGORIA_MKTPLACE'] || $produto['INTERM_CATEGORIA_MKTPLACE'] === ''){
+                            $categoria_interm= 'Peças de Carros e Caminhonetes';
+                        }
+                        if(!$produto['FINALCATEGORIA_MKTPLACE'] || $produto['FINALCATEGORIA_MKTPLACE'] === ''){
+                            if( str_contains( $produto['DESCRICAO'] , 'ANEL' ) ||  str_contains( $produto['DESCRICAO'] , 'ANEIS' )  ){
+                                $categoria_final= 'Anéis Segmento';
+                            }
+                            if( str_contains( $produto['DESCRICAO'] , 'anel' ) ||  str_contains( $produto['DESCRICAO'] , 'aneis') || str_contains( $produto['DESCRICAO'] , 'anéis' )){
+                                $categoria_final= 'Anéis Segmento';
+                            }
+                            if( str_contains( $produto['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $produto['DESCRICAO'] , 'Bronzina' )){
+                                $categoria_final= 'Bronzina de Mancal';
+                                }
+                            if( str_contains( $produto['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $produto['DESCRICAO'] , 'Bronzina' )){
+                                $categoria_final= 'Bronzina de Mancal';
+                            }
 
                     // --- CAMPOS DO FORMULÁRIO ---
                     echo "<div class='form-group'>";
@@ -316,9 +341,9 @@
                   
 
                     echo "<div class='form-group-inline'>";
-                    echo "<div class='form-group'><label>Categoria:</label><input type='text' class='form-control' name='categoria' value='" . htmlspecialchars(mb_convert_encoding($produto['CATEGORIA_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'></div>";
-                    echo "<div class='form-group'><label>Cat. Interm:</label><input type='text' class='form-control' name='categoriainterm' value='" . htmlspecialchars(mb_convert_encoding($produto['INTERM_CATEGORIA_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'></div>";
-                    echo "<div class='form-group'><label>Cat. Final:</label><input type='text' class='form-control' name='categoriafinal' value='" . htmlspecialchars(mb_convert_encoding($produto['FINALCATEGORIA_MKTPLACE'], 'UTF-8', 'ISO-8859-1')) . "'></div>";
+                    echo "<div class='form-group'><label>Categoria:</label><input type='text' class='form-control' name='categoria' value='" . htmlspecialchars( $categoria) . "'></div>";
+                    echo "<div class='form-group'><label>Cat. Interm:</label><input type='text' class='form-control' name='categoriainterm' value='" . htmlspecialchars(  $categoria_interm ) . "'></div>";
+                    echo "<div class='form-group'><label>Cat. Final:</label><input type='text' class='form-control' name='categoriafinal' value='" . htmlspecialchars( $categoria_final  ) . "'></div>";
                     echo "</div>";
 
                     echo "<div class='form-group-inline'>";
