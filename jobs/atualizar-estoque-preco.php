@@ -25,9 +25,8 @@ $integracao = new CONEXAOINTEGRACAO();
 
 $database_eventos = $eventos->getBase();
 
-echo "Serviço de monitoramento iniciado...\n";
 
-while (true) {
+ 
     try {
         // Busca apenas um lote por vez (ex: 50) para não sobrecarregar
         $sql = "SELECT * FROM {$database_eventos}.eventos_produtos_sistema 
@@ -39,7 +38,6 @@ while (true) {
         if (mysqli_num_rows($res_eventos) === 0) {
             // Se não há eventos, espera um pouco mais para poupar CPU
             sleep(5);
-            continue;
         }
 
         while ($row = mysqli_fetch_array($res_eventos, MYSQLI_ASSOC)) {
@@ -79,8 +77,8 @@ while (true) {
             }
 
             // Atualiza o status para não processar novamente
-            $novo_status = $processado ? 'PROCESSADO' : 'IGNORADO';
-            $eventos->Consulta("UPDATE {$database_eventos}.eventos_produtos_sistema SET status = '$novo_status', data_processamento = NOW() WHERE id = $id_evento");
+            $novo_status =  'PROCESSADO'  ;
+            $eventos->Consulta("UPDATE {$database_eventos}.eventos_produtos_sistema SET status = '$novo_status' WHERE id = $id_evento");
         }
 
         // Limpa memória do resultado
@@ -91,6 +89,4 @@ while (true) {
         sleep(10); // Espera um pouco antes de tentar novamente após erro
     }
 
-    // Pequena pausa entre lotes para não fritar o processador
-    usleep(500000); // 0.5 segundos
-}
+ 
