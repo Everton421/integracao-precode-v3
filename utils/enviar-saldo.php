@@ -96,7 +96,7 @@ class EnviarSaldo{
                     while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                         $estoqueprod  = $row_estoque['ESTOQUE'];
                         $referencia = $row_estoque['CODIGO'];
-
+                        
                         if($forcar_envio_estoque == true ){
                             if($estoqueprod == $saldoEnviadoPrecode){
                                 $saldoEnviadoPrecode = $saldoEnviadoPrecode - 1;
