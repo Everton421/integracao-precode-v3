@@ -115,7 +115,7 @@ class EnviarPreco {
                           return $this->response(false, $mensagem);
                       }
                       if($codMensagem == 0 ){
-                        $resultUpdateProduct =$integracao->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now(),data_recad_preco = now()  where codigo_bd = '$codigo'");
+                        $resultUpdateProduct =$integracao->Consulta("UPDATE produto_precode SET preco_site = $valorProduto, data_recad = now(), data_recad_preco = '$dataRecadPrecoErp'  where codigo_bd = '$codigo'");
                           if($resultUpdateProduct != 1 ){
                             return $this->response(false,'Ocorreu um erro ao tentar atualizar a data de envio do estoque do produto '.$codigo.'na tabela produto_recode!');
                           }
