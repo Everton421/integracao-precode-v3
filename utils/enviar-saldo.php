@@ -55,7 +55,6 @@ class EnviarSaldo{
             $codigoSite = $row['codigo_site'];
             $codigoBd = $row['codigo_bd'];
             $saldoEnviadoPrecode = $row['saldo_enviado'];
-            
             // Tratamento de data para evitar erro se estiver null/vazio
             if(!empty($row['data_recad_estoque'])){
                  $dataRecadEstoquePrecode = new DateTime($row['data_recad_estoque']);
@@ -67,7 +66,6 @@ class EnviarSaldo{
             } else {
                 $estoqueprod = 0;       
 
-                // A consulta permanece a mesma, usando os objetos passados
                 $buscaEstoque = $estoque->Consulta("SELECT  
                                                         est.CODIGO, est.referencia,
                                                             IF(est.estoque < 0, 0, est.estoque) AS ESTOQUE,
@@ -96,14 +94,15 @@ class EnviarSaldo{
                     while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                         $estoqueprod  = $row_estoque['ESTOQUE'];
                         $referencia = $row_estoque['CODIGO'];
-                        
+                        $data_recad = $row_estoque['DATA_RECAD'];
+
                         if($forcar_envio_estoque == true ){
                             if($estoqueprod == $saldoEnviadoPrecode){
                                 $saldoEnviadoPrecode = $saldoEnviadoPrecode - 1;
                             }
                         }
 
-                        if( $estoqueprod != $saldoEnviadoPrecode){
+                        if( $estoqueprod != $saldoEnviadoPrecode || $data_recad > $dataRecadEstoquePrecode ){
                             $curl = curl_init();
                             curl_setopt_array($curl, array(
                             CURLOPT_URL => "https://www.replicade.com.br/api/v1/produtoLoja/saldo",
