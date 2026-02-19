@@ -173,7 +173,7 @@
             LEFT JOIN class_fiscal cf ON cf.CODIGO = p.CLASS_FISCAL
             LEFT JOIN cad_pgru cg ON cg.CODIGO = p.GRUPO
             LEFT join subgrupos sg ON sg.CODIGO = p.SUBGRUPO
-            WHERE (p.NO_MKTP='S' AND p.ATIVO='S')  AND tp.tabela = $tabelaDePreco AND p.CODIGO = '$codigoProduto'");
+            WHERE   p.ATIVO='S'   AND tp.tabela = $tabelaDePreco AND p.CODIGO = '$codigoProduto'");
 
            $estoqueprod = 0; 
 
