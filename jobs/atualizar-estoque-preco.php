@@ -71,7 +71,6 @@ $database_eventos = $eventos->getBase();
 
                 if (mysqli_num_rows($res_vinculo) > 0) {
                    $resultEnvPrice = $obj_env_preco->postPreco($codigo_produto, $publico, $integracao);
-                   print_r("-- ".$resultEnvPrice); 
                    echo " - Preço enviado.\n";
                 }
                 $processado = true;

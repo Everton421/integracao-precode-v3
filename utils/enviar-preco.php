@@ -125,7 +125,6 @@ class EnviarPreco {
                       }
                 }    
          } else{
-          print_r(" Não será atualizado preço para o produto $codigo  |  data ultimo envio [  $dataUltiEnvi ] data do preço sistema [ $dataRecadPrecoErp ]  ");
                 return $this->response(false," Não será atualizado preço para o produto $codigo  |  data ultimo envio [  $dataUltiEnvi ] data do preço sistema [ $dataRecadPrecoErp ]  ");
 
         }
