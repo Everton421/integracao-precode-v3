@@ -209,7 +209,7 @@
                   p.DESCR_LONGA_MKTPLACE,
                   p.DESCR_CURTA_SITE,
                   g.DESCRICAO,
-                  g.APLICACAO,
+                  p.APLICACAO,
                   P.GARANTIA,
                   p.COMPRIMENTO,
                   p.LARGURA,
