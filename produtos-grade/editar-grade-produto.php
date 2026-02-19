@@ -198,43 +198,44 @@
 
 
                 // --- 2. BUSCAR DADOS DO PRODUTO PAI/GRADE ---
-                $result = $publico->Consulta("
-                SELECT
-                  p.GRADE ,
-                  p.CODIGO,
-                  p.OUTRO_COD,
-                  p.DATA_RECAD, 
-                  p.SKU_MKTPLACE,
-                  p.DESCR_CURTA_MKTPLACE,
-                  p.DESCR_LONGA_MKTPLACE,
-                  p.DESCR_CURTA_SITE,
-                  g.DESCRICAO,
-                  p.APLICACAO,
-                  P.GARANTIA,
-                  p.COMPRIMENTO,
-                  p.LARGURA,
-                  p.ALTURA,
-                  p.PESO,
-                  p.ORIGEM,
-                  p.CATEGORIA_MKTPLACE,
-                  p.INTERM_CATEGORIA_MKTPLACE,
-                  p.FINALCATEGORIA_MKTPLACE,
-                  p.MODELO_MKTPLACE, 
-                  p.NUM_FABRICANTE,
-                  tp.PRECO,
-                  tp.PROMOCAO,
-                  m.descricao AS MARCA,
-                  cf.NCM,
-                  g.OUTRO_COD AS OUTRO_COD_GRADE
-                FROM grades as g 
-                LEFT JOIN cad_prod p on p.GRADE = g.codigo
-                INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
-                LEFT JOIN cad_pmar m ON m.codigo = p.marca
-                LEFT JOIN class_fiscal cf ON cf.CODIGO = p.CLASS_FISCAL
-                LEFT JOIN cad_pgru cg ON cg.CODIGO = p.GRUPO
-                LEFT join subgrupos sg ON sg.CODIGO = p.SUBGRUPO
-                WHERE (p.NO_MKTP='S' AND p.ATIVO='S')  
-                AND tp.tabela = $tabelaDePreco AND g.CODIGO = '$codigo_grade'");
+                
+                $result = $publico->Consulta( 
+                 "SELECT
+                        p.GRADE,
+                        p.CODIGO, 
+                        p.OUTRO_COD,
+                        p.DATA_RECAD, 
+                        p.SKU_MKTPLACE,
+                        p.DESCR_CURTA_MKTPLACE,
+                        p.DESCR_LONGA_MKTPLACE,
+                        g.DESCRICAO, 
+                        p.APLICACAO, 
+                        P.GARANTIA,
+                        p.COMPRIMENTO, 
+                        p.LARGURA, 
+                        p.ALTURA, 
+                        p.PESO,
+                        p.ORIGEM, 
+                        p.CATEGORIA_MKTPLACE, 
+                        p.INTERM_CATEGORIA_MKTPLACE,
+                        p.FINALCATEGORIA_MKTPLACE,
+                        p.MODELO_MKTPLACE,
+                        p.NUM_FABRICANTE,
+                        tp.PRECO,
+                        tp.PROMOCAO,
+                        m.descricao AS MARCA,
+                        cf.NCM
+                    FROM grades as g 
+                    LEFT JOIN cad_prod p on p.GRADE = g.codigo
+                    INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
+                    LEFT JOIN cad_pmar m ON m.codigo = p.marca
+                    LEFT JOIN class_fiscal cf ON cf.CODIGO = p.CLASS_FISCAL
+                    WHERE  p.ATIVO = 'S'    
+                    AND tp.tabela = {$this->tabelaPreco} 
+                    AND g.CODIGO = '$codigoGrade'
+                    ORDER BY LENGTH(p.APLICACAO) DESC
+                    LIMIT 1 
+                 ");
 
                 $produto = mysqli_fetch_array($result, MYSQLI_ASSOC);
 
