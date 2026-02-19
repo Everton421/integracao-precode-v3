@@ -31,7 +31,7 @@ $database_eventos = $eventos->getBase();
         // Busca apenas um lote por vez (ex: 50) para não sobrecarregar
         $sql = "SELECT * FROM {$database_eventos}.eventos_produtos_sistema 
                 WHERE status = 'PENDENTE' 
-                ORDER BY id ASC LIMIT 50";
+                ORDER BY id ASC LIMIT 100";
         
         $res_eventos = $eventos->Consulta($sql);
 
