@@ -207,7 +207,9 @@ class EnviarProdutoGrade
                                 FINALCATEGORIA_MKTPLACE = '$cat_final_db',
                                 PESO = '$peso',
                                 ALTURA = '$altura',
-                                GARANTIA = '$garantia_db' 
+                                GARANTIA = '$garantia_db',
+                                DESCR_CURTA_MKTPLACE = '$descricao',
+                                DESCR_LONGA_MKTPLACE = '$descricao' 
                                 WHERE CODIGO =  '$variation_ref' ";
                                 $envioPrecodeBase = $publico->Consulta($update_cad_prod);
  

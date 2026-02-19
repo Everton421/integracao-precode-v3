@@ -175,6 +175,8 @@ include_once(__DIR__ . '/../database/conexao_integracao.php');
                                                 CATEGORIA_MKTPLACE = '$categoria_db',
                                                 INTERM_CATEGORIA_MKTPLACE = '$cat_interm_db',
                                                 FINALCATEGORIA_MKTPLACE = '$cat_final_db',
+                                                  DESCR_CURTA_MKTPLACE = '$descricao',
+                                                  DESCR_LONGA_MKTPLACE = '$descricao',
                                                 PESO = '$peso',
                                                 ALTURA = '$altura',
                                                 GARANTIA = '$garantia_db' 
