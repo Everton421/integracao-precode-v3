@@ -70,8 +70,9 @@ $database_eventos = $eventos->getBase();
                 $res_vinculo = $integracao->Consulta($sql_vinculo);
 
                 if (mysqli_num_rows($res_vinculo) > 0) {
-                    $obj_env_preco->postPreco($codigo_produto, $publico, $integracao);
-                    echo " - Preço enviado.\n";
+                   $resultEnvPrice = $obj_env_preco->postPreco($codigo_produto, $publico, $integracao);
+                   print_r("-- ".$resultEnvPrice); 
+                   echo " - Preço enviado.\n";
                 }
                 $processado = true;
             }
