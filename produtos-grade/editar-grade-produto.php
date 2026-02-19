@@ -231,10 +231,10 @@
                     LEFT JOIN cad_pmar m ON m.codigo = p.marca
                     LEFT JOIN class_fiscal cf ON cf.CODIGO = p.CLASS_FISCAL
                     WHERE  p.ATIVO = 'S'    
-                    AND tp.tabela = {$this->tabelaPreco} 
-                    AND g.CODIGO = '$codigoGrade'
+                    AND tp.tabela = $tabelaPreco 
+                    AND g.CODIGO = '$codigo_grade'
                     ORDER BY LENGTH(p.APLICACAO) DESC
-                    LIMIT 1 
+                    LIMIT 1;
                  ");
 
                 $produto = mysqli_fetch_array($result, MYSQLI_ASSOC);
