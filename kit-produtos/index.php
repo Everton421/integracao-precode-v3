@@ -120,42 +120,42 @@
   <form method="post" action="controller.php" id="formEnvia">
 
     <div class="sidebar">
-        <button type="submit" name="acao" value="enviar">
-            Enviar produtos selecionado
-            <i class="fa-solid fa-arrow-up-from-bracket"></i>
-      </button>
-        <a href="../jobs/atualizar-preco.php">
-            Enviar Preços de todos produtos
+        
+  <!--      <a href="../jobs/atualizar-preco.php">
+            Enviar Preços de todos os kits
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
         <a href="../jobs/atualizar-estoque.php">
-            Enviar Estoque de todos produtos
+            Enviar Estoque de todos os kits
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </a>
         <hr>
+-->
     <button type="submit" name="acao" value="atualizarPreco">
         
-        Enviar Preço do produto selecionado
+        Enviar Preço do kit selecionado
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
     </button>
 
     <button type="submit" name="acao" value="atualizarEstoque">
-            Enviar Estoque do produto selecionados
+            Enviar Estoque do kit selecionados
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
     </button>
 
         <hr>
      
-    <button type="submit" name="acao" value="vincular">
+  <!---    <button type="submit" name="acao" value="vincular">
         Obter vínculo do produto selecionado
         <i class="fa-solid fa-paperclip"></i>
     </button>
 
-    <button type="submit" name="acao" value="vincularTodos">
+  <button type="submit" name="acao" value="vincularTodos">
         Obter vínculo de todos os produtos possíveis 
         <i class="fa-solid fa-paperclip"></i>
     </button>
     <hr>
+
+    --->
     <?php
         $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
         $enviar = false;
@@ -181,7 +181,7 @@
             <div class="form-group" style="margin-top: 60px;">
                 <h2 style="font-weight: bold;"> 
                     <i class="fa-solid fa-cube"></i> 
-                    Produtos
+                    Produtos padronizados
                 </h2>
             </div>
 
@@ -198,9 +198,7 @@
                         <tr>
                             <th></th>
                             <th>Código ERP</th>
-                            <th>Referência/Outro Código</th>
                             <th>Código Agrupador Precode</th>
-                            <th>SKU Loja Precode</th>
                             <th>Descrição</th>
                             <th>Saldo Enviado</th>
                             <th>Preço Enviado</th>
@@ -220,36 +218,28 @@
                             $database_integracao = $integracao->getBase();
 
                             $database_vendas = $vendas->getBase();
-                            $result = $publico->Consulta("SELECT cp.CODIGO, cp.OUTRO_COD ,cp.DESCRICAO,
-                                                                fp.FOTO, pr.FOTOS as CAMINHO_FOTOS,
-                                                                COALESCE(pp.PRECO_SITE, 0 ) AS PRECO_SITE,
-                                                                 COALESCE(pp.REF_LOJA, 0 ) AS REF_LOJA,
-                                                                 COALESCE( pp.SKU_LOJA, 0 ) AS SKU_LOJA,
-                                                                COALESCE( pp.CODIGO_SITE,0 ) AS CODIGO_SITE,
-                                                                  COALESCE(pp.SALDO_ENVIADO,0 ) as SALDO_ENVIADO,
-                                                                  COALESCE( pp.DATA_RECAD_ESTOQUE, '2001-01-01 01:00') AS DATA_RECAD_ESTOQUE 
-                                                            FROM cad_prod cp
-                                                            LEFT JOIN ".$database_integracao.".produto_precode pp ON pp.codigo_bd = cp.CODIGO
-                                                            LEFT JOIN ".$database_integracao.".fotos_prod_precode fp ON fp.PRODUTO = cp.CODIGO
-                                                            JOIN ".$database_vendas.".parametros pr on pr.id = 1
-                                                            WHERE cp.ATIVO='S' AND cp.NO_MKTP='S'
-                                                        GROUP BY cp.CODIGO
-                                                            ORDER BY cp.CODIGO
-                                                            ");
+                            $result = $publico->Consulta("			
+                                                      SELECT 
+                                                       	cp.*,
+                                                        p.id,
+                                                    p.CODIGO_SITE,
+                                                    p.SALDO_ENVIADO,
+                                                    p.PRECO_SITE,
+                                                    p.DATA_RECAD_ESTOQUE 
+                                                        FROM 
+                                                        cad_padr cp 
+                                                        left join ".$database_integracao.".padronizados p 
+                                                        on p.CODIGO_PADR = cp.CODIGO 
+                                                        where cp.PROD_SERV = 'p' ");
                             $numRows = mysqli_num_rows($result);
                             if ($numRows > 0) {
                                 while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
                                     $codigo = $list['CODIGO'];
                                     $descricao = $list['DESCRICAO'];
                                     $codigo_site = $list['CODIGO_SITE'];
-                                    $outro_cod= $list['OUTRO_COD'];
-                                    $foto = $list['FOTO'];
-                                    $caminho = $list['CAMINHO_FOTOS'];
                                     $preco = $list['PRECO_SITE'];
                                     $saldo = $list['SALDO_ENVIADO'];
-                                    $skuLoja = $list['SKU_LOJA'];
-                                    $refLoja = $list['REF_LOJA'];
-
+                                    $id = $list['id'];
 
                                 $dataEstoque = new DateTime($list['DATA_RECAD_ESTOQUE']);
                             $dataEstoque = $dataEstoque->format('d/m/Y H:i'); 
@@ -257,11 +247,9 @@
                                     $classe_enviado = ($codigo_site != null && $codigo_site != '' && $codigo_site !=  0) ? 'enviado' : '';
 
                                     echo "<tr class='$classe_enviado'>";
-                                        echo "<td><input type='checkbox' name='codprod[]' value='$codigo'></td>";
+                                        echo "<td><input type='checkbox' name='codprod[]' value='$id'></td>";
                                         echo "<td>$codigo</td>";
-                                        echo "<td>$outro_cod</td>";
                                         echo "<td>$codigo_site</td>";
-                                        echo "<td>$skuLoja</td>";
                                            echo "<td> ". htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1'))." </td>";
                                         echo "<td>$saldo</td>";
                                         echo "<td>$preco</td>";

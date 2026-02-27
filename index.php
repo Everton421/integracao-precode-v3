@@ -40,6 +40,7 @@
     <?php
     echo '<a href="./produtos-grade"><i class="fa-solid fa-cube"></i><span style="margin: 10px;">grades produtos<span></a>';
     echo '<a href="./produtos"><i class="fa-solid fa-cube"></i><span style="margin: 10px;">produtos<span></a>';
+    echo '<a href="./kit-produtos"><i class="fa-solid fa-cube"></i><span style="margin: 10px;">kits<span></a>';
     echo '<a href="#"><i class="fa-regular fa-clipboard"></i><span style="margin: 10px;">Pedidos<span></a>';
     ?>
 </div>

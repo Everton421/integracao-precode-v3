@@ -46,54 +46,55 @@
 <body>
 <div class="container">
     <?php
-    include_once(__DIR__.'/../utils/enviar-produto.php');
     include_once(__DIR__.'/../utils/obter-vinculo-produto.php');
     include_once(__DIR__.'/../database/conexao_publico.php');
     include_once(__DIR__.'/../database/conexao_vendas.php');
     include_once(__DIR__.'/../database/conexao_integracao.php');
     include_once(__DIR__.'/../database/conexao_estoque.php');
 
-    include_once(__DIR__.'/../utils/enviar-preco.php');
-    include_once(__DIR__.'/../utils/enviar-saldo.php');
+    include_once(__DIR__.'/../services/kit-produtos/enviar-preco-kit.php');
+    include_once(__DIR__.'/../services/kit-produtos/enviar-saldo-kit.php');
+    include_once(__DIR__.'/../services/kit-produtos/enviar-kit-produto.php');
 
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $objEnviarProduto = new EnviarProduto();
         $objeObterVinculo = new ObterVinculo();
         $publico= new CONEXAOPUBLICO();
         $estoque= new CONEXAOESTOQUE();
         $vendas= new CONEXAOVENDAS();
         $integracao = new CONEXAOINTEGRACAO();
 
-        $objEnviarPreco = new EnviarPreco();
-        $objEnviarEstoque = new EnviarSaldo();
+        $enviar_kit = new EnviarKitProduto();
+
+        $enviar_preco_kit = new EnviarPrecoKit();
+        $enviar_estoque_kit= new EnviarSaldoKit();
 
         if (isset($_POST['acao'])) {
-
-                 if($acao == 'enviar'){
-                     $response = $objEnviarProduto->enviarProduto($_POST);
+            $acao = $_POST['acao'];
+                if($acao == 'enviar'){
+                     $response = $enviar_kit->enviarkit($_POST);
                         $result = json_decode($response, true);
 
                         if ($result['success']) {
                             echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
                             echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                            echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo']  ;
+                            echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo_kit']  ;
                             echo '</div>';
                         } else {
                             echo '<div class="mensagem-container mensagem-erro" role="alert">';
                             echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
                             echo "<strong>Atenção!</strong> " . $result['message'];
-                            echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
+                            echo "<br><strong> Produto: </strong>" . $_POST['codigo_kit'] ;
                             echo '</div>';
                         }
-                } 
+                }
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
                 $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
                     if ($acao == 'atualizarPreco') {
                         // Lógica para enviar o produto
                        
-                        $response = $objEnviarPreco->postPreco($codigo, $publico, $integracao);
+                        $response = $enviar_preco_kit->postPrecoKit($codigo,$publico, $integracao);
                     
                         $result = json_decode($response, true);
                         if ($result['success'] > 0) {
@@ -111,7 +112,7 @@
                         }
                         if ($acao == 'atualizarEstoque') {
                             // Lógica para enviar o produto
-                            $response = $objEnviarEstoque->postSaldo($codigo , $publico, $estoque, $vendas, $integracao);
+                            $response = $enviar_estoque_kit->postSaldoKit($codigo , $publico, $estoque, $vendas, $integracao);
                             $result = json_decode($response, true);
                             if ($result['success'] > 0 ) {
                                 echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
@@ -126,27 +127,9 @@
                                 echo '</div>';
                             }
                         }
-                         
+       
 
-                                //     if ($acao == 'enviar') {
-                                //         // Lógica para enviar o produto
-                                //         $response = $objEnviarProduto->enviarProduto($codigo);
-                                //         $result = json_decode($response, true);
-                    
-                                //         if ($result['success']) {
-                                //             echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                                //             echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                                //             echo "<strong> " . $result['message'] . "</strong><br>produto :  $codigo ";
-                                //             echo '</div>';
-                                //         } else {
-                                //             echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                                //             echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                                //             echo "<strong>Atenção!</strong> " . $result['message'];
-                                //             echo "<br><strong> Produto: </strong>" . $codigo;
-                                //             echo '</div>';
-                                //         }
-                                //     }  
-                    if ($acao == 'vincular') {
+                   /* if ($acao == 'vincular') {
                          $vinculo = $objeObterVinculo->getVinculo($codigo);  
                          $vinculo =json_decode($vinculo);
                         if($vinculo->success){
@@ -161,12 +144,11 @@
                             echo "<br><strong> Produto: </strong>" . $codigo;
                             echo '</div>';
                          }
-                        }  
+                        }  */
                 }
-                 
               
             } else {
-                 if($acao == 'vincularTodos'){
+                 /**if($acao == 'vincularTodos'){
                         $resultItems = $publico->consulta("SELECT * FROM cad_prod cp where cp.ATIVO='S' ");
                          $numRows = mysqli_num_rows($resultItems);
                             if($numRows > 0 )  {
@@ -189,7 +171,7 @@
                                 }
                                 }
                             }
-                    }
+                    } */
             }
 
         } else {

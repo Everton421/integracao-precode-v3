@@ -8,15 +8,23 @@ include_once(__DIR__.'/../database/conexao_estoque.php');
 include_once(__DIR__.'/../database/conexao_vendas.php');
 include_once(__DIR__.'/../database/conexao_integracao.php');
 include_once(__DIR__.'/../database/conexao_eventos.php');
+
+// Utils
 include_once(__DIR__.'/../utils/enviar-saldo.php');
 include_once(__DIR__.'/../utils/enviar-preco.php');
+include_once(__DIR__.'/../services/kit-produtos/enviar-preco-kit.php'); // <--- INCLUÍDO NOVO ARQUIVO
+include_once(__DIR__.'/../services/kit-produtos/enviar-saldo-kit.php'); // <--- INCLUÍDO NOVO ARQUIVO
 
 $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
 $appToken = $ini['conexao']['token'] ?? exit('Token não fornecido');
 
+// Instancia objetos
 $obj_env_saldo = new EnviarSaldo();
 $obj_env_preco = new EnviarPreco();
+$obj_env_preco_kit = new EnviarPrecoKit(); // <--- INSTANCIA CLASSE DE PREÇO KIT
+$obj_env_saldo_kit = new EnviarSaldoKit(); // <--- INSTANCIA CLASSE DE PREÇO KIT
 
+// Instancia conexões
 $publico = new CONEXAOPUBLICO();
 $estoque = new CONEXAOESTOQUE();
 $vendas = new CONEXAOVENDAS();
@@ -24,9 +32,10 @@ $eventos = new CONEXAOEVENTOS();
 $integracao = new CONEXAOINTEGRACAO();
 
 $database_eventos = $eventos->getBase();
+$database_integracao = $integracao->getBase();
 
 try {
-    // Busca os eventos
+    // Busca os eventos pendentes
     $sql = "SELECT * FROM {$database_eventos}.eventos_produtos_sistema 
             WHERE status = 'PENDENTE' 
             ORDER BY id ASC LIMIT 100";
@@ -35,24 +44,20 @@ try {
     $total_eventos = mysqli_num_rows($res_eventos);
 
     if ($total_eventos === 0) {
-        // Se o Node fez o trabalho certo, isso raramente vai acontecer.
-        // Não use sleep() aqui, apenas saia para liberar o processo Node.
         exit(0); 
     }
 
     echo "Processando {$total_eventos} eventos...\n";
 
-    // OTIMIZAÇÃO: Cache de produtos vinculados para evitar N+1 queries
-    // Vamos coletar todos os IDs de produtos deste lote
     $eventos_dados = [];
     $ids_produtos = [];
     
     while ($row = mysqli_fetch_array($res_eventos, MYSQLI_ASSOC)) {
         $eventos_dados[] = $row;
-        $ids_produtos[] = intval($row['id_registro']); // ID do produto
+        $ids_produtos[] = intval($row['id_registro']); 
     }
     
-    // Busca todos os vínculos de uma só vez (WHERE IN)
+    // Cache de Vínculos (Produtos Simples)
     $mapa_vinculos = [];
     if (!empty($ids_produtos)) {
         $ids_str = implode(',', $ids_produtos);
@@ -62,100 +67,85 @@ try {
             $mapa_vinculos[$v['CODIGO_BD']] = $v['codigo_site'];
         }
     }
+    
+    // Cache de Vínculos (Kits) - Descobre quais kits contêm esses produtos
+    $mapa_kits_afetados = [];
+    if (!empty($ids_produtos)) {
+        $ids_str = implode(',', $ids_produtos);
+        // Busca ID_KIT onde o produto faz parte
+     //   $sql_kits = "SELECT DISTINCT ID_KIT, CODIGO_BD FROM itens_kit WHERE CODIGO_BD IN ($ids_str)";
 
-    // Processa o loop agora sem fazer query extra de verificação
+        $sql_kits ="SELECT 
+                DISTINCT pp.id AS ID_KIT,
+                cp.CODIGO as  CODIGO_BD
+            FROM ".$database_integracao.".padronizados as pp  
+            join cad_padr cpd on cpd.CODIGO = pp.CODIGO_PADR
+            join ite_padr ip  on ip.PADRONIZADO = pp.CODIGO_PADR
+            join cad_prod cp on cp.CODIGO = ip.PROD_SERV
+                	WHERE  ip.PROD_SERV  IN ($ids_str);";
+
+        
+        $res_kits = $publico->Consulta($sql_kits);
+        while($k = mysqli_fetch_assoc($res_kits)){
+            // Cria um array: Produto ID => [Lista de Kits ID]
+            $mapa_kits_afetados[$k['CODIGO_BD']][] = $k['ID_KIT'];
+        }
+    }
+
     foreach ($eventos_dados as $row) {
         $id_evento = $row['id'];
         $codigo_produto = $row['id_registro'];
         $tabela_origem = $row['tabela_origem'];
         
-        // Verifica se existe no mapa carregado previamente
-        $possui_vinculo = isset($mapa_vinculos[$codigo_produto]);
+        $possui_vinculo_simples = isset($mapa_vinculos[$codigo_produto]);
+        $faz_parte_de_kit = isset($mapa_kits_afetados[$codigo_produto]);
 
-        if ($possui_vinculo) {
+        // 1. Processamento de Produtos Simples
+        if ($possui_vinculo_simples) {
             if ($tabela_origem == 'pro_orca' || $tabela_origem == 'prod_setor') {
-                echo "[ID $id_evento] Prod $codigo_produto: Enviando Saldo...\n";
+                echo "[ID $id_evento] Prod $codigo_produto: Enviando Saldo Simples...\n";
                 $obj_env_saldo->postSaldo($codigo_produto, $publico, $estoque, $vendas, $integracao);
             }
             elseif ($tabela_origem == 'prod_tabprecos') {
-                echo "[ID $id_evento] Prod $codigo_produto: Enviando Preço...\n";
+                echo "[ID $id_evento] Prod $codigo_produto: Enviando Preço Simples...\n";
                 $obj_env_preco->postPreco($codigo_produto, $publico, $integracao);
             }
-        } else {
+        } 
+        
+        // 2. Processamento de KITS (Se o preço do componente mudou, o preço do kit muda)
+        if ($faz_parte_de_kit && $tabela_origem == 'prod_tabprecos') {
+            $lista_kits = $mapa_kits_afetados[$codigo_produto];
+            foreach($lista_kits as $id_kit){
+                echo "[ID $id_evento] Prod $codigo_produto altera Kit ID $id_kit: Atualizando Preço Kit...\n";
+                // Chama a classe de envio de preço do kit
+                $retornoKit = $obj_env_preco_kit->postPrecoKit($id_kit, $publico, $integracao);
+                // Opcional: Logar retorno
+                // echo "   -> " . $retornoKit . "\n";
+            }
+        }
+          if ($faz_parte_de_kit && $tabela_origem == 'pro_orca' || $tabela_origem == 'prod_setor') {
+            $lista_kits = $mapa_kits_afetados[$codigo_produto];
+            foreach($lista_kits as $id_kit){
+              echo "[ID $id_evento] Prod $codigo_produto altera Kit ID $id_kit: Atualizando estoque Kit...\n";
+                // Chama a classe de envio de preço do kit
+                 $retornoKit = $obj_env_saldo_kit->postSaldoKit($id_kit, $publico, $estoque, $vendas, $integracao);
+              
+                // Opcional: Logar retorno
+                // echo "   -> " . $retornoKit . "\n";
+            }
+        }
+        
+        // Se não tem vínculo nenhum
+        if (!$possui_vinculo_simples && !$faz_parte_de_kit) {
              echo "[ID $id_evento] Prod $codigo_produto: Ignorado (sem vínculo).\n";
         }
 
-        // Atualiza status
+        // Atualiza status do evento
         $eventos->Consulta("UPDATE {$database_eventos}.eventos_produtos_sistema SET status = 'PROCESSADO' WHERE id = $id_evento");
     }
 
 } catch (Exception $e) {
     echo "Erro PHP: " . $e->getMessage() . "\n";
-    exit(1); // Retorna erro para o Node saber
+    exit(1); 
 }
- 
-/*
-    try {
-        // Busca apenas um lote por vez (ex: 50) para não sobrecarregar
-        $sql = "SELECT * FROM {$database_eventos}.eventos_produtos_sistema 
-                WHERE status = 'PENDENTE' 
-                ORDER BY id ASC LIMIT 100";
-        
-        $res_eventos = $eventos->Consulta($sql);
-
-        if (mysqli_num_rows($res_eventos) === 0) {
-            // Se não há eventos, espera um pouco mais para poupar CPU
-             exit(0); 
-        }
-
-        while ($row = mysqli_fetch_array($res_eventos, MYSQLI_ASSOC)) {
-            $id_evento = $row['id'];
-            $codigo_produto = $row['id_registro'];
-            $tabela_origem = $row['tabela_origem'];
-
-            $processado = false;
-
-            // LÓGICA DE ESTOQUE (pro_orca ou prod_setor)
-            if ($tabela_origem == 'pro_orca' || $tabela_origem == 'prod_setor') {
-                echo "[ID $id_evento] Produto $codigo_produto: Verificando estoque...\n";
-                
-                // Corrigido: era $$integracao
-                $sql_vinculo = "SELECT codigo_site FROM produto_precode WHERE CODIGO_BD = " . intval($codigo_produto);
-                $res_vinculo = $integracao->Consulta($sql_vinculo);
-
-                if (mysqli_num_rows($res_vinculo) > 0) {
-                    $obj_env_saldo->postSaldo($codigo_produto, $publico, $estoque, $vendas, $integracao);
-                    echo " - Saldo enviado.\n";
-                }
-                $processado = true;
-            }
-
-            // LÓGICA DE PREÇO
-            if ($tabela_origem == 'prod_tabprecos') {
-                echo "[ID $id_evento] Produto $codigo_produto: Verificando preço...\n";
-                
-                $sql_vinculo = "SELECT codigo_site FROM produto_precode WHERE CODIGO_BD = " . intval($codigo_produto);
-                $res_vinculo = $integracao->Consulta($sql_vinculo);
-
-                if (mysqli_num_rows($res_vinculo) > 0) {
-                   $resultEnvPrice = $obj_env_preco->postPreco($codigo_produto, $publico, $integracao);
-                   echo " - Preço enviado.\n";
-                }
-                $processado = true;
-            }
-
-            // Atualiza o status para não processar novamente
-            $novo_status =  'PROCESSADO'  ;
-            $eventos->Consulta("UPDATE {$database_eventos}.eventos_produtos_sistema SET status = '$novo_status' WHERE id = $id_evento");
-        }
-
-        // Limpa memória do resultado
-        mysqli_free_result($res_eventos);
-
-    } catch (Exception $e) {
-        echo "Erro: " . $e->getMessage() . "\n";
-        sleep(10); // Espera um pouco antes de tentar novamente após erro
-    }
-    */
-
- 
+?>

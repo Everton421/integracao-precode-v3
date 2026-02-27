@@ -2,7 +2,7 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');//
-include_once(__DIR__.'/../database/conexao_publico.php');
+include_once(__DIR__.'/../../database/conexao_publico.php');
 
 class ReceberTransportadora{
 

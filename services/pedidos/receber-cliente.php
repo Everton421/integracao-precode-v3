@@ -2,7 +2,7 @@
 ini_set('mysql.connect_timeout','0');   
 ini_set('max_execution_time', '0'); 
 date_default_timezone_set('America/Sao_Paulo');//
-include_once(__DIR__.'/../database/conexao_publico.php');
+include_once(__DIR__.'/../../database/conexao_publico.php');
 
 class ReceberCliente{
 
@@ -10,7 +10,7 @@ class ReceberCliente{
         private  $codigoVendedor = 1 ;
 
  public function cadastrarCliente($pedido){   
-        $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
+        $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
 			
         
         if( $ini['conexao']['vendedor_pedido'] && !empty($ini['conexao']['vendedor_pedido'])){

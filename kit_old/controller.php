@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -38,58 +39,119 @@
             color: #856404;
         }
 
-        .mensagem-sucesso i, .mensagem-erro i, .mensagem-alerta i {
+        .mensagem-sucesso i,
+        .mensagem-erro i,
+        .mensagem-alerta i {
             margin-right: 5px;
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <?php
-    include_once(__DIR__.'/../utils/enviar-produto.php');
-    include_once(__DIR__.'/../utils/obter-vinculo-produto.php');
-    include_once(__DIR__.'/../database/conexao_publico.php');
-    include_once(__DIR__.'/../database/conexao_vendas.php');
-    include_once(__DIR__.'/../database/conexao_integracao.php');
-    include_once(__DIR__.'/../database/conexao_estoque.php');
+    <div class="container">
+        <?php
+        include_once(__DIR__ . '/../services/kit-produtos/enviar-kit-produto.php');
+        include_once(__DIR__ . '/../services/kit-produtos/enviar-preco-kit.php');
+        include_once(__DIR__ . '/../services/kit-produtos/enviar-saldo-kit.php');
+        include_once(__DIR__ . '/../database/conexao_estoque.php');
+        include_once(__DIR__ . '/../database/conexao_publico.php');
+        include_once(__DIR__ . '/../database/conexao_vendas.php');
 
-    include_once(__DIR__.'/../utils/enviar-preco.php');
-    include_once(__DIR__.'/../utils/enviar-saldo.php');
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+            $enviar_kit   = new EnviarKitProduto();
+            $enviar_preco = new EnviarPrecoKit();
+            $enviar_saldo = new EnviarSaldoKit();
+
+            $integracao = new CONEXAOINTEGRACAO();
+            $publico = new CONEXAOPUBLICO();
+            $vendas = new CONEXAOVENDAS();
+            $estoque = new CONEXAOESTOQUE();
+
+            if (isset($_POST['acao'])) {
+                $acao =  $_POST['acao'];
+
+                //  print_r($_POST);
 
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $objEnviarProduto = new EnviarProduto();
-        $objeObterVinculo = new ObterVinculo();
-        $publico= new CONEXAOPUBLICO();
-        $estoque= new CONEXAOESTOQUE();
-        $vendas= new CONEXAOVENDAS();
-        $integracao = new CONEXAOINTEGRACAO();
 
-        $objEnviarPreco = new EnviarPreco();
-        $objEnviarEstoque = new EnviarSaldo();
 
-        if (isset($_POST['acao'])) {
+                if ($acao && $acao == 'criar_kit') {
 
-                 if($acao == 'enviar'){
-                     $response = $objEnviarProduto->enviarProduto($_POST);
-                        $result = json_decode($response, true);
+                    print_r($_POST);
+                    /*
+                    $response = $enviar_kit->enviarkit($_POST);
+                    $result = json_decode($response, true);
 
-                        if ($result['success']) {
-                            echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                            echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                            echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo']  ;
-                            echo '</div>';
-                        } else {
-                            echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                            echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                            echo "<strong>Atenção!</strong> " . $result['message'];
-                            echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
-                            echo '</div>';
+                    if ($result['success']) {
+                        echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                        echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                        echo "<strong> " . $result['message'] . "</strong><br>kit :  " . $_POST['id_kit'];
+                        echo '</div>';
+                    } else {
+                        echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                        echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                        echo "<strong>Atenção!</strong> " . $result['message'];
+                        echo "<br><strong> kit : </strong>" . $_POST['id_kit'];
+                        echo '</div>';
+                    } */
+                }
+
+
+                if ($acao == 'atualizarPreco') {
+                    // Lógica para enviar o produto
+                    if (isset($_POST['itens_selecionados']) && is_array($_POST['itens_selecionados'])) {
+                        $codigosProdutos = $_POST['itens_selecionados'];
+                        foreach ($codigosProdutos as $codigo) {
+                            $response = $enviar_preco->postPrecoKit($codigo, $publico, $integracao);
+
+                            $result = json_decode($response, true);
+                            if ($result['success'] > 0) {
+                                echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                echo "<strong> " . $result['message'] . "</strong><br>kit :  $codigo ";
+                                echo '</div>';
+                            } else {
+                                echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                echo "<strong>Atenção!</strong> " . $result['message'];
+                                echo "<br><strong> kit: </strong>" . $codigo;
+                                echo '</div>';
+                            }
                         }
-                } 
+                    }
+                }
+                if ($acao == 'atualizarEstoque') {
+                    if (isset($_POST['itens_selecionados']) && is_array($_POST['itens_selecionados'])) {
+                        $codigosProdutos = $_POST['itens_selecionados'];
+                        foreach ($codigosProdutos as $codigo) {
+                            // Lógica para enviar o produto
+                            $response = $enviar_saldo->postSaldoKit($codigo, $publico, $estoque, $vendas, $integracao);
+
+                            $result = json_decode($response, true);
+                            if ($result['success'] > 0) {
+                                echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                echo "<strong> " . $result['message']  . "</strong><br>Kit :  $codigo ";
+                                echo '</div>';
+                            } else {
+                                echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                echo "<strong>Atenção!</strong> " . $result['message'];
+                                echo "<br><strong> kit: </strong>" . $codigo;
+                                echo '</div>';
+                            }
+                        }
+                    }
+                }
+
+
+                //-------------------  
+                /*
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
                 $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
+                      print_r($acao);
                     if ($acao == 'atualizarPreco') {
                         // Lógica para enviar o produto
                        
@@ -127,25 +189,6 @@
                             }
                         }
                          
-
-                                //     if ($acao == 'enviar') {
-                                //         // Lógica para enviar o produto
-                                //         $response = $objEnviarProduto->enviarProduto($codigo);
-                                //         $result = json_decode($response, true);
-                    
-                                //         if ($result['success']) {
-                                //             echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                                //             echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                                //             echo "<strong> " . $result['message'] . "</strong><br>produto :  $codigo ";
-                                //             echo '</div>';
-                                //         } else {
-                                //             echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                                //             echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                                //             echo "<strong>Atenção!</strong> " . $result['message'];
-                                //             echo "<br><strong> Produto: </strong>" . $codigo;
-                                //             echo '</div>';
-                                //         }
-                                //     }  
                     if ($acao == 'vincular') {
                          $vinculo = $objeObterVinculo->getVinculo($codigo);  
                          $vinculo =json_decode($vinculo);
@@ -163,7 +206,6 @@
                          }
                         }  
                 }
-                 
               
             } else {
                  if($acao == 'vincularTodos'){
@@ -190,19 +232,19 @@
                                 }
                             }
                     }
+            }*/
+            } else {
+                echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhuma ação especificada.</p>";
             }
-
         } else {
-            echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhuma ação especificada.</p>";
+            echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Formulário não enviado.</p>";
         }
-    } else {
-        echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Formulário não enviado.</p>";
-    }
-        $publico->Desconecta();
+        //$publico->Desconecta();
 
-    ?>
-</div>
-<!-- Adicione Font Awesome para os ícones -->
-<script src="https://kit.fontawesome.com/YOUR_KIT_ID.js" crossorigin="anonymous"></script>
+        ?>
+    </div>
+    <!-- Adicione Font Awesome para os ícones -->
+    <script src="https://kit.fontawesome.com/YOUR_KIT_ID.js" crossorigin="anonymous"></script>
 </body>
+
 </html>
