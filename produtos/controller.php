@@ -55,7 +55,7 @@
 
     include_once(__DIR__.'/../utils/enviar-preco.php');
     include_once(__DIR__.'/../utils/enviar-saldo.php');
-
+    include_once(__DIR__.'/../mapper/produto-mapper.php');
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $objEnviarProduto = new EnviarProduto();
@@ -68,25 +68,56 @@
         $objEnviarPreco = new EnviarPreco();
         $objEnviarEstoque = new EnviarSaldo();
 
+        $produto_mapper = new ProdutoMapper($publico, $vendas, $estoque);
+        $acao = $_POST['acao'];
+
         if (isset($_POST['acao'])) {
 
-                 if($acao == 'enviar'){
-                     $response = $objEnviarProduto->enviarProduto($_POST);
-                        $result = json_decode($response, true);
 
-                        if ($result['success']) {
-                            echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
-                            echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
-                            echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo']  ;
-                            echo '</div>';
-                        } else {
-                            echo '<div class="mensagem-container mensagem-erro" role="alert">';
-                            echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
-                            echo "<strong>Atenção!</strong> " . $result['message'];
-                            echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
-                            echo '</div>';
+                  if($acao == 'enviar'){
+                        if(is_array($_POST['codprod'])){
+                            $codigosProdutos = $_POST['codprod'];
+
+                             foreach ($codigosProdutos as $codigo) {
+                            
+                                    $result_mapper = $produto_mapper->obterDadosParaEnvio($codigo);
+                                        $response = $objEnviarProduto->enviarProduto($result_mapper);
+                                        $result = json_decode($response, true);
+
+                                if ($result['success']) {
+                                    echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                    echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                    echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$codigo  ;
+                                    echo '</div>';
+                                } else {
+                                    echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                    echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                    echo "<strong>Atenção!</strong> " . $result['message'];
+                                    echo "<br><strong> Produto: </strong>" . $codigo ;
+                                    echo '</div>';
+                                }
+                                 }
+                        }else{
+
+                        $response = $objEnviarProduto->enviarProduto($_POST);
+                            $result = json_decode($response, true);
+
+                            if ($result['success']) {
+                                echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
+                                echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
+                                echo "<strong> " . $result['message'] . "</strong><br>produto :  ".$_POST['codigo']  ;
+                                echo '</div>';
+                            } else {
+                                echo '<div class="mensagem-container mensagem-erro" role="alert">';
+                                echo '<i class="fas fa-exclamation-triangle"></i>'; // Ícone de erro (Font Awesome)
+                                echo "<strong>Atenção!</strong> " . $result['message'];
+                                echo "<br><strong> Produto: </strong>" . $_POST['codigo'] ;
+                                echo '</div>';
+                            }
                         }
-                } 
+
+                }
+                 
             if (isset($_POST['codprod']) && is_array($_POST['codprod'])) {
                 $codigosProdutos = $_POST['codprod'];
                 foreach ($codigosProdutos as $codigo) {
@@ -111,9 +142,9 @@
                         }
                         if ($acao == 'atualizarEstoque') {
                             // Lógica para enviar o produto
-                            $response = $objEnviarEstoque->postSaldo($codigo , $publico, $estoque, $vendas, $integracao);
-                            $result = json_decode($response, true);
-                            if ($result['success'] > 0 ) {
+                           $response = $objEnviarEstoque->postSaldo($codigo , $publico, $estoque, $vendas, $integracao);
+                           $result = json_decode($response, true);
+                            if ($result['success']  > 0 ) {
                                 echo '<div class="mensagem-container mensagem-sucesso" role="alert">';
                                 echo '<i class="fas fa-check-circle"></i>'; // Ícone de sucesso (Font Awesome)
                                 echo "<strong> " . $result['message']  . "</strong><br>produto :  $codigo ";
@@ -192,7 +223,7 @@
                     }
             }
 
-        } else {
+            } else {
             echo "<p class='mensagem-container mensagem-alerta'><i class='fas fa-info-circle'></i> Nenhuma ação especificada.</p>";
         }
     } else {

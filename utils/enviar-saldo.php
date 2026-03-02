@@ -164,6 +164,8 @@ class EnviarSaldo{
                             echo "produto: $codigoBd saldo: $estoqueprod === $saldoEnviadoPrecode | saldo nao será atualizado ";
                         }
                     }
+                }else{
+                return $this->response(false,'Não foi possivel enviar o saldo do produto '. $codigo .'. Não foi encontrado registros do produto nos setores. ');
                 }   
             }
             // REMOVIDO: $publico->Desconecta(); 
