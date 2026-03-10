@@ -256,21 +256,21 @@
                 echo "<div class='row'>";
                 mysqli_data_seek($resultFotosProd, 0);
                 while($row_fotos = mysqli_fetch_array($resultFotosProd, MYSQLI_ASSOC)){
-                $caminho_foto = $row_fotos['FOTO'];
-                if (file_exists($caminho_foto)) {
-                $imgData = file_get_contents($caminho_foto);
-                $img = base64_encode($imgData);
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimeType = finfo_file($finfo, $caminho_foto);
-                finfo_close($finfo);
-                 echo "<div class='col-md-3'>";
-                  echo "<img src='data:" . $mimeType . ";base64," . $img . "' alt='Imagem do Produto' class='img-thumbnail'>";
-                echo "</div>";
-                } else {
-                 echo "<div class='col-md-3'>";
-                  echo "<p>Imagem não encontrada: </p>";
-                  echo "</div>";
-              }
+                    $caminho_foto = $row_fotos['FOTO'];
+                        if (file_exists($caminho_foto)) {
+                            $imgData = file_get_contents($caminho_foto);
+                            $img = base64_encode($imgData);
+                            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                            $mimeType = finfo_file($finfo, $caminho_foto);
+                            finfo_close($finfo);
+                            echo "<div class='col-md-3'>";
+                            echo "<img src='data:" . $mimeType . ";base64," . $img . "' alt='Imagem do Produto' class='img-thumbnail'>";
+                            echo "</div>";
+                        } else {
+                        echo "<div class='col-md-3'>";
+                        echo "<p>Imagem não encontrada: </p>";
+                        echo "</div>";
+                    }
             }
             echo "</div>";
  

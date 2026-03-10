@@ -6,7 +6,7 @@ require_once(__DIR__ . '/../database/conexao_publico.php');
 include_once(__DIR__ . '/../database/conexao_vendas.php');
 include_once(__DIR__ . '/../database/conexao_integracao.php');
 include_once(__DIR__ . '/../database/conexao_estoque.php');
-include_once(__DIR__ . '/enviar-foto.php'); // Inclua o arquivo com a classe EnviarFotos
+include_once(__DIR__ . '/enviar-foto-grade.php'); // Inclua o arquivo com a classe EnviarFotos
 
 class EnviarProdutoGrade
 {
@@ -15,7 +15,8 @@ class EnviarProdutoGrade
 
           $publico = new CONEXAOPUBLICO();
           $integracao = new CONEXAOINTEGRACAO();
- 
+            $enviarFotosGrade = new EnviarFotosGrade();
+
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
         $tabelaDePreco = 1;
@@ -30,10 +31,24 @@ class EnviarProdutoGrade
 
         $appToken = $ini['conexao']['token'];
 
+        if( isset($ini['config']['envio_fotos']) ){
+            $envio_fotos  = filter_var($ini['config']['envio_fotos'], FILTER_VALIDATE_BOOLEAN );
+        }
 
         if (!$appToken || empty($appToken)) {
             return $this->response(false, ' token da aplicação não foi fornecido');
         }
+                $fotos=[];        
+
+         if($envio_fotos  > 0){
+                      $fotos = $enviarFotosGrade->enviarFotos($produto['codigo']); 
+                     if (is_array($fotos) && isset($fotos['success']) && $fotos['success'] === false) {
+                            // Se $fotos não for um array ou estiver vazio, houve um erro
+                            echo "Erro ao enviar imagens:\n";
+                            print_r($fotos); // Exibe a mensagem de erro retornada pela função
+                           // return $this->response(false, "Erro ao enviar imagens: " . json_encode($fotos));
+                        } 
+         }
 
 
             $codigo = $produto['codigo'];
@@ -129,7 +144,7 @@ class EnviarProdutoGrade
                        # 'nomegradex' => !empty($row['DESCRICAO_CARACTERISTICA']) && $row['DESCRICAO_CARACTERISTICA'] == 'COR' ? $row['VALOR_CARACTERISTICA']  : '',
                         'qty' => $item['estoque'],
                        'ean' => !empty($item['num_fabricante']) ? $item['num_fabricante'] : null,
-                        'images' => [],
+                        'images' => $fotos,
                          'specifications' => [
                       
                             [

@@ -39,7 +39,7 @@ class ProdutoMapper
 
         $estoque = $this->calcularEstoque($codigo);
 
-
+        
 
         $categoria = '';
         $categoria_interm = '';

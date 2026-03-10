@@ -89,7 +89,7 @@
                 echo $enviar_habilitado ? '' : 'disabled';
             }
             ?>>
-            Enviar Grade Produto <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            Enviar Kit <i class="fa-solid fa-arrow-up-from-bracket"></i>
         </button>
     </div>
 
@@ -144,7 +144,9 @@
                 join ite_padr ipd on ipd.PROD_SERV = p.CODIGO
                 join cad_padr pdr on pdr.CODIGO = ipd.PADRONIZADO
                 join prod_tabprecos pp on pp.PRODUTO = p.CODIGO
-                WHERE pdr.CODIGO = '$codigo_grade';
+                WHERE pdr.CODIGO = '$codigo_grade'
+                group by p.codigo
+                ;
                 ";
 
                 $resultProdutos = $publico->Consulta($sqlProdutosgrade);

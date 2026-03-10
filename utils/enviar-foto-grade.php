@@ -5,7 +5,7 @@ include_once(__DIR__.'/../database/conexao_publico.php');
 include_once(__DIR__.'/../database/conexao_vendas.php');
 include_once(__DIR__.'/../database/conexao_integracao.php');
 
-class EnviarFotos {
+class EnviarFotosGrade {
 
     public function enviarFotos(int $codigo) {
         $vendas = new CONEXAOVENDAS();
@@ -16,7 +16,7 @@ class EnviarFotos {
 
         $sistemImgsPath = mysqli_fetch_array($resultSistemImgsPath, MYSQLI_ASSOC);
 
-         $resultPhotosProd = $publico->Consulta('SELECT * FROM fotos_prod WHERE PRODUTO = '.$codigo );
+         $resultPhotosProd = $publico->Consulta('SELECT * FROM fotos_grade WHERE GRADE = '.$codigo );
          $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
          $key = $ini['fotos']['key_imgbb'];
          $arrResult =[];
@@ -74,11 +74,11 @@ class EnviarFotos {
                             $link =  $retorno['data']['url'];
                             array_push( $arrResult, $link );
 
-                                    $oldPhotos = $integracao->Consulta("SELECT * FROM fotos_prod_precode WHERE produto = '$codigo' AND SEQ ='$sequenc';");
+                                    $oldPhotos = $integracao->Consulta("SELECT * FROM fotos_grade_precode WHERE GRADE = '$codigo' AND SEQ ='$sequenc';");
                                     if(mysqli_num_rows($oldPhotos) > 0  ){
-                                    $resultDelete = $integracao->Consulta("DELETE  FROM fotos_prod_precode WHERE PRODUTO =  '$codigo' AND SEQ ='$sequenc';");
+                                    $resultDelete = $integracao->Consulta("DELETE  FROM fotos_grade_precode WHERE GRADE =  '$codigo' AND SEQ ='$sequenc';");
                                     }
-                                    $resultInsert =  $integracao->Consulta("INSERT INTO fotos_prod_precode SET  PRODUTO = '$codigo', FOTO = '$photoName',SEQ='$sequenc', LINK='$link' ");
+                                    $resultInsert =  $integracao->Consulta("INSERT INTO fotos_grade_precode SET  GRADE = '$codigo', FOTO = '$photoName',SEQ='$sequenc', BASE64_FOTO='$img', LINK='$link' ");
                                     if( $resultInsert   ){
                                     }  else{
                                         error_log("Erro ao registrar foto no banco de dados " ); // Log do erro
@@ -92,8 +92,8 @@ class EnviarFotos {
                     }
                     return $arrResult;
              }else{
-                   error_log("Nenhuma imagem foi encontrada para o produto: " . $codigo); // Log do erro
-                    return  ['success' => false, 'message' => "nenhuma imagem foi encontrada produto: " .$codigo ];
+                   error_log("Nenhuma imagem foi encontrada para a grade: " . $codigo); // Log do erro
+                    return  ['success' => false, 'message' => "nenhuma imagem foi encontrada grade: " .$codigo ];
 
              }
        $publico->Desconecta();
