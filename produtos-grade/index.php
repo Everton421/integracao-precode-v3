@@ -199,26 +199,49 @@
                             $database_vendas = $vendas->getBase();
 
                             $database_integracao =    $integracao->getBase(); 
-                            
-                            $result = $publico->Consulta(" SELECT g.CODIGO, g.OUTRO_COD , g.DESCRICAO,
-                                                                COALESCE( gp.CODIGO_SITE,0 ) AS CODIGO_SITE 
+
+                            $sql ="      SELECT g.CODIGO, g.OUTRO_COD , g.DESCRICAO,
+                                                                COALESCE( gp.CODIGO_SITE,0 ) AS CODIGO_SITE,
+                                                                 	ic.VALOR as CARACTERISTICA
                                                             FROM grades as g
-                                                            LEFT JOIN ".$database_integracao.".grade_precode gp ON gp.codigo_bd = g.CODIGO
-                                                             JOIN ".$database_vendas.".parametros pr on pr.id = 1
+                                                              JOIN lps_publico.itens_grade ig on ig.GRADE = g.CODIGO
+                                                              JOIN lps_publico.carac_grade cg on cg.CODIGO = ig.CARAC
+											                  JOIN  lps_publico.itens_carac ic on ic.CARAC = cg.CODIGO
+                                                            LEFT JOIN lps_publico.cad_prod p on p.GRADE = g.codigo
+                                                            LEFT JOIN $database_integracao.grade_precode gp ON gp.codigo_bd = g.CODIGO
+                                                             JOIN $database_vendas.parametros pr on pr.id = 1
                                                             WHERE g.ATIVO='S'  
                                                         GROUP BY g.CODIGO
-                                                            ORDER BY g.CODIGO  
-                                                            ");
+                                                            ORDER BY g.CODIGO   
+                                                            ";
+                            $result = $publico->Consulta($sql);
                             $numRows = mysqli_num_rows($result);
                             if ($numRows > 0) {
                                 while ($list = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
                                     $codigo = $list['CODIGO'];
-                                    $descricao = $list['DESCRICAO'];
                                     $codigo_site = $list['CODIGO_SITE'];
                                     $outro_cod= $list['OUTRO_COD'];
 
-                             //   $dataEstoque = new DateTime($list['DATA_RECAD_ESTOQUE']);
-                           // $dataEstoque = $dataEstoque->format('d/m/Y H:i'); 
+              
+                                    $caracteristica = $list['CARACTERISTICA'];
+                                    $descricao = $list['DESCRICAO'];
+
+
+                               if (!empty($caracteristica)) {
+                                // A regex explicada:
+                                // \s*           -> Pode ter zero ou mais espaços
+                                // -             -> O hífen literal
+                                // \s*           -> Pode ter zero ou mais espaços
+                                // preg_quote    -> A característica (ex: LE) protegida
+                                // $             -> Tem que estar no final da string
+                                // /i            -> Ignora maiúsculas/minúsculas
+                                
+                                $pattern = '/\s*-\s*' . preg_quote($caracteristica, '/') . '$/i';
+                                
+                                // Substitui por nada
+                                $descricao = preg_replace($pattern, '', $descricao);
+                            }
+
                                     // Verifica se o produto foi enviado
                                     $classe_enviado = ($codigo_site != null && $codigo_site != '' && $codigo_site !=  0) ? 'enviado' : '';
 

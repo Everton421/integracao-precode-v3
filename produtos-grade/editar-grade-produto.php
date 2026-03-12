@@ -208,7 +208,7 @@
                         p.SKU_MKTPLACE,
                         p.DESCRICAO AS DESCR_CURTA_MKTPLACE,
                         p.DESCRICAO AS DESCR_LONGA_MKTPLACE,
-                        g.DESCRICAO, 
+                        p.DESCRICAO, 
                         p.APLICACAO, 
                         P.GARANTIA,
                         p.COMPRIMENTO, 
@@ -224,8 +224,12 @@
                         tp.PRECO,
                         tp.PROMOCAO,
                         m.descricao AS MARCA,
-                        cf.NCM
+                        cf.NCM,
+						ic.VALOR as CARACTERISTICA
                     FROM grades as g 
+                       JOIN itens_grade ig on ig.GRADE = g.CODIGO
+                       JOIN carac_grade cg on cg.CODIGO = ig.CARAC
+					   JOIN itens_carac ic on ic.CARAC = cg.CODIGO
                     LEFT JOIN cad_prod p on p.GRADE = g.codigo
                     INNER JOIN prod_tabprecos tp ON p.CODIGO = tp.PRODUTO
                     LEFT JOIN cad_pmar m ON m.codigo = p.marca
@@ -255,7 +259,26 @@
                     if (array_key_exists($produto['ORIGEM'], $origemMap)) {
                         $origemFormatada = $origemMap[$produto['ORIGEM']];
                     }
-                    }
+                    }   
+                             
+                    $caracteristica = $produto['CARACTERISTICA'];
+                    $descricao = $produto['DESCRICAO'];
+
+
+                            if (!empty($caracteristica)) {
+                                // A regex explicada:
+                                // \s*           -> Pode ter zero ou mais espaços
+                                // -             -> O hífen literal
+                                // \s*           -> Pode ter zero ou mais espaços
+                                // preg_quote    -> A característica (ex: LE) protegida
+                                // $             -> Tem que estar no final da string
+                                // /i            -> Ignora maiúsculas/minúsculas
+                                
+                                $pattern = '/\s*-\s*' . preg_quote($caracteristica, '/') . '$/i';
+                                
+                                // Substitui por nada
+                                $descricao = preg_replace($pattern, '', $descricao);
+                            }
 
                              $categoria=  $produto['CATEGORIA_MKTPLACE'] ;
                              $categoria_interm= $produto['INTERM_CATEGORIA_MKTPLACE'];
@@ -269,16 +292,16 @@
                             $categoria_interm= 'Peças de Carros e Caminhonetes';
                         }
                         if(!$produto['FINALCATEGORIA_MKTPLACE'] || $produto['FINALCATEGORIA_MKTPLACE'] === ''){
-                            if( str_contains( $produto['DESCRICAO'] , 'ANEL' ) ||  str_contains( $produto['DESCRICAO'] , 'ANEIS' )  ){
+                            if( str_contains( $descricao , 'ANEL' ) ||  str_contains( $descricao , 'ANEIS' )  ){
                                 $categoria_final= 'Anéis Segmento';
                             }
-                            if( str_contains( $produto['DESCRICAO'] , 'anel' ) ||  str_contains( $produto['DESCRICAO'] , 'aneis') || str_contains( $produto['DESCRICAO'] , 'anéis' )){
+                            if( str_contains( $descricao , 'anel' ) ||  str_contains( $descricao , 'aneis') || str_contains(  $descricao, 'anéis' )){
                                 $categoria_final= 'Anéis Segmento';
                             }
-                            if( str_contains( $produto['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $produto['DESCRICAO'] , 'Bronzina' )){
+                            if( str_contains( $descricao, 'BRONZINA' ) ||  str_contains( $descricao , 'Bronzina' )){
                                 $categoria_final= 'Bronzina de Mancal';
                                 }
-                            if( str_contains( $produto['DESCRICAO'] , 'BRONZINA' ) ||  str_contains( $produto['DESCRICAO'] , 'Bronzina' )){
+                            if( str_contains( $descricao , 'BRONZINA' ) ||  str_contains( $descricao , 'Bronzina' )){
                                 $categoria_final= 'Bronzina de Mancal';
                             }
 
@@ -290,12 +313,12 @@
 
                     echo "<div class='form-group'>";
                     echo "<label>Descrição/titulo:</label>";
-                    echo "<textarea class='form-control' name='descricao'>" . htmlspecialchars(mb_convert_encoding($produto['DESCRICAO'], 'UTF-8', 'ISO-8859-1')) .  "</textarea>";
+                    echo "<textarea class='form-control' name='descricao'>" . htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1')) .  "</textarea>";
                     echo "</div>";
 
                     echo "<div class='form-group'>";
                     echo "<label>Descrição curta/titulo curto:</label>";
-                    echo "<textarea class='form-control' name='descricaocurta'>" . htmlspecialchars(mb_convert_encoding($produto['DESCRICAO'], 'UTF-8', 'ISO-8859-1')) .  "</textarea>";
+                    echo "<textarea class='form-control' name='descricaocurta'>" . htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1')) .  "</textarea>";
                     echo "</div>";
 
                     echo "<div class='form-group'>";
@@ -305,12 +328,12 @@
 
                     echo "<div class='form-group'>";
                     echo "<label>Descrição Google:</label>";
-                    echo "<textarea class='form-control' name='descricaogoogle'>" . htmlspecialchars(mb_convert_encoding($produto['DESCR_CURTA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
+                    echo "<textarea class='form-control' name='descricaogoogle'>" . htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
                     echo "</div>";
 
                     echo "<div class='form-group'>";
                     echo "<label>Palavras chave:</label>";
-                    echo "<textarea class='form-control' name='palavraschave'>" . htmlspecialchars(mb_convert_encoding($produto['DESCR_LONGA_MKTPLACE'], 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
+                    echo "<textarea class='form-control' name='palavraschave'>" . htmlspecialchars(mb_convert_encoding($descricao, 'UTF-8', 'ISO-8859-1'))  . "</textarea>";
                     echo "</div>";
 
                       echo "<div class='form-group-inline'>";
