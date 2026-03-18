@@ -62,9 +62,9 @@ include_once(__DIR__ . '/../database/conexao_integracao.php');
          if( $produto['marca'] == null  || $produto['marca'] == 0 ){
                     return $this->response(false, 'O campo MARCA não foi atribuido'   );
                 }
-                if($produto['categoria']== null  || $produto['categoria'] == 0 ){
-                    return $this->response(false, 'O campo CATEGORIA/GRUPO não foi atribuido'   );
-                }
+              //  if($produto['categoria']== null  || $produto['categoria'] == 0 ){
+               //     return $this->response(false, 'O campo CATEGORIA/GRUPO não foi atribuido'   );
+               // }
                 if ($produto['peso'] == 0) {
                     return $this->response(false, 'O campo PESO não foi atribuido'   );
                 }
@@ -99,13 +99,13 @@ include_once(__DIR__ . '/../database/conexao_integracao.php');
                 $json['product']['length'] = !empty($comprimento) ? floatval($comprimento) : 0;
                 $json['product']['brand'] = $marca;
                 $json['product']['nbm'] = !empty($ncm) ? str_replace(".","",$ncm)  : '';
-                $json['product']['model'] =   !empty($modelo) ? $this->removerAcentos($modelo) : null ; 
+                $json['product']['model'] =   !empty($modelo) ?  $modelo  : null ; 
                 $json['product']['gender'] = '';
                 $json['product']['volumes'] = 0 ;
                 $json['product']['warrantyTime'] = $garantia;
                 $json['product']['category'] = !empty($categoria) ? $categoria : '';
-                $json['product']['subcategory'] = !empty($categoriainterm) ?  $this->removerAcentos($categoriainterm) : '';
-                $json['product']['endcategory'] = !empty($categoriafinal) ?  $this->removerAcentos($categoriafinal) : '';
+                $json['product']['subcategory'] = !empty($categoriainterm) ?   $categoriainterm  : '';
+                $json['product']['endcategory'] = !empty($categoriafinal) ?   $categoriafinal  : '';
                 $json['product']['manufacturing']  =  $origem;
  
 
@@ -116,7 +116,7 @@ include_once(__DIR__ . '/../database/conexao_integracao.php');
                         #'sku' => !empty($prod['SKU_MKTPLACE']) ?  floatval($prod['SKU_MKTPLACE']) : 0,
                         #'sku' => '',
                         'qty' => !empty($estoque) ?  $estoque : 0  ,
-                        'ean' => !empty($num_fabricante) ? $num_fabricante : null,
+                    //    'ean' => !empty($num_fabricante) ? $num_fabricante : null,
                         'images' => $fotos,
                         'specifications' => [
                             [
