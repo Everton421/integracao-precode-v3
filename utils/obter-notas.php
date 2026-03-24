@@ -8,8 +8,14 @@ class ObterNotas{
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
     
         $token = $ini['conexao']['token'];
-        $url = 'https://www.replicade.com.br/api/v1/invoiced/fulfillment'; // Codifica a referência para a URL
 
+          #$url = 'https://www.replicade.com.br/api/v1/invoiced/fulfillment';
+        #  $url = 'https://www.replicade.com.br/api/v1/fulfillment/marketplace/downloads/MELI/2026/01';// sem prermissao para acessar 
+
+         $url = 'https://www.replicade.com.br/api/v1/pedido/fulfillment/1'; // sem prermissao para acessar 
+
+ 
+        
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => $url,

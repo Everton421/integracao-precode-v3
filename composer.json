@@ -1,0 +1,16 @@
+{
+    "name": "usuario/integracao-precode-php-v3",
+    "autoload": {
+        "psr-4": {
+            "Usuario\\IntegracaoPrecodePhpV3\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Everton"
+        }
+    ],
+    "require": {
+        "php-amqplib/php-amqplib": "^2.8"
+    }
+}
