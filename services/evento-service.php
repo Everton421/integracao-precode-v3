@@ -7,15 +7,14 @@ include_once(__DIR__.'/../services/kit-produtos/enviar-saldo-kit.php'); // <--- 
 
 
 class EventoService {
-  private $publico, $estoque, $vendas, $eventos, $integracao;
+  private $publico, $estoque, $vendas,   $integracao;
     private $obj_env_saldo, $obj_env_preco, $obj_env_preco_kit, $obj_env_saldo_kit;
     private   $database_integracao;
 
-    public function __construct($publico, $estoque, $vendas, $eventos, $integracao) {
+    public function __construct($publico, $estoque, $vendas,   $integracao) {
         $this->publico = $publico;
         $this->estoque = $estoque;
         $this->vendas = $vendas;
-        $this->eventos = $eventos;
         $this->integracao = $integracao;
 
         $this->database_integracao = $integracao->getBase();

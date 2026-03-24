@@ -25,7 +25,7 @@ $queue = $ini['broker']['queue'] ?? "integracao_precode";
 $port  = $ini['broker']['port'] ?? 5672;
 $exchange  = $ini['broker']['exchange'] ?? "sistema";
 
-    $service = new EventoService($publico, $estoque, $vendas, $eventos, $integracao);
+    $service = new EventoService($publico, $estoque, $vendas,   $integracao);
 
 try {
     $connection = new AMQPStreamConnection($url, $port, 'guest', 'guest');
