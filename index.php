@@ -46,9 +46,13 @@
 </div>
 
 <div class="content">
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top ">
         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="<?php echo __DIR__; ?>">INTERSIG</a>
         <a href="jobs/receber-pedidos.php">Receber Pedidos <i class="fa-solid fa-download"></i></a>
+        <div style="margin-left: 30px;">
+         <a href="jobs/enviar-nota.php">enviar notas <i class="fa-solid fa-arrow-up-from-bracket"> </i></a>
+        </div>
+
     </nav>
 
     <div class="container">

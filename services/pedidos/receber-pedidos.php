@@ -199,6 +199,19 @@ class recebePrecode{
                                                 $codigoClienteBd = $row1['CODIGO'];
                                     }  
                         }
+
+                              $status = 0;
+                        switch ( strtolower($marketplace) ){
+                            case 'shopee':
+                                $status = 1;
+                                break;
+
+                            case 'mercado livre':
+                                $status = 2;
+                                break;
+                                default: 
+                                $status = 0;
+                        }
     
                     if(mysqli_num_rows($buscaPedido) > 0){
                         // --- MELHORIA VISUAL ---
@@ -250,7 +263,7 @@ class recebePrecode{
                             PARA_CONSUMO,
                             FILIAL
                             )
-                                VALUES ('0',
+                                VALUES ($status,
                                         '2',
                                         '$codigoPedidoSite',
                                         '$PedidoMktplace',
@@ -373,7 +386,7 @@ class recebePrecode{
                                                             $id_produto_bd = $row['CODIGO'];
                                                             $ultimo_custo = $row['ULT_CUSTO'];
                                                             $custo_medio = $row['CUSTO_MEDIO'];
-
+                                                            $unitario_liquido = $pedidoItens[$p]->valorUnitarioLiquido; // Valor unitário liquido do produto, valor já com a dedução dos descontos.
                                                                     // valores  do produto do pedido
                                                                     $quantidade = $pedidoItens[$p]->quantidade;
                                                                     $valorUnitario = $pedidoItens[$p]->valorUnitario;
@@ -423,7 +436,7 @@ class recebePrecode{
                                                         $sql = "INSERT INTO pro_orca (
                                                                     orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, 
                                                                     just_ipi, just_icms, just_subst, qtde_separada, quantidade, unitario, tabela, 
-                                                                    preco_tabela, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO
+                                                                    preco_tabela, total_liq, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO
                                                                 ) VALUES (
                                                                     '$codigoOrcamento',
                                                                     '$sequencia',
@@ -441,6 +454,7 @@ class recebePrecode{
                                                                     '$valorUnitario',
                                                                     '$this->tabelaprecopadrao',
                                                                     '$valor_prod',
+                                                                    '$unitario_liquido',
                                                                     '$custo_medio',
                                                                     '$ultimo_custo',
                                                                     '$frete_final_sql', 
