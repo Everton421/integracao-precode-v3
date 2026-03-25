@@ -80,8 +80,9 @@ class EventoService {
         if ($tabela == 'pro_orca' || $tabela == 'prod_setor') {
             $this->obj_env_saldo->postSaldo($codigo, $this->publico, $this->estoque, $this->vendas, $this->integracao);
         } elseif ($tabela == 'prod_tabprecos') {
-            $this->obj_env_preco->postPreco($codigo, $this->publico, $this->integracao);
-        }
+           $resultPostPrice =  $this->obj_env_preco->postPreco($codigo, $this->publico, $this->integracao);
+                print_r($resultPostPrice);
+           }   
     }
 
     private function executarAcaoKit($tabela, $kits) {

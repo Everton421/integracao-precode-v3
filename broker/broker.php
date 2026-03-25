@@ -51,7 +51,7 @@ try {
                 $payload = json_decode($msg->body);
                 $tabela_origem = $payload->tabela_origem;
                    $service->processarMensagem($msg->body);
-            $service->teste();
+          //  $service->teste();
             
         }
     };
