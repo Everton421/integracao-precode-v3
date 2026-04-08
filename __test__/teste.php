@@ -1,9 +1,10 @@
 <?php
-    include_once(__DIR__."/../services/pedidos/receber-pedidos.php");
-    include_once(__DIR__."/../utils/obter-notas.php");
-
-	$obj_nfs = new ObterNotas();
-		$obj_nfs->getNotas();
+    include_once(__DIR__."/../services/enviar-notas.php");
+    
+    $object = new EnviarNota();
+    
+    $object->enviar();
+ 
 
 	
 ?>

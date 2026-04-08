@@ -8,7 +8,27 @@ class ReceberCliente{
 
     private $publico;
         private  $codigoVendedor = 1 ;
+   private   function removerAcentos(string $string): string
+    {
+        $map = array(
+            '/[áàãâä]/u' => 'a',
+            '/[ÁÀÃÂÄ]/u' => 'A',
+            '/[éèêë]/u' => 'e',
+            '/[ÉÈÊË]/u' => 'E',
+            '/[íìîï]/u' => 'i',
+            '/[ÍÌÎÏ]/u' => 'I',
+            '/[óòõôö]/u' => 'o',
+            '/[ÓÒÕÔÖ]/u' => 'O',
+            '/[úùûü]/u' => 'u',
+            '/[ÚÙÛÜ]/u' => 'U',
+            '/[ç]/u' => 'c',
+            '/[Ç]/u' => 'C',
+            '/[ñ]/u' => 'n',
+            '/[Ñ]/u' => 'N',
+        );
 
+        return preg_replace(array_keys($map), array_values($map), $string);
+    }
  public function cadastrarCliente($pedido){   
         $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
 			
@@ -22,7 +42,7 @@ class ReceberCliente{
 
                 $cpf = $this->formatCnpjCpf($pedido->dadosCliente->cpfCnpj);
                 $tipo = $pedido->dadosCliente->tipo;
-                $nome = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->nomeRazao)));
+                $nome = addslashes(strtoupper($this->removerAcentos($pedido->dadosCliente->nomeRazao)));
                 $nome = substr($nome , 0, 99 );
                 $apelido = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->fantasia)));
                 $apelido = substr($apelido, 0 , 99 );
@@ -33,9 +53,9 @@ class ReceberCliente{
                 $endereco = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->endereco)));
                 $numero = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->numero)));
                 $complemento = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->complemento)));                
-                $bairro = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->bairro)));
-                $cidade = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->cidade)));
-                $uf = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->uf)));
+                   $bairro = addslashes(strtoupper($this->removerAcentos($pedido->dadosCliente->dadosEntrega->bairro)));
+                $cidade = addslashes(strtoupper($this->removerAcentos($pedido->dadosCliente->dadosEntrega->cidade)));
+              $uf = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->uf)));
                 $cep = addslashes(strtoupper(utf8_decode($pedido->dadosCliente->dadosEntrega->cep)));
                 $cep = substr($cep, 0, 8);
                 

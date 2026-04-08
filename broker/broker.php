@@ -7,6 +7,7 @@ include_once(__DIR__.'/../database/conexao_estoque.php');
 include_once(__DIR__.'/../database/conexao_vendas.php');
 include_once(__DIR__.'/../database/conexao_integracao.php');
 include_once(__DIR__.'/../database/conexao_eventos.php');
+    include_once(__DIR__."/../services/enviar-notas.php");
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
@@ -16,7 +17,8 @@ $estoque = new CONEXAOESTOQUE();
 $vendas = new CONEXAOVENDAS();
 $eventos = new CONEXAOEVENTOS();
 $integracao = new CONEXAOINTEGRACAO();
-
+   
+    
 
 $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
@@ -51,6 +53,10 @@ try {
                 $payload = json_decode($msg->body);
                 $tabela_origem = $payload->tabela_origem;
                    $service->processarMensagem($msg->body);
+                   if($tabela_origem == 'cad_nf'){
+                        $serviceEnviarNotas = new EnviarNota();
+                        $serviceEnviarNotas->enviar();
+                   }
           //  $service->teste();
             
         }
