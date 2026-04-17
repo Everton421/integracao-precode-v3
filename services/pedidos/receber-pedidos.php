@@ -9,6 +9,8 @@ include(__DIR__.'/../../database/conexao_integracao.php');
 include_once(__DIR__.'/receber-transportadora.php');
 include_once(__DIR__.'/receber-cliente.php');
 include_once(__DIR__."/../../utils/registrar-logs.php");
+include_once(__DIR__.'/verificar-estoque-pedido.php');
+include_once(__DIR__ . '/../../utils/pedido-sem-estoque.php');
 
 class recebePrecode{
     public $curl;    	
@@ -23,22 +25,26 @@ class recebePrecode{
     private $vendas;
     private $estoque;
     private $integracao;
-     
+    private $verificarEstoquePedido; 
 
     private $codigoVendedor = 1 ;
     private $codigoTipoRecebimento = 1 ;
     private $formaPagamento= 1;
     private $databaseVendas ;
     private $databaseIntegracao;
-
+    private $pedidoSemEstoque;
+    
     public function recebe(){
         $tentativas = 0;
 		try {
+         $this->pedidoSemEstoque = new PedidoSemEstoque();
+
 			$this->publico = new CONEXAOPUBLICO();	
             $this->vendas = new CONEXAOVENDAS();
             $this->estoque = new CONEXAOESTOQUE();
             $this->integracao = new CONEXAOINTEGRACAO();
             $this->databaseIntegracao = $this->integracao->getBase(); 
+            $this->verificarEstoquePedido = new VerificarEstoquePedido();
 
             $ini = parse_ini_file(__DIR__ .'/../../conexao.ini', true);
                 if($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco']) ){
@@ -136,18 +142,20 @@ class recebePrecode{
      
         
         if(!empty($result)){  
-         
-                ////
-                 for ($i = 0; $i < count($result->pedido); $i++){                 
-                         $objReceberCliente->cadastrarCliente($result->pedido[$i]);
-                     }
 
-                ///
-                for ($i = 0; $i < count($result->pedido); $i++){                 
+                for ($i = 0; $i < count($result->pedido); $i++){  
+                       $objReceberCliente->cadastrarCliente($result->pedido[$i]);
+                }
+
+                for ($i = 0; $i < count($result->pedido); $i++){  
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
+
+
+                    $pedidoItens = $result->pedido[$i]->itens;
+
+
                     $valorTotalCompra = $result->pedido[$i]->valorTotalCompra;
                     $totalGeral = $valorTotalCompra;
-                    $pedidoItens = $result->pedido[$i]->itens;
                     $valorTotalPed = $result->pedido[$i]->valorTotalCompra;
                     
                      $valorFrete = $result->pedido[$i]->valorFrete;
@@ -164,7 +172,30 @@ class recebePrecode{
                     $uf_cob = $result->pedido[$i]->dadosCliente->dadosEntrega->uf;
                     $cnpjTransport = $this->formatCnpjCpf($result-> pedido[$i]->dadosRastreio->CNPJfilial);
                     $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
+    
+                        $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
+                                $this->publico,
+                                $this->vendas,
+                                $this->estoque,
+                                $pedidoItens,
+                                $codigoPedidoSite
+                                );
 
+                                $json = json_decode($resultVerifyEstoque);
+                                print_r($json->message);
+                                // pula para o proximo pedido caso nao tiver estoque
+                            if(!$json->success){
+                              $resultPutPedidoSemEstoque=  $this->pedidoSemEstoque->put($codigoPedidoSite);
+                              echo '<br>';
+                              print_r($resultPutPedidoSemEstoque);
+                              echo '<br>';
+
+                              continue;
+                            }
+
+
+
+                     
 
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
                     
@@ -334,14 +365,14 @@ class recebePrecode{
                                             $freteAcumulado = 0; // Inicializa o acumulador
 
                                             for ($p = 0; $p < $qtd_itens; $p++) {
-                                                $sequencia = $p + 1;
+                                                 $sequencia = $p + 1;
 
-                                                $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
-                                                $sku = $pedidoItens[$p]->sku;
+                                                 $referenciaLoja = $pedidoItens[$p]->referenciaLoja;
+                                                 $sku = $pedidoItens[$p]->sku;
 
 
-                                                $sql_busca_custo = "";
-                                                $sentence = 'KIT-';
+                                                 $sql_busca_custo = "";
+                                                 $sentence = 'KIT-';
 
                                                 // verifica se o produto é um kit 
                                                     $productKit = str_contains($referenciaLoja, $sentence);
@@ -372,11 +403,11 @@ class recebePrecode{
                                                                             GROUP BY p.codigo;";
                                                     }
                                 
-                                            $buscaCusto = $this->publico->Consulta($sql_busca_custo );
+                                                 $buscaCusto = $this->publico->Consulta($sql_busca_custo );
 
-                                                $retorno = mysqli_num_rows($buscaCusto);
+                                                 $retorno = mysqli_num_rows($buscaCusto);
                                                 
-                                                if ($retorno > 0) {
+                                                 if ($retorno > 0) {
                                                     // Inicializa variáveis para evitar erro de "undefined" caso o while falhe
                                                     $id_produto_bd = '';
                                                     $ultimo_custo = 0;
@@ -433,7 +464,7 @@ class recebePrecode{
                                                             $frete_final_sql = number_format($frete_item, 2, '.', ''); 
 
                                                                 // Importante: Assegure que as variáveis float usem ponto decimal no SQL
-                                                        $sql = "INSERT INTO pro_orca (
+                                                           $sql = "INSERT INTO pro_orca (
                                                                     orcamento, sequencia, produto, grade, padronizado, complemento, unidade, item_unid, 
                                                                     just_ipi, just_icms, just_subst, qtde_separada, quantidade, unitario, tabela, 
                                                                     preco_tabela, total_liq, CUSTO_MEDIO, ULT_CUSTO, FRETE, DESCONTO
@@ -461,8 +492,8 @@ class recebePrecode{
                                                                     '$descontoProd'
                                                                 )";
 
-                                                        if (mysqli_query($this->vendas->link, $sql) === TRUE) { 
-                                                        $sequencia++;
+                                                          if (mysqli_query($this->vendas->link, $sql) === TRUE) { 
+                                                          $sequencia++;
 
                                                             Logs::registrar(
                                                                 $this->integracao,
@@ -477,7 +508,7 @@ class recebePrecode{
                                                             echo '<div class="log-box log-success">';
                                                             echo '<i class="fas fa-check-circle"></i> Produto <strong>'.$id_produto_bd.'</strong> inserido no orçamento <strong>'.$codigoOrcamento.'</strong>. (Frete rateado: R$ '.$frete_final_sql.')';
                                                             echo '</div>';                                      
-                                                        } else {
+                                                         } else {
                                                             // Se falhar o insert
                                                             $msgErro = isset($result->mensagem) ? $result->mensagem : mysqli_error($this->vendas->link);
                                                             
@@ -487,10 +518,10 @@ class recebePrecode{
                                                             echo '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' . $msgErro . '</div>';
                                                             echo '</div>';
                                                         } 
-                                            }
+                                                }
 
                                             
-                                                } else {
+                                                 } else {
                                                     // Produto não encontrado
                                                     Logs::registrar(
                                                         $this->integracao,
@@ -503,7 +534,7 @@ class recebePrecode{
                                                     );
                                                     $sql = "UPDATE cad_orca SET DESTACAR = 'S' WHERE CODIGO = $codigoOrcamento";
                                                     $this->vendas->Consulta($sql);
-                                                }
+                                                 }
                                             }
                                         if ($codigoOrcamento > 0){
                                     
@@ -669,8 +700,10 @@ class recebePrecode{
                                     }   
                                         
                                             
-                    }                 
-             }            
+                    }   
+ 
+             }
+                       
         } else {
             // --- MELHORIA VISUAL ---
 			echo '<div class="log-box log-info text-center"> <h4><i class="fas fa-inbox"></i> Nenhum Pedido Novo</h4></div>';
