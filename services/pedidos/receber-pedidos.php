@@ -124,7 +124,7 @@ class recebePrecode{
         //CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/nf/",
           
        
-      CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
+     CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/aprovado/",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -149,7 +149,6 @@ class recebePrecode{
 
                 for ($i = 0; $i < count($result->pedido); $i++){  
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
-
 
                     $pedidoItens = $result->pedido[$i]->itens;
 

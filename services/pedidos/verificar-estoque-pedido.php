@@ -66,7 +66,7 @@ class VerificarEstoquePedido
                                  $estoqueprod  = $row_estoque['ESTOQUE'];
 
                                  if($estoqueprod  > 0 ){
-                                            return $this->response(false,'[X] saldo zerado para o Produto: '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] \n <br>' );
+                                            return $this->response(true,'[V] saldo suficiente para o Produto: '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] \n <br>' );
 
                                    }else{
                                             return $this->response(false,' [X] Estoque insuficiente. Produto:  '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] O pedido '.$codigo_pedido_precode.' nao será recebido \n <br>' );
