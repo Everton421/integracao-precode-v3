@@ -1,8 +1,5 @@
 <?php
-include_once(__DIR__ . '/../../database/conexao_publico.php');
-include_once(__DIR__ . '/../../database/conexao_estoque.php');
-include_once(__DIR__ . '/../../database/conexao_vendas.php');
-include_once(__DIR__ . '/../../database/conexao_integracao.php');
+ 
 
 class EnviarPrecoKit
 {

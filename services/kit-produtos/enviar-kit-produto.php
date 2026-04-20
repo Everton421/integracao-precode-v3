@@ -1,6 +1,5 @@
   <?php
-include_once(__DIR__ .'/../../database/conexao_publico.php');
-include_once(__DIR__ . '/../../database/conexao_integracao.php');
+ 
 include_once(__DIR__ . '/../../utils/enviar-foto.php');
 
     class EnviarKitProduto{

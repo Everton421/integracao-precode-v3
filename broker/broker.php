@@ -27,50 +27,65 @@ $queue = $ini['broker']['queue'] ?? "integracao_precode";
 $port  = $ini['broker']['port'] ?? 5672;
 $exchange  = $ini['broker']['exchange'] ?? "sistema";
 
-    $service = new EventoService($publico, $estoque, $vendas,   $integracao);
+   $service = new EventoService($publico, $estoque, $vendas, $integracao);
 
 try {
     $connection = new AMQPStreamConnection($url, $port, 'guest', 'guest');
     $channel = $connection->channel();
 
-        // 1. declarar exchange 
-      $channel->exchange_declare($exchange, 'fanout', false, true, false);
-
-    // 2. Declarar fila
+    $channel->exchange_declare($exchange, 'fanout', false, true, false);
     $channel->queue_declare($queue, false, false, false, false);
-
-      // 3. FAZER O BIND (Vincular a fila à exchange)
-    // Parâmetros: nome_da_fila, nome_da_exchange, routing_key
     $channel->queue_bind($queue, $exchange, '');
 
+    /**
+     * AJUSTE 1: Configuração do Prefetch (QoS)
+     * O segundo parâmetro (10) diz ao RabbitMQ para não enviar mais de 10 mensagens
+     * simultâneas para este worker antes que ele envie um ACK.
+     */
+    $channel->basic_qos(null, 10, null);
 
-     echo " [*] Sucesso: Fila '$queue' vinculada à Exchange '$exchange'\n";
-    echo " [*] Aguardando mensagens. Para sair, pressione CTRL+C\n";
+    echo " [*] Sucesso: Fila '$queue' vinculada à Exchange '$exchange'\n";
+    echo " [*] Aguardando mensagens (Limite: 10 por vez). Para sair, pressione CTRL+C\n";
 
-    $callback = function ($msg) use ($service) {
-      //  echo ' [x] Recebido: ', $msg->body, "\n";
-        if( $msg->body ){
+    $callback = function ($msg) use ($service, $publico, $vendas, $integracao) {
+        try {
+            if ($msg->body) {
                 $payload = json_decode($msg->body);
-                $tabela_origem = $payload->tabela_origem;
-                   $service->processarMensagem($msg->body);
-                   if($tabela_origem == 'cad_nf'){
-                        $serviceEnviarNotas = new EnviarNota();
-                        $serviceEnviarNotas->enviar();
-                   }
-          //  $service->teste();
+                $tabela_origem = $payload->tabela_origem ?? null;
+                
+                $service->processarMensagem($msg->body);
+                
+                if ($tabela_origem == 'cad_nf') {
+                    $serviceEnviarNotas = new EnviarNota();
+                    $serviceEnviarNotas->enviar($publico, $vendas, $integracao);
+                }
+            }
+
+            /**
+             * AJUSTE 2: Confirmação Manual (ACK)
+             * Avisamos ao RabbitMQ que a mensagem foi processada com sucesso e pode ser removida da fila.
+             */
+            $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
             
+        } catch (\Exception $e) {
+            echo "Erro ao processar mensagem: " . $e->getMessage() . "\n";
+            // Em caso de erro, você pode decidir se rejeita a mensagem ou tenta novamente
+            // basic_nack(tag, multiple, requeue)
+            $msg->delivery_info['channel']->basic_nack($msg->delivery_info['delivery_tag'], false, true);
         }
     };
 
-    $channel->basic_consume($queue, '', false, true, false, false, $callback);
+    /**
+     * AJUSTE 3: Desativar o auto_ack
+     * O quarto parâmetro mudou de 'true' para 'false'. 
+     * Agora o RabbitMQ espera o nosso comando 'basic_ack' dentro do callback.
+     */
+    $channel->basic_consume($queue, '', false, false, false, false, $callback);
 
-    while (count($channel->callbacks)) {
+    while ($channel->is_consuming()) {
         try {
-            // Espera por 3 segundos. Se não chegar nada, ele repete o loop e mantém a conexão viva.
             $channel->wait(null, false, 3);
         } catch (AMQPTimeoutException $e) {
-            // Se der timeout aqui, não é erro, é apenas o tempo de espera esgotado. 
-            // O loop vai continuar e o heartbeat vai manter a conexão.
             continue;
         }
     }

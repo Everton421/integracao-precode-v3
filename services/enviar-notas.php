@@ -1,12 +1,8 @@
 <?php
-include(__DIR__ . '/../database/conexao_publico.php');
-include(__DIR__ . '/../database/conexao_estoque.php');
-include(__DIR__ . '/../database/conexao_vendas.php');
-include(__DIR__ . '/../database/conexao_integracao.php');
-
+ 
 class EnviarNota
 {
-    function enviar()
+    function enviar($publico, $vendas, $integracao )
     {
 
         ini_set('max_execution_time', '0');
@@ -29,10 +25,7 @@ class EnviarNota
         }
 
         $appToken =  $ini['conexao']['token'];
-
-        $publico = new CONEXAOPUBLICO();
-        $vendas = new CONEXAOVENDAS();
-        $integracao = new CONEXAOINTEGRACAO();
+ 
 
         $databaseIntegracao = $integracao->getBase();
 

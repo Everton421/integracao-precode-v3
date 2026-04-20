@@ -1,12 +1,7 @@
 <?php
 date_default_timezone_set('America/Sao_Paulo');
 
-// Includes necessários
-include_once(__DIR__.'/../../database/conexao_publico.php');
-include_once(__DIR__.'/../../database/conexao_estoque.php'); 
-include_once(__DIR__.'/../../database/conexao_vendas.php');
-include_once(__DIR__.'/../../database/conexao_integracao.php');
-
+ 
 class EnviarSaldoKit {
 
     /**
