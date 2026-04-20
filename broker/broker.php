@@ -80,9 +80,9 @@ try {
      * O quarto parâmetro mudou de 'true' para 'false'. 
      * Agora o RabbitMQ espera o nosso comando 'basic_ack' dentro do callback.
      */
+  $consuming = true;
     $channel->basic_consume($queue, '', false, false, false, false, $callback);
-
-    while ($channel->is_consuming()) {
+    while ($consuming) {
         try {
             $channel->wait(null, false, 3);
         } catch (AMQPTimeoutException $e) {
@@ -94,12 +94,14 @@ try {
     echo "\n Erro: " . $e->getMessage() . "\n";
 } finally {
     try {
-        if (isset($channel) && $channel->is_open()) {
-            $channel->close();
-        }
+      
         if (isset($connection) && $connection->is_connected()) {
             $connection->close();
         }
     } catch (\Exception $e) {
     }
+
+       $vendas->Desconecta();
+        $publico->Desconecta();
+        $integracao->Desconecta();
 }

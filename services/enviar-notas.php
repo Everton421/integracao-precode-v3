@@ -180,8 +180,6 @@ class EnviarNota
             echo "</main>";
         }
 
-        $vendas->Desconecta();
-        $publico->Desconecta();
-        $integracao->Desconecta();
+     
     }
 }
