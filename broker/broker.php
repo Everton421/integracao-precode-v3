@@ -27,7 +27,7 @@ $queue = $ini['broker']['queue'] ?? "integracao_precode";
 $port  = $ini['broker']['port'] ?? 5672;
 $exchange  = $ini['broker']['exchange'] ?? "sistema";
 
-   $service = new EventoService($publico, $estoque, $vendas, $integracao);
+   $eventoService = new EventoService($publico, $estoque, $vendas, $integracao);
 
 try {
     $connection = new AMQPStreamConnection($url, $port, 'guest', 'guest');
@@ -47,18 +47,18 @@ try {
     echo " [*] Sucesso: Fila '$queue' vinculada à Exchange '$exchange'\n";
     echo " [*] Aguardando mensagens (Limite: 10 por vez). Para sair, pressione CTRL+C\n";
 
-    $callback = function ($msg) use ($service, $publico, $vendas, $integracao) {
+    $callback = function ($msg) use ($eventoService, $publico, $vendas, $integracao) {
         try {
             if ($msg->body) {
                 $payload = json_decode($msg->body);
                 $tabela_origem = $payload->tabela_origem ?? null;
-                
-                $service->processarMensagem($msg->body);
-                
-                if ($tabela_origem == 'cad_nf') {
+              if ($tabela_origem == 'cad_nf') {
                     $serviceEnviarNotas = new EnviarNota();
                     $serviceEnviarNotas->enviar( $vendas, $integracao);
                 }
+                $eventoService->processarMensagem($msg->body);
+                
+            
             }
 
             /**
