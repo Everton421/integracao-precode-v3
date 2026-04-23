@@ -149,13 +149,6 @@ class recebePrecode{
                     
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
 
-
-                    if($codigoPedidoSite != 125230){
-                      echo  "Pedido $codigoPedidoSite != 125230" ;
-                      return;
-                    }
-
-
                     $pedidoItens = $result->pedido[$i]->itens;
 
 
