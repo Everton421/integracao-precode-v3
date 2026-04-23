@@ -538,7 +538,7 @@ class recebePrecode{
                                                     DATE_ADD(CURDATE(), INTERVAL 1 DAY),
                                                     $this->codigoTipoRecebimento                    
                                                     )";	
-                             /*
+                             
                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                             Logs::registrar(
                                                                         $this->integracao,
@@ -670,7 +670,7 @@ class recebePrecode{
                                                             echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                             echo '</div>';
                                             }    
-                                            */
+                                        
                                         } 
                                     } else{
                                         Logs::registrar(
