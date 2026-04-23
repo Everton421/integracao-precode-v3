@@ -1,9 +1,13 @@
 <?php
-class PedidoSemEstoque
+class UpdateStatusOrder
 {
     private $token;    
 
-    function put($codigo_pedido)
+     /**
+      * $codigo_pedido = codigo do pedido;
+      * $pathUrlStatusOrder = caminho da url que determina o status do pedido, ex.: pedidosemestoque, aprovado;
+      */
+    function put($codigo_pedido,string $pathUrlStatusOrder)
     {
 
                   $ini = parse_ini_file(__DIR__ .'/../conexao.ini', true);
@@ -11,8 +15,9 @@ class PedidoSemEstoque
 
 
         $curl = curl_init();
+        print_r("https://www.replicade.com.br/api/v1/erp/$pathUrlStatusOrder");
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/pedidosemestoque",
+            CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/$pathUrlStatusOrder",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
@@ -44,13 +49,10 @@ class PedidoSemEstoque
 
         curl_close($curl);
 
-        print_r( $httpcode);
-        print_r($json_result);
-        if(!empty($response) && $httpcode == 200 ){
-            
-                return $this->response(true,'');
+        if( $httpcode == 200 ){
+                return $this->response(true, "status $httpcode ",  $json_result);
         }else{
-                return $this->response(false,'Erro ao tentar atualizar status do pedido');
+                return $this->response(false,"Erro ao tentar atualizar status do pedido status $httpcode", $json_result);
         }
     }
 

@@ -2,7 +2,7 @@
  
 class EnviarNota
 {
-    function enviar($publico, $vendas, $integracao )
+    function enviar($vendas, $integracao )
     {
 
         ini_set('max_execution_time', '0');
@@ -13,15 +13,9 @@ class EnviarNota
 
         $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
-        $tabelaprecopadrao = 1;
-        if ($ini['conexao']['tabelaPreco'] && !empty($ini['conexao']['tabelaPreco'])) {
-            $tabelaprecopadrao = $ini['conexao']['tabelaPreco'];
-        }
-
-
         if (empty($ini['conexao']['token'])) {
             echo 'token da aplicação não fornecido';
-            exit();
+            return;
         }
 
         $appToken =  $ini['conexao']['token'];
@@ -33,35 +27,25 @@ class EnviarNota
         echo '<div class="card-header alert alert-info" align="center"><h3 style="color: #008080;""><b>Buscando informações fiscais..</b></h3>'; //abrindo o header com informação
         echo '</div>';
 
-        $busca_nf = $vendas->Consulta("SELECT pid.situacao, co.COD_SITE, cnf.CHAVE_NFE, cnf.NUMERO_NF, cnf.DATA_EMISSAO, cnf.SERIE, xf.XML_NFE FROM cad_orca co 
-                                                            inner join " . $databaseIntegracao . ".pedido_precode pid on co.codigo = pid.codigo_pedido_bd
+        $sqlInvoices = "SELECT pid.situacao, co.COD_SITE, cnf.CHAVE_NFE, cnf.NUMERO_NF, cnf.DATA_EMISSAO, cnf.SERIE, xf.XML_NFE
+                                                     FROM cad_orca co 
+                                                            inner join ".$databaseIntegracao.".pedido_precode pid on co.codigo = pid.codigo_pedido_bd
                                                             inner join cad_nf cnf on cnf.pedido = co.codigo
                                                             inner join xml_fatur xf on xf.FATUR = cnf.CODIGO
                                                             where cnf.CHAVE_NFE != ''
-                                                            and pid.situacao = 'aprovado'");
+                                                            and pid.situacao = 'aprovado';";
+
+        $busca_nf = $vendas->Consulta($sqlInvoices);
         $retorno = mysqli_num_rows($busca_nf);
+
+
         if ($retorno > 0) {
             while ($row = mysqli_fetch_array($busca_nf, MYSQLI_ASSOC)) {
                 $id_pedido  = $row['COD_SITE'];
                 $chave_nf  = $row['CHAVE_NFE'];
-                $numero_nf  = $row['NUMERO_NF'];
-                $data_emissao  = $row['DATA_EMISSAO'];
                 $xml  = base64_encode($row['XML_NFE']);
-                $status = $row['situacao'];
-                $serie = $row['SERIE'];
 
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/faturamento",
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => "",
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => "PUT",
-                    CURLOPT_POSTFIELDS => "
+                $object_json_put = "
                     {
                         \r\n\"pedido\": 
                         [
@@ -74,7 +58,20 @@ class EnviarNota
                             \r\n    
                         ]
                         \r\n
-                    }",
+                    }"; 
+
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => "https://www.replicade.com.br/api/v1/erp/faturamento",
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => "",
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => "PUT",
+                    CURLOPT_POSTFIELDS => $object_json_put,
                     CURLOPT_HTTPHEADER => array(
                         "Authorization: $appToken",
                         "Content-Type: application/json"
@@ -92,94 +89,31 @@ class EnviarNota
                 $retorno2 = mysqli_num_rows($busca_status);
 
                 if ($codMensagem == 0) {
-                    echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> Nota inserida com sucesso!<br>Cód:' . $id_pedido . '<br>' . $mensagem_nf_err;
-                    echo '</div>';
                     $sql = "update pedido_precode set situacao = 'nota_enviada' where codigo_pedido_site = '$id_pedido'";
-                    print_r($sql);
                     if (mysqli_query($integracao->link, $sql) === TRUE) {
-                        echo '<div class="card-header alert alert-success"> <h3 style="color: green;" align="center"> XML da nota inserida com sucesso!';
-                        echo "<br><br>";
-                        print_r("
-                            {
-                                \r\n\"pedido\": 
-                                [
-                                    \r\n
-                                    {
-                                        \r\n\"codigoPedido\": $id_pedido,
-                                        \r\n\"chaveNF\": \"$chave_nf\",
-                                        \r\n\"xml\": \"$xml\"\r\n        
-                                    }
-                                    \r\n    
-                                ]
-                                \r\n
-                            }");
-                        echo "<br><br>";
-                        echo '</div>';
+                         return $this->response(false,'XML da nota inserida com sucesso!'  );
+
                     } else {
-                        echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center">Falha ao inserir XML da  nota fiscal';
-                        echo "<br><br>";
-                        print_r("
-                            {
-                                \r\n\"pedido\": 
-                                [
-                                    \r\n
-                                    {
-                                        \r\n\"codigoPedido\": $id_pedido,
-                                        \r\n\"chaveNF\": \"$chave_nf\",
-                                        \r\n\"xml\": \"$xml\"\r\n        
-                                    }
-                                    \r\n    
-                                ]
-                                \r\n
-                            }");
-                        echo "<br><br>";
-                        echo '</div>';
+                         return $this->response(false,'Falha ao inserir XML da  nota fiscal'  );
                     }
-                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                    print_r(date('d/m/Y h:i:s'));
-                    echo '</div></b>';
                 } else {
-                    echo '<div class="card-header alert alert-danger"> <h3 style="color: red;" align="center">Falha ao inserir nota fiscal <br>Cód:' . $numeroPedido . '<br>' . $mensagem_nf_err;
-                    echo "<br><br>";
-                    print_r("
-                            {
-                                \r\n\"pedido\": 
-                                [
-                                    \r\n
-                                    {
-                                        \r\n\"codigoPedido\": $id_pedido,
-                                        \r\n\"chaveNF\": \"$chave_nf\",
-                                        \r\n\"xml\": \"$xml\"\r\n        
-                                    }
-                                    \r\n    
-                                ]
-                                \r\n
-                            }");
-                    echo "<br><br>";
-                    echo '</div>';
-                    echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-                    print_r(date('d/m/Y h:i:s'));
-                    echo '</div></b>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo "</main>";
+                 return $this->response(false,'Falha ao inserir nota fiscal <br>Cód:' . $numeroPedido . '<br>' . $mensagem_nf_err);
                 }
             }
         } else {
-            echo '<div class="card-header alert alert-warning"> <h3 style="color: orange;" align="center">Não há notas/XML pendentes';
-            echo '</div>';
-            echo '<div class="card-header alert alert-info" align="center"><b style="color: #008080;">';
-            print_r(date('d/m/Y h:i:s'));
-            echo '</div></b>';
-            echo '</div>';
-            echo '</div>';
-            echo '</div>';
-            echo '</div>';
-            echo "</main>";
+            // Não há notas/XML pendentes
+                 return $this->response(false,' [X] Não há notas/XML pendentes. \n <br>');
+
         }
 
      
+    }
+
+      private function response(bool $success, string $message, $data = null): string {
+        return json_encode([
+            'success' => $success,
+            'message' =>   $message,
+            'data' => $data
+        ]);
     }
 }

@@ -57,7 +57,7 @@ try {
                 
                 if ($tabela_origem == 'cad_nf') {
                     $serviceEnviarNotas = new EnviarNota();
-                    $serviceEnviarNotas->enviar($publico, $vendas, $integracao);
+                    $serviceEnviarNotas->enviar( $vendas, $integracao);
                 }
             }
 

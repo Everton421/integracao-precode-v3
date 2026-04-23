@@ -10,7 +10,6 @@ include_once(__DIR__.'/receber-transportadora.php');
 include_once(__DIR__.'/receber-cliente.php');
 include_once(__DIR__."/../../utils/registrar-logs.php");
 include_once(__DIR__.'/verificar-estoque-pedido.php');
-include_once(__DIR__ . '/../../utils/pedido-sem-estoque.php');
 
 class recebePrecode{
     public $curl;    	
@@ -32,12 +31,10 @@ class recebePrecode{
     private $formaPagamento= 1;
     private $databaseVendas ;
     private $databaseIntegracao;
-    private $pedidoSemEstoque;
     
     public function recebe(){
         $tentativas = 0;
 		try {
-         $this->pedidoSemEstoque = new PedidoSemEstoque();
 
 			$this->publico = new CONEXAOPUBLICO();	
             $this->vendas = new CONEXAOVENDAS();
@@ -140,7 +137,7 @@ class recebePrecode{
         $result = json_decode($response);    
         curl_close($curl);  
      
-        
+
         if(!empty($result)){  
 
                 for ($i = 0; $i < count($result->pedido); $i++){  
@@ -148,7 +145,16 @@ class recebePrecode{
                 }
 
                 for ($i = 0; $i < count($result->pedido); $i++){  
+
+                    
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
+
+
+                    if($codigoPedidoSite != 125230){
+                      echo  "Pedido $codigoPedidoSite != 125230" ;
+                      return;
+                    }
+
 
                     $pedidoItens = $result->pedido[$i]->itens;
 
@@ -173,6 +179,7 @@ class recebePrecode{
                     $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
     
                         $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
+                                $this->integracao,
                                 $this->publico,
                                 $this->vendas,
                                 $this->estoque,
@@ -184,11 +191,8 @@ class recebePrecode{
                                 print_r($json->message);
                                 // pula para o proximo pedido caso nao tiver estoque
                             if(!$json->success){
-                              $resultPutPedidoSemEstoque=  $this->pedidoSemEstoque->put($codigoPedidoSite);
                               echo '<br>';
-                              print_r($resultPutPedidoSemEstoque);
                               echo '<br>';
-
                               continue;
                             }
 
@@ -544,7 +548,7 @@ class recebePrecode{
                                                     DATE_ADD(CURDATE(), INTERVAL 1 DAY),
                                                     $this->codigoTipoRecebimento                    
                                                     )";	
-    
+                             /*
                                         if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                             Logs::registrar(
                                                                         $this->integracao,
@@ -676,8 +680,8 @@ class recebePrecode{
                                                             echo '<p>Orçamento: '.$codigoOrcamento.'</p>';
                                                             echo '</div>';
                                             }    
-                                            
-                                        }
+                                            */
+                                        } 
                                     } else{
                                         Logs::registrar(
                                                             $this->integracao,

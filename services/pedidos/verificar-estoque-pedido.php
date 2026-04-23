@@ -3,23 +3,22 @@ ini_set('mysql.connect_timeout', '0');
 ini_set('max_execution_time', '0');
 date_default_timezone_set('America/Sao_Paulo'); //
 include_once(__DIR__ . '/../../database/conexao_publico.php');
+include_once(__DIR__ . '/../../utils/update-status-order.php');
 
 
 class VerificarEstoquePedido
 {
    public $curl;
-
-   public $tabelaprecopadrao = 1;
-   public $filial = 1;
-   public $indice;
+    private $updateStatusOrder;
 
    /**
     * @param $publico, $vendas, $estoque connexoes do banco de dados 
     * @param $produtos_pedido produtos do pedido vindo da precode 
     * @param $codigo_pedido_precode codigo do peidido da precode 
     */
-      function verify($publico, $vendas, $estoque, $produtos_pedido, $codigo_pedido_precode)
+      function verify($integracao, $publico, $vendas, $estoque, $produtos_pedido, $codigo_pedido_precode)
       {
+         $this->updateStatusOrder = new UpdateStatusOrder();
 
          //$ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
          $ini = parse_ini_file(__DIR__ . '/../../conexao.ini', true);
@@ -31,11 +30,12 @@ class VerificarEstoquePedido
          $databaseEstoque = $estoque->getBase();
          $databasePublico = $publico->getBase();
 
-         $qtd_itens = count($produtos_pedido);
-         if ($qtd_itens > 0) {
+         $qtd_itens_pedido = count($produtos_pedido);
+         if ($qtd_itens_pedido > 0) {
                                           
-                           for ($p = 0; $p < $qtd_itens; $p++) {
-                                                   $referenciaLoja = $produtos_pedido[$p]->referenciaLoja;
+                           for ($order_counter = 0; $order_counter < $qtd_itens_pedido; $order_counter++) {
+                                                   $referenciaLoja = $produtos_pedido[$order_counter]->referenciaLoja;
+                                                     $quantidade_produto = $produtos_pedido[$order_counter]->quantidade;
                                                    
                                                    $sql = "SELECT  
                                                          est.CODIGO, est.referencia,
@@ -59,24 +59,27 @@ class VerificarEstoquePedido
                                                                AND PS.SETOR = '$setor'
                                                                GROUP BY P.CODIGO) AS est ";
                                                    $buscaEstoque = $estoque->Consulta($sql);
+
                               $retornoestoque = mysqli_num_rows($buscaEstoque);
                         
                               if($retornoestoque > 0 ){   
                                     while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                                  $estoqueprod  = $row_estoque['ESTOQUE'];
 
-                                 if($estoqueprod  > 0 ){
+                                 if($estoqueprod  > $quantidade_produto ){
                                             return $this->response(true,'[V] saldo suficiente para o Produto: '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] \n <br>' );
-
+ 
                                    }else{
-                                            return $this->response(false,' [X] Estoque insuficiente. Produto:  '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] O pedido '.$codigo_pedido_precode.' nao será recebido \n <br>' );
-                                     }
+                                               $resultInsertorderOutOfStock = $integracao->Consulta("INSERT INTO produtos_pedido_sem_estoque set codigo_pedido_site = $codigo_pedido_precode,  produto_pedido = $referenciaLoja, quantidade_necessaria =$quantidade_produto data_inclusao= NOW();");
+                                           //    $resultPutPedidoSemEstoque=  $this->updateStatusOrder->put($codigo_pedido_precode, 'pedidosemestoque');
+                                           // return $this->response(false,' [X] Estoque insuficiente. Produto:  '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] O pedido '.$codigo_pedido_precode.' nao será recebido \n <br>' );
+
+                                            }
                                   }
 
                               }else{
                                     return $this->response(false,  ' [X] Produto: '.$referenciaLoja .'. Não foi encontrado nos registros do produto nos setores. \n <br>');
                               }
-
                   }
          
          }else{
