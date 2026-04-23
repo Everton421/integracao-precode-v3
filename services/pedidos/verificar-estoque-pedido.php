@@ -70,9 +70,9 @@ class VerificarEstoquePedido
                                             return $this->response(true,'[V] saldo suficiente para o Produto: '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] \n <br>' );
  
                                    }else{
-                                               $resultInsertorderOutOfStock = $integracao->Consulta("INSERT INTO produtos_pedido_sem_estoque set codigo_pedido_site = $codigo_pedido_precode,  produto_pedido = $referenciaLoja, quantidade_necessaria =$quantidade_produto data_inclusao= NOW();");
-                                           //    $resultPutPedidoSemEstoque=  $this->updateStatusOrder->put($codigo_pedido_precode, 'pedidosemestoque');
-                                           // return $this->response(false,' [X] Estoque insuficiente. Produto:  '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] O pedido '.$codigo_pedido_precode.' nao será recebido \n <br>' );
+                                              // $resultInsertorderOutOfStock = $integracao->Consulta("INSERT INTO produtos_pedido_sem_estoque set codigo_pedido_site = $codigo_pedido_precode,  produto_pedido = $referenciaLoja, quantidade_necessaria =$quantidade_produto data_inclusao= NOW();");
+                                                $resultPutPedidoSemEstoque=  $this->updateStatusOrder->put($codigo_pedido_precode, 'pedidosemestoque');
+                                           return $this->response(false,' [X] Estoque insuficiente. Produto:  '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] O pedido '.$codigo_pedido_precode.' nao será recebido \n <br>' );
 
                                             }
                                   }

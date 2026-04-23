@@ -145,9 +145,13 @@ class recebePrecode{
                 }
 
                 for ($i = 0; $i < count($result->pedido); $i++){  
-
-                    
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
+
+                    if($codigoPedidoSite  != 125230 ){
+                                print_r("[X] Pedido $codigoPedidoSite  != 125230 ");     
+                        return;
+                    }   
+                    
 
                     $pedidoItens = $result->pedido[$i]->itens;
 
@@ -171,23 +175,23 @@ class recebePrecode{
                     $cnpjTransport = $this->formatCnpjCpf($result-> pedido[$i]->dadosRastreio->CNPJfilial);
                     $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
     
-                  //      $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
-                  //              $this->integracao,
-                  //              $this->publico,
-                  //              $this->vendas,
-                  //              $this->estoque,
-                  //              $pedidoItens,
-                  //              $codigoPedidoSite
-                  //              );
-//
-                  //              $json = json_decode($resultVerifyEstoque);
-                  //              print_r($json->message);
-                  //              // pula para o proximo pedido caso nao tiver estoque
-                  //          if(!$json->success){
-                  //            echo '<br>';
-                  //            echo '<br>';
-                  //            continue;
-                  //          }
+                         $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
+                                 $this->integracao,
+                                 $this->publico,
+                                 $this->vendas,
+                                 $this->estoque,
+                                 $pedidoItens,
+                                 $codigoPedidoSite
+                                 );
+ 
+                                 $json = json_decode($resultVerifyEstoque);
+                                 print_r($json->message);
+                                 // pula para o proximo pedido caso nao tiver estoque
+                             if(!$json->success){
+                               echo '<br>';
+                               echo '<br>';
+                               continue;
+                             }
 //
 
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
@@ -539,7 +543,7 @@ class recebePrecode{
                                                     $this->codigoTipoRecebimento                    
                                                     )";	
                              
-                                        if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
+                                               if (mysqli_query($this->vendas->link, $sql) === TRUE){ 
                                                             Logs::registrar(
                                                                         $this->integracao,
                                                                         $this->databaseIntegracao,
@@ -662,8 +666,8 @@ class recebePrecode{
                                                                 echo '<h3 class="text-danger text-center"><i class="fas fa-thumbs-down"></i> Falha ao confirmar o aceite!</h3>';
                                                                 echo '</div>';
                                                             }
-                                                        
-                                                    }else{
+                                                         
+                                                 }else{
                                                             // --- MELHORIA VISUAL ---
                                                             echo '<div class="log-box log-danger">';
                                                             echo '<h3 class="text-danger"><i class="fas fa-times"></i> Falha ao inserir forma de pagamento</h3>';
@@ -672,7 +676,7 @@ class recebePrecode{
                                             }    
                                         
                                         } 
-                                    } else{
+                                     } else{
                                         Logs::registrar(
                                                             $this->integracao,
                                                             $this->databaseIntegracao,
