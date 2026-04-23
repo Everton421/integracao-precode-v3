@@ -178,27 +178,24 @@ class recebePrecode{
                     $cnpjTransport = $this->formatCnpjCpf($result-> pedido[$i]->dadosRastreio->CNPJfilial);
                     $PedidoMktplace = $result->pedido[$i]->pedidoParceiro;
     
-                        $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
-                                $this->integracao,
-                                $this->publico,
-                                $this->vendas,
-                                $this->estoque,
-                                $pedidoItens,
-                                $codigoPedidoSite
-                                );
-
-                                $json = json_decode($resultVerifyEstoque);
-                                print_r($json->message);
-                                // pula para o proximo pedido caso nao tiver estoque
-                            if(!$json->success){
-                              echo '<br>';
-                              echo '<br>';
-                              continue;
-                            }
-
-
-
-                     
+                  //      $resultVerifyEstoque=  $this->verificarEstoquePedido->verify(
+                  //              $this->integracao,
+                  //              $this->publico,
+                  //              $this->vendas,
+                  //              $this->estoque,
+                  //              $pedidoItens,
+                  //              $codigoPedidoSite
+                  //              );
+//
+                  //              $json = json_decode($resultVerifyEstoque);
+                  //              print_r($json->message);
+                  //              // pula para o proximo pedido caso nao tiver estoque
+                  //          if(!$json->success){
+                  //            echo '<br>';
+                  //            echo '<br>';
+                  //            continue;
+                  //          }
+//
 
                     $filial_cd = $result->pedido[$i]->dadosRastreio->idCentroDistribuicao;
                     
