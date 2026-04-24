@@ -147,11 +147,6 @@ class recebePrecode{
                 for ($i = 0; $i < count($result->pedido); $i++){  
                     $codigoPedidoSite = $result->pedido[$i]->codigoPedido;
 
-                    if($codigoPedidoSite  != 125230 ){
-                                print_r("[X] Pedido $codigoPedidoSite  != 125230 ");     
-                        return;
-                    }   
-                    
 
                     $pedidoItens = $result->pedido[$i]->itens;
 
