@@ -593,25 +593,25 @@ class recebePrecode{
                                                                 echo '<h3 class="text-success text-center"><i class="fas fa-thumbs-up"></i> Aceite confirmado!</h3>';
                                                                 
                                                                 // Formatando o JSON string para ficar legível
-                                                                $jsonDebug = "
-                                                                {
-                                                                    \r\n\"pedido\": 
-                                                                    [
-                                                                        \r\n
-                                                                        {
-                                                                            \r\n\"codigoPedido\": $codigoPedidoSite,
-                                                                            \r\n\"numeroPedidoERP\": $codigoOrcamento,
-                                                                            \r\n\"numeroFilialFatura\": $filial_cd,
-                                                                            \r\n\"numeroFilialSaldo\": $filial_cd\r\n
-                                                                        }
-                                                                        \r\n
-                                                                    ]
-                                                                        
-                                                                    \r\n
-                                                                }";
-                                                                echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
-                                                                echo '</div>';
-            
+                                                           //     $jsonDebug = "
+                                                           //     {
+                                                           //         \r\n\"pedido\": 
+                                                           //         [
+                                                           //             \r\n
+                                                           //             {
+                                                           //                 \r\n\"codigoPedido\": $codigoPedidoSite,
+                                                           //                 \r\n\"numeroPedidoERP\": $codigoOrcamento,
+                                                           //                 \r\n\"numeroFilialFatura\": $filial_cd,
+                                                           //                 \r\n\"numeroFilialSaldo\": $filial_cd\r\n
+                                                           //             }
+                                                           //             \r\n
+                                                           //         ]
+                                                           //             
+                                                           //         \r\n
+                                                           //     }";
+                                                           //     echo '<div class="log-code"><pre>' . htmlspecialchars($jsonDebug) . '</pre></div>';
+                                                           //     echo '</div>';
+     
         
                                                                 $data_atual = date('Y-m-d h:i:s');
                                                                 $sql = "INSERT INTO pedido_precode (codigo_pedido_site, codigo_pedido_bd, data_inclusao, situacao)
