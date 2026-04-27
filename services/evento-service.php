@@ -39,6 +39,7 @@ class EventoService {
     }
 
     private function processarEventoProduto($data) {
+
         $id_evento      = $data['id_evento'];
         $codigo_produto = $data['id_registro'];
         $tabela_origem  = $data['tabela_origem'];

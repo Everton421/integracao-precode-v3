@@ -7,7 +7,8 @@ include_once(__DIR__.'/../database/conexao_estoque.php');
 include_once(__DIR__.'/../database/conexao_vendas.php');
 include_once(__DIR__.'/../database/conexao_integracao.php');
 include_once(__DIR__.'/../database/conexao_eventos.php');
-    include_once(__DIR__."/../services/enviar-notas.php");
+include_once(__DIR__."/../services/enviar-notas.php");
+include_once(__DIR__."/../utils/obter-vinculo-produto.php");
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
@@ -18,7 +19,7 @@ $vendas = new CONEXAOVENDAS();
 $eventos = new CONEXAOEVENTOS();
 $integracao = new CONEXAOINTEGRACAO();
    
-    
+$obtervinculoProduto = new ObterVinculo();    
 
 $ini = parse_ini_file(__DIR__ . '/../conexao.ini', true);
 
@@ -47,7 +48,7 @@ try {
     echo " [*] Sucesso: Fila '$queue' vinculada à Exchange '$exchange'\n";
     echo " [*] Aguardando mensagens (Limite: 10 por vez). Para sair, pressione CTRL+C\n";
 
-    $callback = function ($msg) use ($eventoService, $publico, $vendas, $integracao) {
+    $callback = function ($msg) use ($eventoService, $publico, $vendas, $integracao, $obtervinculoProduto ) {
         try {
             if ($msg->body) {
                 $payload = json_decode($msg->body);
@@ -55,6 +56,11 @@ try {
               if ($tabela_origem == 'cad_nf') {
                     $serviceEnviarNotas = new EnviarNota();
                     $serviceEnviarNotas->enviar( $vendas, $integracao);
+                }
+
+                $id_registro = $payload->id_registro;
+                if($tabela_origem == 'cad_prod' || $tabela_origem == 'prod_tabprecos' || $tabela_origem == 'pro_orca' ||   $tabela_origem == 'prod_setor' ){
+                    $obtervinculoProduto->getVinculo($id_registro);
                 }
                 $eventoService->processarMensagem($msg->body);
                 
