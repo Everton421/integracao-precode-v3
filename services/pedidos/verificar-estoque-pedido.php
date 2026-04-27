@@ -66,7 +66,7 @@ class VerificarEstoquePedido
                                     while($row_estoque = mysqli_fetch_array($buscaEstoque, MYSQLI_ASSOC)){	
                                  $estoqueprod  = $row_estoque['ESTOQUE'];
 
-                                 if($estoqueprod  > $quantidade_produto ){
+                                 if($estoqueprod  >= $quantidade_produto ){
                                             return $this->response(true,'[V] saldo suficiente para o Produto: '. $referenciaLoja. ' saldo [ '.$estoqueprod.' ] \n <br>' );
  
                                    }else{
