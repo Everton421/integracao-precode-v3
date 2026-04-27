@@ -67,7 +67,7 @@ class ObterVinculo {
 
                 // Verifica se já existe o vínculo
                 // IMPORTANTE: Adicionei aspas simples '$sku_precode' para evitar erro de SQL se for string
-                $sqlCheck = "SELECT CODIGO_BD FROM produto_precode 
+                $sqlCheck = "SELECT CODIGO_BD FROM $databaseIntegracao.produto_precode 
                              WHERE CODIGO_SITE = '$sku_precode' AND CODIGO_BD = '$codigo_sistema'";
                 
                 $validationProduct = $integracao->consulta($sqlCheck);
@@ -75,7 +75,7 @@ class ObterVinculo {
                 if (mysqli_num_rows($validationProduct) == 0) {
                     
                     // Insere o novo vínculo
-                    $sqlInsert = "INSERT INTO produto_precode (CODIGO_SITE, CODIGO_BD, PRECO_SITE, EAN, SKU_LOJA, REF_LOJA) 
+                    $sqlInsert = "INSERT INTO $databaseIntegracao.produto_precode (CODIGO_SITE, CODIGO_BD, PRECO_SITE, EAN, SKU_LOJA, REF_LOJA) 
                                   VALUES ('$sku_precode', '$codigo_sistema', '$preco_site', '$ean', '$sku_precode', '$codigo_sistema')";
                     
                     $insertResult = $integracao->consulta($sqlInsert);
@@ -93,7 +93,7 @@ class ObterVinculo {
 
                             if ($cod_grade > 0) {
                                 // Tenta vincular Grade
-                                $sqlGrade = "INSERT INTO grade_precode SET CODIGO_SITE='$id_produto_pai', CODIGO_BD='$cod_grade' 
+                                $sqlGrade = "INSERT INTO $databaseIntegracao.grade_precode SET CODIGO_SITE='$id_produto_pai', CODIGO_BD='$cod_grade' 
                                              ON DUPLICATE KEY UPDATE CODIGO_BD='$cod_grade'";
                                 
                                 $resultVincGrade = $integracao->Consulta($sqlGrade);
